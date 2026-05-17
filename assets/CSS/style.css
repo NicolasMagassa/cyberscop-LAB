@@ -1,0 +1,113 @@
+/* * ANIMATIONS & UTILITAIRES (depuis la version précédente) */
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.toggle__checkbox:checked {
+    right: 0;
+    border-color: #4F46E5;
+}
+.toggle__checkbox:checked+.toggle__label {
+    background-color: #4F46E5;
+}
+*:focus-visible {
+    outline: 2px solid #4F46E5;
+    outline-offset: 2px;
+}
+
+/* =========================================
+   STYLE DU NOUVEAU DESIGN CYBER
+   ========================================= */
+
+/* Effet CRT (Scanlines) - Adaptatif */
+.scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.4;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+    background-size: 100% 4px;
+}
+
+/* En Dark Mode, on change la couleur des scanlines */
+html.dark .scanlines {
+    background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0) 50%, rgba(0, 255, 65, 0.05) 50%, rgba(0, 255, 65, 0.05));
+    background-size: 100% 4px;
+}
+
+/* Style Années 80 pour le sous-titre */
+.retro-80s {
+    background: linear-gradient(180deg, #d600d6 0%, #00b8c2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+    letter-spacing: -1px;
+}
+
+/* Ajustement rétro pour dark mode */
+html.dark .retro-80s {
+    background: linear-gradient(180deg, #ff00ff 0%, #00ffff 100%);
+    -webkit-background-clip: text;
+    text-shadow: 0 0 10px rgba(214, 0, 214, 0.5);
+}
+
+/* Scrollbar custom */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+html.dark ::-webkit-scrollbar-track {
+    background: #0a0f14;
+}
+::-webkit-scrollbar-thumb {
+    background: #00aa2c;
+    border-radius: 2px;
+}
+html.dark ::-webkit-scrollbar-thumb {
+    background: #00aa2c;
+    border: 1px solid #000;
+}
+.custom-scrollbar::-webkit-scrollbar {
+     width: 6px;
+}
+
+/* Utilitaires de transition */
+.theme-transition {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+}
+
+/* Ticker Animation */
+@keyframes ticker {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+.animate-ticker {
+    animation: ticker 30s linear infinite;
+}
+.ticker-pause:hover {
+    animation-play-state: paused;
+}
+
+/* Dropdown Animation */
+.dropdown-content {
+    display: none;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.dropdown:hover .dropdown-content {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}

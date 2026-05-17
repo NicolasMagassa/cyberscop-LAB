@@ -1,0 +1,449 @@
+import os
+
+base_dir = r"c:\Users\user\Desktop\developpeur\BLOG PERSO\cyberscop LAB"
+
+html_content = """<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberScope Lab | Blog Cybersécurité</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuration Tailwind Externe -->
+    <script src="assets/js/tailwind-config.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&family=Share+Tech+Mono&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Fichier CSS Externe -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="bg-gray-50 dark:bg-cyber-dark text-gray-800 dark:text-gray-300 font-body relative overflow-x-hidden min-h-screen flex flex-col theme-transition">
+
+    <!-- Overlay Scanlines -->
+    <div class="scanlines"></div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-[60] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white border border-gray-300 w-full max-w-md shadow-xl relative overflow-hidden font-body" onclick="event.stopPropagation()">
+            <div class="bg-gray-100 border-b border-gray-200 p-4 flex justify-between items-center">
+                <span class="text-gray-900 text-lg font-bold font-orbitron">CONNEXION SÉCURISÉE</span>
+                <button onclick="toggleLoginModal()" class="text-gray-500 hover:text-red-500 transition-colors p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div class="text-gray-700 text-sm mb-4">
+                    <h4 class="font-bold text-lg mb-2">Accès au CyberScope Lab</h4>
+                    <p class="text-sm text-gray-500">Veuillez entrer vos identifiants pour accéder à votre espace sécurisé.</p>
+                    <p id="auth-message" class="mt-4 text-red-600 hidden font-mono text-xs"></p>
+                </div>
+                
+                <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+                    <div>
+                        <label class="block text-xs text-gray-700 mb-1 uppercase font-bold">Identifiant</label>
+                        <input id="username-input" type="text" class="w-full bg-gray-50 border border-gray-300 text-gray-900 p-3 focus:border-cyber-blue focus:outline-none focus:ring-1 focus:ring-cyber-blue rounded-md font-body" placeholder="sysadmin" value="Sysadmin">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-700 mb-1 uppercase font-bold">Mot de passe</label>
+                        <div class="relative">
+                            <input id="password-input" type="password" class="w-full bg-gray-50 border border-gray-300 text-gray-900 p-3 focus:border-cyber-blue focus:outline-none focus:ring-1 focus:ring-cyber-blue rounded-md font-body" placeholder="*********">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-4">
+                        <button type="submit" class="w-full bg-cyber-green text-white font-bold py-3 hover:bg-cyber-neonGreen hover:text-black transition-colors uppercase text-sm rounded-md shadow-md">
+                            SE CONNECTER
+                        </button>
+                        <button type="button" onclick="handleSignupAttempt()" class="w-full bg-transparent border border-cyber-blue text-cyber-blue font-bold py-2 hover:bg-cyber-blue hover:text-white transition-colors uppercase text-sm rounded-md">
+                            S'inscrire
+                        </button>
+                        <button type="button" onclick="handlePasswordResetAttempt()" class="w-full bg-transparent border border-cyber-pink text-cyber-pink font-bold py-2 hover:bg-cyber-pink hover:text-white transition-colors uppercase text-sm rounded-md">
+                            Mot de passe oublié ?
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-[10px] text-gray-400 mt-4 text-center font-body">
+                    ATTENTION : Toute tentative d'accès non autorisé sera logguée et signalée aux autorités compétentes (CyberPol).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Threat Ticker Top Bar -->
+    <div class="bg-cyber-black text-white text-xs font-mono py-1.5 border-b border-gray-800 overflow-hidden relative z-50">
+        <div class="flex whitespace-nowrap animate-ticker ticker-pause">
+            <span class="mx-4 text-cyber-red font-bold">ALERT: CVE-2025-9821 CRITICAL RCE IN IOS</span>
+            <span class="mx-4 text-gray-500">|</span>
+            <span class="mx-4 text-cyber-neonBlue">INFO: NEW QUANTUM ENCRYPTION STANDARD DRAFTED</span>
+            <span class="mx-4 text-gray-500">|</span>
+            <span class="mx-4 text-cyber-pink">THREAT: BOTNET "KRAKEN" ACTIVITY SPIKE DETECTED</span>
+            <span class="mx-4 text-gray-500">|</span>
+            <span class="mx-4 text-cyber-green">PATCH: WINDOWS SERVER ZERO-DAY FIXED</span>
+            <span class="mx-4 text-gray-500">|</span>
+            <span class="mx-4 text-cyber-red font-bold">ALERT: DDOS ATTACK ON FINANCIAL SECTOR</span>
+            <span class="mx-4 text-gray-500">|</span>
+            <span class="mx-4 text-cyber-purple">IOT: 5 MILLION SMART TOOTHBRUSHES COMPROMISED</span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-cyber-dark/90 backdrop-blur-md sticky top-0 z-40 shadow-sm theme-transition">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 group cursor-pointer">
+                    <div class="relative">
+                        <i data-lucide="shield-check" class="h-8 w-8 text-cyber-green group-hover:scale-110 transition-transform duration-300 relative z-10"></i>
+                        <div class="absolute inset-0 bg-cyber-green blur-md opacity-0 group-hover:opacity-40 transition-opacity duration-300"></div>
+                    </div>
+                    <a href="index.html" class="text-2xl font-orbitron font-bold text-gray-900 dark:text-white tracking-wider group-hover:text-cyber-green transition-colors focus:outline-none">
+                        CYBERSCOPE<span class="text-cyber-green">LAB</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center">
+                    <div class="mr-6 flex items-baseline space-x-6 font-mono text-sm font-bold">
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-cyber-blue dark:hover:text-cyber-neonBlue transition-colors">/RECHERCHES & ANALYSES</a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-cyber-blue dark:hover:text-cyber-neonBlue transition-colors">/TUTORIELS</a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-cyber-blue dark:hover:text-cyber-neonBlue transition-colors">/VEILLE</a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-cyber-blue dark:hover:text-cyber-neonBlue transition-colors">/IA</a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-cyber-blue dark:hover:text-cyber-neonBlue transition-colors">/GRC</a>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4 border-l border-gray-300 dark:border-gray-700 pl-6">
+                        <!-- Theme Toggle Button -->
+                        <button id="theme-toggle" onclick="toggleTheme()" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-yellow-300 transition-colors focus:outline-none">
+                            <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+                            <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                        </button>
+
+                        <!-- AUTH SECTION: Dynamic -->
+                        <div id="auth-container">
+                            <button id="btn-login-trigger" onclick="toggleLoginModal()" class="px-4 py-2 border border-cyber-pink text-cyber-pink hover:bg-cyber-pink hover:text-white transition-all duration-300 rounded-sm font-bold text-sm shadow-[0_0_10px_rgba(214,0,214,0.1)] hover:shadow-[0_0_15px_rgba(214,0,214,0.6)]">
+                                LOGIN_
+                            </button>
+
+                            <div id="user-dropdown" class="relative dropdown hidden group z-50">
+                                <button class="flex items-center space-x-2 px-3 py-2 text-cyber-green hover:bg-cyber-green/10 rounded border border-transparent hover:border-cyber-green transition-all font-mono font-bold text-sm">
+                                    <i data-lucide="user" class="w-4 h-4"></i>
+                                    <span id="user-display-name">USER</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </button>
+                                <div class="dropdown-content absolute right-0 top-full pt-2 w-48 z-50">
+                                    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-cyber-green shadow-xl rounded-sm py-1 font-mono text-xs">
+                                        <a href="gerer_compte.html" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-cyber-green/20 hover:text-cyber-green transition-colors">
+                                            > Gérer mon espace
+                                        </a>
+                                        <div class="border-t border-gray-200 dark:border-gray-800 my-1"></div>
+                                        <button onclick="handleLogout()" class="w-full text-left block px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                            [X] Déconnexion
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="-mr-2 flex md:hidden items-center space-x-4">
+                    <button onclick="toggleTheme()" class="p-2 text-gray-600 dark:text-gray-300">
+                         <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+                         <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                    </button>
+                    <button type="button" onclick="toggleMenu()" class="text-gray-600 dark:text-gray-300 hover:text-cyber-green p-2">
+                        <i data-lucide="menu" class="h-8 w-8"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 font-mono">
+                <a href="#" class="text-gray-600 dark:text-gray-300 hover:text-cyber-blue block px-3 py-2 text-base font-medium">/RECHERCHES & ANALYSES</a>
+                <a href="#" class="text-gray-600 dark:text-gray-300 hover:text-cyber-blue block px-3 py-2 text-base font-medium">/TUTORIELS</a>
+                <a href="#" class="text-gray-600 dark:text-gray-300 hover:text-cyber-blue block px-3 py-2 text-base font-medium">/VEILLE</a>
+                <a href="#" class="text-gray-600 dark:text-gray-300 hover:text-cyber-blue block px-3 py-2 text-base font-medium">/IA</a>
+                <a href="#" class="text-gray-600 dark:text-gray-300 hover:text-cyber-blue block px-3 py-2 text-base font-medium">/GRC</a>
+                
+                <div id="mobile-auth-section" class="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                    <button id="mobile-btn-login" onclick="toggleLoginModal()" class="w-full text-left text-cyber-pink block px-3 py-2 text-base font-bold">LOGIN_</button>
+                    <div id="mobile-user-menu" class="hidden">
+                        <div class="px-3 py-2 text-cyber-green font-bold text-sm">> CONNECTÉ EN TANT QUE <span id="mobile-username-display"></span></div>
+                        <a href="gerer_compte.html" class="block px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-cyber-green pl-6 text-sm">Gérer mon espace</a>
+                        <button onclick="handleLogout()" class="w-full text-left block px-3 py-2 text-red-500 pl-6 text-sm">[X] Déconnexion</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header / Hero Section -->
+    <header class="relative overflow-hidden border-b border-gray-200 dark:border-gray-800 theme-transition bg-white dark:bg-cyber-dark">
+        <div class="absolute inset-0 opacity-20 dark:opacity-10" style="background-image: radial-gradient(#00aa2c 1px, transparent 1px); background-size: 30px 30px;"></div>
+        <div class="absolute inset-0 bg-transparent dark:bg-gradient-to-b dark:from-cyber-dark dark:via-cyber-dark dark:to-[#0d1620] pointer-events-none"></div>
+        
+        <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <h1 class="text-5xl md:text-7xl font-orbitron font-black text-gray-900 dark:text-white mb-6 tracking-tighter uppercase relative inline-block group cursor-default">
+                CyberScope Lab
+                <span class="absolute -top-1 -left-1 text-cyber-pink opacity-40 mix-blend-multiply dark:mix-blend-screen animate-pulse hidden md:block group-hover:translate-x-1 transition-transform">CyberScope Lab</span>
+                <span class="absolute -bottom-1 -right-1 text-cyber-blue opacity-40 mix-blend-multiply dark:mix-blend-screen animate-pulse hidden md:block group-hover:-translate-x-1 transition-transform">CyberScope Lab</span>
+            </h1>
+            
+            <div class="mt-4 mb-8 transform -rotate-1 hover:rotate-0 transition-transform duration-500">
+                <p class="font-pixel text-xs md:text-sm lg:text-base retro-80s leading-loose tracking-widest uppercase border-y-2 border-cyber-pink/30 py-4 inline-block px-8 bg-white/60 dark:bg-black/40 backdrop-blur-sm shadow-sm dark:shadow-[0_0_20px_rgba(214,0,214,0.1)]">
+                    Décrypter l’innovation, sécuriser l’avenir.<br>
+                    <span class="mt-2 block opacity-90 text-[10px] md:text-xs normal-case font-mono text-cyber-blue font-bold">>>> comprendre et agir ensemble_</span>
+                </p>
+            </div>
+
+            <div class="mt-10 max-w-3xl mx-auto">
+                <div class="bg-gray-900/95 dark:bg-black/80 border border-gray-700 dark:border-cyber-green/30 rounded-lg p-6 shadow-2xl relative overflow-hidden group hover:border-cyber-green transition-colors duration-500">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyber-pink via-cyber-blue to-cyber-green opacity-80"></div>
+                    <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
+                    
+                    <div class="flex justify-center mb-6 opacity-90 relative z-10">
+                        <svg class="h-24 md:h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(0,170,44,0.6)] filter brightness-110 contrast-125" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.5">
+                            <path d="M4 19V6C4 5.44772 4.44772 5 5 5H19C19.5523 5 20 5.44772 20 6V19" stroke="#00AA2C" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M4 15L8 11L12 15L16 11L20 15" stroke="#00FFFF" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="8" cy="11" r="1.5" fill="#FF00FF"/>
+                            <circle cx="16" cy="11" r="1.5" fill="#FF00FF"/>
+                            <circle cx="4" cy="15" r="1.5" fill="#00AA2C"/>
+                            <circle cx="12" cy="15" r="1.5" fill="#00AA2C"/>
+                            <circle cx="20" cy="15" r="1.5" fill="#00AA2C"/>
+                        </svg>
+                    </div>
+
+                    <p class="font-mono text-sm md:text-base text-gray-300 leading-relaxed max-w-xl mx-auto relative z-10">
+                        <span class="text-cyber-green font-bold text-shadow">CyberScope Lab</span> est un blog dédié à l'analyse des menaces émergentes et de l'IA. 
+                        Nous décodons le bruit numérique pour en extraire le <span class="text-white font-bold border-b border-cyber-pink">signal</span>.
+                    </p>
+                    
+                    <div class="absolute bottom-2 right-3 flex items-center space-x-2">
+                        <div class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
+                        <span class="text-[10px] text-gray-500 font-mono tracking-widest">LIVE_ANALYSIS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        <div class="flex flex-col lg:flex-row gap-12">
+            <!-- Blog Grid -->
+            <div class="lg:w-2/3">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-orbitron text-gray-900 dark:text-white flex items-center font-bold">
+                        <i data-lucide="cpu" class="mr-2 text-cyber-pink"></i> 
+                        Briefing Sécurité
+                    </h2>
+                    <div class="flex space-x-2 items-center">
+                        <span class="w-2 h-2 bg-cyber-green rounded-full animate-ping"></span>
+                        <span class="text-xs font-mono text-cyber-green font-bold">SYSTEM ONLINE</span>
+                    </div>
+                </div>
+
+                <!-- CONTENEUR VIDE POUR LES ARTICLES DYNAMIQUES -->
+                <div id="briefing-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                </div>
+                
+                <!-- Pagination -->
+                <div class="mt-12 flex justify-center space-x-4 font-mono">
+                    <button class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed bg-gray-50 dark:bg-gray-800"><< PREV</button>
+                    <button class="px-4 py-2 border border-cyber-green text-white bg-cyber-green font-bold shadow-md shadow-cyber-green/20">1</button>
+                    <button class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-cyber-green hover:text-cyber-green dark:hover:text-cyber-green hover:bg-white dark:hover:bg-gray-800 transition-colors">2</button>
+                    <button class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-cyber-green hover:text-cyber-green dark:hover:text-cyber-green hover:bg-white dark:hover:bg-gray-800 transition-colors">3</button>
+                    <button class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-cyber-green hover:text-cyber-green dark:hover:text-cyber-green hover:bg-white dark:hover:bg-gray-800 transition-colors">NEXT >></button>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="lg:w-1/3 space-y-8">
+                <!-- Categories / Veille IA -->
+                <div class="bg-white dark:bg-cyber-panel border border-gray-200 dark:border-gray-800 p-0 rounded-md shadow-sm theme-transition overflow-hidden">
+                    <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-white/5 flex items-center">
+                        <h3 class="text-gray-900 dark:text-white font-orbitron font-bold text-sm uppercase tracking-wider mr-3">
+                            Veille Menaces IA
+                        </h3>
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
+                        </span>
+                    </div>
+                    
+                    <div id="veille-container" class="h-80 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                    </div>
+                    
+                    <div class="p-2 bg-gray-50 dark:bg-black/20 border-t border-gray-200 dark:border-gray-700 text-center">
+                        <a href="#" class="text-[10px] font-mono uppercase font-bold text-gray-500 hover:text-cyber-green transition-colors">
+                            >>> Voir toutes les menaces
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Newsletter / Terminal Input -->
+                <div class="bg-white dark:bg-cyber-dark border border-cyber-green dark:border-cyber-green/50 p-6 shadow-[0_0_10px_rgba(0,170,44,0.1)] dark:shadow-[0_0_15px_rgba(0,170,44,0.2)] rounded-md theme-transition">
+                    <h3 class="text-cyber-green font-mono mb-2 text-sm font-bold flex items-center">
+                        <span class="animate-pulse mr-2">></span>NEWSLETTER
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Recevez les 0-day directement dans votre inbox.</p>
+                    <form onsubmit="event.preventDefault(); alert('Commande envoyée au serveur...');" class="flex flex-col space-y-2">
+                        <input type="email" placeholder="email@domain.com" class="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white px-3 py-2 text-sm font-mono focus:outline-none focus:border-cyber-green focus:ring-1 focus:ring-cyber-green rounded-sm transition-colors" required>
+                        <button type="submit" class="bg-cyber-green/10 dark:bg-cyber-green/20 border border-cyber-green text-cyber-green py-2 px-4 text-sm font-mono hover:bg-cyber-green hover:text-white transition-colors uppercase font-bold rounded-sm">
+                            S'abonner
+                        </button>
+                    </form>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-cyber-panel border-t border-gray-200 dark:border-gray-800 mt-auto theme-transition">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm font-mono">
+                <!-- Site Info -->
+                <div>
+                    <h4 class="text-gray-900 dark:text-white font-bold mb-4 uppercase">CyberScope Lab</h4>
+                    <ul class="space-y-2 text-gray-500 dark:text-gray-400 mb-4">
+                        <li><a href="#" class="hover:text-cyber-pink transition-colors">Équipe</a></li>
+                        <li><a href="#" class="hover:text-cyber-pink transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-cyber-pink transition-colors">Manifeste</a></li>
+                    </ul>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-cyber-blue transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-cyber-purple transition-colors"><i data-lucide="github" class="w-5 h-5"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-blue-700 transition-colors"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-cyber-pink transition-colors"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+
+                <!-- Liens Rapides -->
+                <div>
+                    <h4 class="text-gray-900 dark:text-white font-bold mb-4 uppercase">Liens Utiles</h4>
+                    <ul class="space-y-2 text-gray-500 dark:text-gray-400">
+                        <li><a href="#" class="hover:text-cyber-pink transition-colors">Mentions Légales</a></li>
+                        <li><a href="#" class="hover:text-cyber-pink transition-colors">Politique de Confidentialité</a></li>
+                        <li><a href="#" class="hover:text-cyber-pink transition-colors">Cookies</a></li>
+                        <li><a href="#" class="hover:text-cyber-pink transition-colors">CGU</a></li>
+                    </ul>
+                </div>
+
+                <!-- Qui suis-je Section -->
+                <div>
+                    <h4 class="text-gray-900 dark:text-white font-bold mb-4 uppercase flex items-center">
+                        <span class="w-2 h-2 bg-cyber-pink rounded-full mr-2 animate-pulse"></span>
+                        Qui suis-je ?
+                    </h4>
+                    <div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-sm relative group hover:border-cyber-pink transition-colors">
+                        <div class="flex flex-col space-y-1">
+                            <a href="#" class="text-xs font-bold text-cyber-blue hover:underline uppercase flex items-center group-hover:translate-x-1 transition-transform">
+                                > Mon Portfolio
+                            </a>
+                            <a href="#" class="text-xs font-bold text-cyber-blue hover:underline uppercase flex items-center group-hover:translate-x-1 transition-transform delay-75">
+                                > Mon Parcours
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-8 text-center text-xs text-gray-400">
+                &copy; 2025 CyberScope Lab. Tous droits réservés. Design v2.0.0 (Hybrid)
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cookie Modal -->
+    <div id="cookie-modal" class="fixed bottom-4 right-4 z-50 max-w-sm transform translate-y-20 opacity-0 transition-all duration-500 pointer-events-none">
+        <div class="bg-white border border-gray-300 shadow-xl p-4 rounded-lg relative overflow-hidden">
+            <button onclick="declineCookies()" class="absolute top-1 right-1 text-gray-500 hover:text-black transition-colors p-2 rounded-full">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+            <div class="flex items-start space-x-3 relative z-10">
+                <i data-lucide="cookie" class="text-gray-900 w-6 h-6 mt-1 flex-shrink-0"></i>
+                <div>
+                    <h4 class="text-gray-900 font-mono text-xs mb-2 uppercase font-bold">Préférences Cookies</h4>
+                    <p class="text-gray-600 text-xs font-mono mb-4 leading-relaxed">
+                        Nous utilisons des cookies pour assurer le bon fonctionnement de notre site et pour personnaliser votre expérience.
+                    </p>
+                    <div class="flex text-xs uppercase font-mono border-t border-gray-200 pt-3 mt-3">
+                        <button onclick="declineCookies()" class="flex-1 text-center py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-l-lg">
+                            Refuser Tout
+                        </button>
+                        <button onclick="showPreferencesModal()" class="flex-1 text-center py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors border-x border-gray-900/50 mx-1">
+                            Gérer
+                        </button>
+                        <button onclick="acceptCookies()" class="flex-1 text-center py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-r-lg">
+                            Accepter Tout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preferences Modal -->
+    <div id="preferences-modal" class="fixed inset-0 z-[60] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white text-gray-900 w-full max-w-lg max-h-[90vh] preference-container rounded-lg shadow-2xl relative overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <h3 class="text-xl font-orbitron font-bold text-gray-900">Gérer mes préférences</h3>
+                <button onclick="closePreferencesModal()" class="text-gray-500 hover:text-black transition-colors p-2 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="preference-scroll-area overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                <div>
+                    <h4 class="text-lg font-bold text-gray-900 mb-2">Décidez comment nos partenaires utilisent vos données</h4>
+                    <p class="text-sm text-gray-600 mb-4">Choisissez comment les services tiers peuvent collecter et utiliser vos données...</p>
+                </div>
+                <div class="border border-gray-200 p-4 rounded-md bg-gray-50/50">
+                    <h4 class="text-lg font-bold text-gray-900 mb-2 flex items-center">
+                        <i data-lucide="shield-check" class="w-5 h-5 mr-2 text-cyber-blue"></i> Cookies strictement nécessaires
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-4">Indispensables au fonctionnement du site.</p>
+                    <div class="flex items-center justify-between py-3 border-t border-gray-200">
+                        <div class="text-sm font-mono"><span class="font-bold">Technique & Sécurité</span></div>
+                        <label class="relative inline-flex items-center cursor-not-allowed">
+                            <input type="checkbox" checked disabled class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-400"></div>
+                            <i data-lucide="lock" class="w-3 h-3 ml-2 text-gray-400"></i>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+                <button onclick="returnToCookieBanner()" class="px-4 py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-lg text-sm uppercase">Retour</button>
+                <button onclick="declineCookiesAndClosePreferences()" class="px-4 py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-lg text-sm uppercase">Refuser Tout</button>
+                <button onclick="savePreferencesAndClose()" class="px-4 py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-lg text-sm uppercase">Terminer et Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Cookie Button -->
+    <button onclick="showPreferencesModal()" class="fixed bottom-4 left-4 z-40 bg-white text-cyber-darkerBlue p-2 rounded-full shadow-lg border border-gray-200 hover:scale-110 hover:bg-cyber-darkerBlue hover:text-white transition-all duration-300 group" title="Gérer les cookies">
+        <i data-lucide="cookie" class="w-5 h-5"></i>
+        <span class="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-500 ease-in-out font-mono text-[10px] font-bold ml-0 group-hover:ml-2">Gérer les cookies</span>
+    </button>
+
+    <!-- Fichier JS Externe -->
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
+"""
+
+with open(os.path.join(base_dir, "index.html"), "w", encoding="utf-8") as f:
+    f.write(html_content)

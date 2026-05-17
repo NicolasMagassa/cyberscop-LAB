@@ -1,0 +1,176 @@
+import os
+
+base_dir = r"c:\Users\user\Desktop\developpeur\BLOG PERSO\cyberscop LAB"
+
+header_html = """<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberScope Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/tailwind-config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&family=Share+Tech+Mono&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="bg-gray-50 dark:bg-cyber-dark text-gray-800 dark:text-gray-300 font-body relative overflow-x-hidden min-h-screen flex flex-col theme-transition">
+
+    <div class="scanlines"></div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-[60] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white border border-gray-300 w-full max-w-md shadow-xl relative overflow-hidden font-body" onclick="event.stopPropagation()">
+            <div class="bg-gray-100 border-b border-gray-200 p-4 flex justify-between items-center">
+                <span class="text-gray-900 text-lg font-bold font-orbitron">CONNEXION SÉCURISÉE</span>
+                <button onclick="toggleLoginModal()" class="text-gray-500 hover:text-red-500 transition-colors p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="text-gray-700 text-sm mb-4">
+                    <h4 class="font-bold text-lg mb-2">Accès au CyberScope Lab</h4>
+                    <p class="text-sm text-gray-500">Veuillez entrer vos identifiants pour accéder à votre espace sécurisé.</p>
+                    <p id="auth-message" class="mt-4 text-red-600 hidden font-mono text-xs"></p>
+                </div>
+                <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+                    <div>
+                        <label class="block text-xs text-gray-700 mb-1 uppercase font-bold">Identifiant</label>
+                        <input id="username-input" type="text" class="w-full bg-gray-50 border border-gray-300 text-gray-900 p-3 focus:border-cyber-blue focus:outline-none focus:ring-1 focus:ring-cyber-blue rounded-md font-body" placeholder="sysadmin" value="Sysadmin">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-700 mb-1 uppercase font-bold">Mot de passe</label>
+                        <div class="relative">
+                            <input id="password-input" type="password" class="w-full bg-gray-50 border border-gray-300 text-gray-900 p-3 focus:border-cyber-blue focus:outline-none focus:ring-1 focus:ring-cyber-blue rounded-md font-body" placeholder="*********">
+                        </div>
+                    </div>
+                    <div class="space-y-3 pt-4">
+                        <button type="submit" class="w-full bg-cyber-green text-white font-bold py-3 hover:bg-cyber-neonGreen hover:text-black transition-colors uppercase text-sm rounded-md shadow-md">
+                            SE CONNECTER
+                        </button>
+                        <button type="button" onclick="handleSignupAttempt()" class="w-full bg-transparent border border-cyber-blue text-cyber-blue font-bold py-2 hover:bg-cyber-blue hover:text-white transition-colors uppercase text-sm rounded-md">
+                            S'inscrire
+                        </button>
+                        <button type="button" onclick="handlePasswordResetAttempt()" class="w-full bg-transparent border border-cyber-pink text-cyber-pink font-bold py-2 hover:bg-cyber-pink hover:text-white transition-colors uppercase text-sm rounded-md">
+                            Mot de passe oublié ?
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-cyber-dark/90 backdrop-blur-md sticky top-0 z-40 shadow-sm theme-transition">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center space-x-3 group cursor-pointer">
+                    <div class="relative">
+                        <i data-lucide="shield-check" class="h-8 w-8 text-cyber-green group-hover:scale-110 transition-transform duration-300 relative z-10"></i>
+                    </div>
+                    <a href="index.html" class="text-2xl font-orbitron font-bold text-gray-900 dark:text-white tracking-wider group-hover:text-cyber-green transition-colors focus:outline-none">
+                        CYBERSCOPE<span class="text-cyber-green">LAB</span>
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center">
+                    <div class="mr-6 flex items-baseline space-x-6 font-mono text-sm font-bold">
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-cyber-blue dark:hover:text-cyber-neonBlue transition-colors">/RECHERCHES & ANALYSES</a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-cyber-blue dark:hover:text-cyber-neonBlue transition-colors">/TUTORIELS</a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-cyber-blue dark:hover:text-cyber-neonBlue transition-colors">/VEILLE</a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-cyber-blue dark:hover:text-cyber-neonBlue transition-colors">/IA</a>
+                        <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-cyber-blue dark:hover:text-cyber-neonBlue transition-colors">/GRC</a>
+                    </div>
+                    <div class="flex items-center space-x-4 border-l border-gray-300 dark:border-gray-700 pl-6">
+                        <button id="theme-toggle" onclick="toggleTheme()" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors">
+                            <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+                            <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                        </button>
+                        <div id="auth-container">
+                            <button id="btn-login-trigger" onclick="toggleLoginModal()" class="px-4 py-2 border border-cyber-pink text-cyber-pink hover:bg-cyber-pink hover:text-white transition-all rounded-sm font-bold text-sm">
+                                LOGIN_
+                            </button>
+                            <div id="user-dropdown" class="relative dropdown hidden group z-50">
+                                <button class="flex items-center space-x-2 px-3 py-2 text-cyber-green hover:bg-cyber-green/10 rounded font-mono font-bold text-sm">
+                                    <i data-lucide="user" class="w-4 h-4"></i>
+                                    <span id="user-display-name">USER</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </button>
+                                <div class="dropdown-content absolute right-0 top-full pt-2 w-48 z-50">
+                                    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-cyber-green shadow-xl rounded-sm py-1 font-mono text-xs">
+                                        <a href="gerer_compte.html" class="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-cyber-green/20 hover:text-cyber-green transition-colors">
+                                            > Gérer mon espace
+                                        </a>
+                                        <div class="border-t border-gray-200 dark:border-gray-800 my-1"></div>
+                                        <button onclick="handleLogout()" class="w-full text-left block px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                            [X] Déconnexion
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+"""
+
+footer_html = """
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-cyber-panel border-t border-gray-200 dark:border-gray-800 mt-auto theme-transition">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm font-mono">
+                <div>
+                    <h4 class="text-gray-900 dark:text-white font-bold mb-4 uppercase">CyberScope Lab</h4>
+                    <ul class="space-y-2 text-gray-500 dark:text-gray-400 mb-4">
+                        <li><a href="#" class="hover:text-cyber-pink transition-colors">Équipe</a></li>
+                        <li><a href="contact.html" class="hover:text-cyber-pink transition-colors">Contact</a></li>
+                        <li><a href="manifeste.html" class="hover:text-cyber-pink transition-colors">Manifeste</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-gray-900 dark:text-white font-bold mb-4 uppercase">Liens Utiles</h4>
+                    <ul class="space-y-2 text-gray-500 dark:text-gray-400">
+                        <li><a href="mentions_legales.html" class="hover:text-cyber-pink transition-colors">Mentions Légales</a></li>
+                        <li><a href="politique_confidentialité.html" class="hover:text-cyber-pink transition-colors">Politique de Confidentialité</a></li>
+                        <li><a href="cookies.html" class="hover:text-cyber-pink transition-colors">Cookies</a></li>
+                        <li><a href="CGU.html" class="hover:text-cyber-pink transition-colors">CGU</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-gray-900 dark:text-white font-bold mb-4 uppercase">Qui suis-je ?</h4>
+                    <div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-sm">
+                        <a href="#" class="text-xs font-bold text-cyber-blue hover:underline uppercase">> Mon Portfolio</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
+"""
+
+pages = [
+    "gerer_compte.html", "404.html", "CGU.html", "contact.html", "cookies.html",
+    "equipe.html", "manifeste.html", "mentions_legales.html", "politique_confidentialité.html"
+]
+
+for page in pages:
+    title = page.replace(".html", "").replace("_", " ").capitalize()
+    content = f'''
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        <h1 class="text-4xl font-orbitron font-bold text-cyber-green mb-8">{title}</h1>
+        <div class="bg-white dark:bg-cyber-panel border border-gray-200 dark:border-gray-800 rounded-md p-8 shadow-sm">
+            <p class="text-gray-600 dark:text-gray-400 font-mono text-lg">En attente de contenu...</p>
+        </div>
+    </main>
+    '''
+    # Si c'est gerer_compte.html, on garde cette structure de base pour l'instant, 
+    # l'utilisateur fournira le code complet ensuite s'il le souhaite.
+    
+    with open(os.path.join(base_dir, page), "w", encoding="utf-8") as f:
+        f.write(header_html + content + footer_html)
+
