@@ -321,7 +321,20 @@ function updateViewCounts() {
 }
 
 // --- Cookie Modal Logic ---
-const hasConsent = localStorage.getItem('cyberScopeCookieConsent');
+function getCookieConsent(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+function setCookieConsent(value) {
+    // 6 months in seconds
+    const maxAge = 6 * 30 * 24 * 60 * 60;
+    document.cookie = `cyberScopeCookieConsent=${value}; max-age=${maxAge}; path=/; Secure; SameSite=Strict`;
+}
+
+const hasConsent = getCookieConsent('cyberScopeCookieConsent');
 const isBannerDismissed = sessionStorage.getItem('cookieBannerDismissed');
 
 function showCookieModal() {
@@ -344,12 +357,12 @@ function hideCookieModal() {
 }
 
 function acceptCookies() {
-    localStorage.setItem('cyberScopeCookieConsent', 'true');
+    setCookieConsent('accepted');
     hideCookieModal();
 }
 
 function declineCookies() {
-     localStorage.setItem('cyberScopeCookieConsent', 'false');
+     setCookieConsent('refused');
      hideCookieModal();
      closePreferencesModal();
 }
@@ -383,7 +396,7 @@ function declineCookiesAndClosePreferences() {
 }
 
 function savePreferencesAndClose() {
-    localStorage.setItem('cyberScopeCookieConsent', 'true');
+    setCookieConsent('accepted');
     closePreferencesModal();
 }
 
