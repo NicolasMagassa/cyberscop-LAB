@@ -322,12 +322,18 @@ function updateViewCounts() {
 
 // --- Cookie Modal Logic ---
 const hasConsent = localStorage.getItem('cyberScopeCookieConsent');
+const isBannerDismissed = sessionStorage.getItem('cookieBannerDismissed');
 
 function showCookieModal() {
-    if (!hasConsent && cookieModal) {
+    if (!hasConsent && !isBannerDismissed && cookieModal) {
         cookieModal.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
         cookieModal.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
     }
+}
+
+function dismissCookieBanner() {
+    sessionStorage.setItem('cookieBannerDismissed', 'true');
+    hideCookieModal();
 }
 
 function hideCookieModal() {
@@ -387,7 +393,7 @@ if(preferencesModal) {
     });
 }
 
-if (!hasConsent) {
+if (!hasConsent && !isBannerDismissed) {
     const handleScroll = () => {
         if (window.scrollY > 100) {
             showCookieModal();
