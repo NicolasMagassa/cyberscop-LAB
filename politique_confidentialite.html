@@ -350,7 +350,7 @@
                         <button onclick="declineCookies()" class="cookie-refuse-all flex-1 text-center py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-l-lg">
                             Refuser Tout
                         </button>
-                        <button onclick="showPreferencesModal()" class="flex-1 text-center py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors border-x border-gray-900/50 mx-1">
+                        <button onclick="showPreferencesModal()" class="cookie-manage flex-1 text-center py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors border-x border-gray-900/50 mx-1">
                             Gérer
                         </button>
                         <button onclick="acceptCookies()" class="cookie-accept-all flex-1 text-center py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-r-lg">
@@ -390,11 +390,39 @@
                         </label>
                     </div>
                 </div>
+                <div class="border border-gray-200 p-4 rounded-md bg-gray-50/50 mt-4">
+                    <h4 class="text-lg font-bold text-gray-900 mb-2 flex items-center">
+                        <i data-lucide="settings" class="w-5 h-5 mr-2 text-cyber-blue"></i> Cookies de fonctionnalité
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-4">Permettent d'améliorer votre confort de navigation et de mémoriser vos choix.</p>
+                    <div class="flex items-center justify-between py-3 border-t border-gray-200">
+                        <div class="text-sm font-mono"><span class="font-bold">Préférences</span></div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="cookie-functional" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyber-blue"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 p-4 rounded-md bg-gray-50/50 mt-4">
+                    <h4 class="text-lg font-bold text-gray-900 mb-2 flex items-center">
+                        <i data-lucide="bar-chart-2" class="w-5 h-5 mr-2 text-cyber-blue"></i> Cookies d'analyse
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-4">Permettent de mesurer l'audience et d'améliorer les performances du site.</p>
+                    <div class="flex items-center justify-between py-3 border-t border-gray-200">
+                        <div class="text-sm font-mono"><span class="font-bold">Statistiques</span></div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="cookie-analytics" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyber-blue"></div>
+                        </label>
+                    </div>
+                </div>
+
             </div>
             <div class="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
                 <button onclick="returnToCookieBanner()" class="px-4 py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-lg text-sm uppercase">Retour</button>
                 <button onclick="declineCookiesAndClosePreferences()" class="cookie-refuse-all px-4 py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-lg text-sm uppercase">Refuser Tout</button>
-                <button onclick="savePreferencesAndClose()" class="cookie-accept-all px-4 py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-lg text-sm uppercase">Accepter et Sauvegarder</button>
+                <button onclick="saveSpecificPreferences()" class="cookie-save px-4 py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-lg text-sm uppercase">Enregistrer mes choix</button>
             </div>
         </div>
     </div>

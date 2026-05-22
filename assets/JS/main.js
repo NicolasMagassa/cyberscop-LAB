@@ -328,10 +328,15 @@ function getCookieConsent(name) {
     return null;
 }
 
-function setCookieConsent(value) {
+function setCookieConsent(value, prefsObj) {
     // 6 months in seconds
     const maxAge = 6 * 30 * 24 * 60 * 60;
     document.cookie = `cyberScopeCookieConsent=${value}; max-age=${maxAge}; path=/; Secure; SameSite=Strict`;
+    
+    if (prefsObj) {
+        const prefsStr = encodeURIComponent(JSON.stringify(prefsObj));
+        document.cookie = `cyberScopeCookiePrefs=${prefsStr}; max-age=${maxAge}; path=/; Secure; SameSite=Strict`;
+    }
 }
 
 const hasConsent = getCookieConsent('cyberScopeCookieConsent');
@@ -357,12 +362,12 @@ function hideCookieModal() {
 }
 
 function acceptCookies() {
-    setCookieConsent('accepted');
+    setCookieConsent('accepted', { necessary: true, functional: true, analytics: true });
     hideCookieModal();
 }
 
 function declineCookies() {
-     setCookieConsent('refused');
+     setCookieConsent('refused', { necessary: true, functional: false, analytics: false });
      hideCookieModal();
      closePreferencesModal();
 }
@@ -395,8 +400,10 @@ function declineCookiesAndClosePreferences() {
     closePreferencesModal();
 }
 
-function savePreferencesAndClose() {
-    setCookieConsent('accepted');
+function saveSpecificPreferences() {
+    const functional = document.getElementById('cookie-functional') ? document.getElementById('cookie-functional').checked : false;
+    const analytics = document.getElementById('cookie-analytics') ? document.getElementById('cookie-analytics').checked : false;
+    setCookieConsent('custom', { necessary: true, functional: functional, analytics: analytics });
     closePreferencesModal();
 }
 
