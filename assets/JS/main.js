@@ -321,25 +321,37 @@ function updateViewCounts() {
 }
 
 // --- Cookie Modal Logic ---
+// Configuration globale pour les cookies (facilement surchargeable par un CMS)
+window.AppCookieConfig = window.AppCookieConfig || {
+    consentName: 'consent_state',
+    prefsName: 'consent_prefs',
+    maxAge: 6 * 30 * 24 * 60 * 60, // 6 mois
+    path: '/',
+    sameSite: 'Strict'
+};
+
 function getCookieConsent(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
     return null;
 }
 
 function setCookieConsent(value, prefsObj) {
-    // 6 months in seconds
-    const maxAge = 6 * 30 * 24 * 60 * 60;
-    document.cookie = `cyberScopeCookieConsent=${value}; max-age=${maxAge}; path=/; Secure; SameSite=Strict`;
+    const config = window.AppCookieConfig;
+    const isSecure = window.location.protocol === 'https:' ? 'Secure;' : '';
     
+    // Cookie d'état global
+    document.cookie = `${config.consentName}=${value}; max-age=${config.maxAge}; path=${config.path}; ${isSecure} SameSite=${config.sameSite}`;
+    
+    // Cookie des préférences détaillées
     if (prefsObj) {
         const prefsStr = encodeURIComponent(JSON.stringify(prefsObj));
-        document.cookie = `cyberScopeCookiePrefs=${prefsStr}; max-age=${maxAge}; path=/; Secure; SameSite=Strict`;
+        document.cookie = `${config.prefsName}=${prefsStr}; max-age=${config.maxAge}; path=${config.path}; ${isSecure} SameSite=${config.sameSite}`;
     }
 }
 
-const hasConsent = getCookieConsent('cyberScopeCookieConsent');
+const hasConsent = getCookieConsent(window.AppCookieConfig.consentName);
 const isBannerDismissed = sessionStorage.getItem('cookieBannerDismissed');
 
 function showCookieModal() {
