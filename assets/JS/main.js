@@ -5,16 +5,21 @@
  */
 
 /**
- * Permet de basculer l'affichage entre les différents onglets de l'interface utilisateur.
- * Modifie l'état visuel et l'accessibilité (attributs ARIA) des onglets et panneaux correspondants.
+ * Masque tous les panneaux de la page en ajoutant la classe 'hidden'.
  *
- * @param {string} tabId - L'identifiant de l'onglet à activer (ex: 'danger', 'info').
  * @returns {void}
  */
-function switchTab(tabId) {
+function hideAllPanels() {
     const panels = document.querySelectorAll('.panel');
     panels.forEach(panel => panel.classList.add('hidden'));
+}
 
+/**
+ * Réinitialise l'état visuel et d'accessibilité de tous les boutons d'onglets.
+ *
+ * @returns {void}
+ */
+function resetAllTabButtons() {
     const buttons = document.querySelectorAll('.sidebar__nav-item');
     buttons.forEach(btn => {
         btn.setAttribute('aria-selected', 'false');
@@ -25,20 +30,50 @@ function switchTab(tabId) {
             btn.classList.add('text-red-600');
         }
     });
+}
 
+/**
+ * Affiche le panneau associé à l'identifiant spécifié.
+ *
+ * @param {string} tabId - L'identifiant de l'onglet.
+ * @returns {void}
+ */
+function showTargetPanel(tabId) {
     const targetPanel = document.getElementById('panel-' + tabId);
     if (targetPanel) targetPanel.classList.remove('hidden');
+}
 
+/**
+ * Active visuellement le bouton d'onglet correspondant et met à jour ses attributs ARIA.
+ *
+ * @param {string} tabId - L'identifiant de l'onglet à activer.
+ * @returns {void}
+ */
+function activateTabButton(tabId) {
     const activeBtn = document.getElementById('tab-btn-' + tabId);
-    if (activeBtn) {
-        activeBtn.setAttribute('aria-selected', 'true');
-        activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-50');
-        if (tabId === 'danger') {
-            activeBtn.classList.add('bg-red-50', 'text-red-700', 'font-medium');
-        } else {
-            activeBtn.classList.add('text-indigo-700', 'bg-indigo-50', 'font-medium');
-        }
+    if (!activeBtn) return;
+    
+    activeBtn.setAttribute('aria-selected', 'true');
+    activeBtn.classList.remove('text-gray-600', 'hover:bg-gray-50');
+    if (tabId === 'danger') {
+        activeBtn.classList.add('bg-red-50', 'text-red-700', 'font-medium');
+    } else {
+        activeBtn.classList.add('text-indigo-700', 'bg-indigo-50', 'font-medium');
     }
+}
+
+/**
+ * Permet de basculer l'affichage entre les différents onglets de l'interface utilisateur.
+ * Modifie l'état visuel et l'accessibilité (attributs ARIA) des onglets et panneaux correspondants.
+ *
+ * @param {string} tabId - L'identifiant de l'onglet à activer (ex: 'danger', 'info').
+ * @returns {void}
+ */
+function switchTab(tabId) {
+    hideAllPanels();
+    resetAllTabButtons();
+    showTargetPanel(tabId);
+    activateTabButton(tabId);
 }
 
 /**
@@ -46,21 +81,24 @@ function switchTab(tabId) {
  *
  * @param {Event|null} event - L'événement de soumission ou de clic à intercepter.
  * @param {string} message - Le message à afficher dans la notification.
- * @returns {void}
+ * @returns {Promise<void>} Une promesse résolue une fois l'affichage terminé.
  */
-function handleSave(event, message) {
+async function handleSave(event, message) {
     if (event) event.preventDefault();
     const toast = document.getElementById('toast');
     if (!toast) return;
     const toastMsg = document.getElementById('toast-message');
     if (toastMsg) toastMsg.innerText = message;
+    
     toast.classList.remove('hidden');
     toast.classList.add('opacity-100');
-    setTimeout(() => {
-        toast.classList.remove('opacity-100');
-        toast.classList.add('opacity-0');
-        setTimeout(() => toast.classList.add('hidden'), 300);
-    }, 3000);
+    
+    await delay(3000);
+    toast.classList.remove('opacity-100');
+    toast.classList.add('opacity-0');
+    
+    await delay(300);
+    toast.classList.add('hidden');
 }
 
 
@@ -141,65 +179,102 @@ function formatLongDate(dateString) {
     return `${day} ${month} ${year}`;
 }
 
+/**
+ * Crée une promesse qui se résout après un délai spécifié en millisecondes.
+ * Utilisée pour moderniser les setTimeout et éviter le callback hell.
+ *
+ * @param {number} ms - Le délai en millisecondes.
+ * @returns {Promise<void>} Une promesse résolue après le délai.
+ */
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Génère le code HTML correspondant à un article de veille technologique.
+ *
+ * @param {Object} article - Les données de l'article (id, date, title, description).
+ * @returns {string} Le fragment de code HTML représentant l'article.
+ */
+function generateVeilleArticleHTML(article) {
+    return `
+        <a href="#" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
+            <span class="text-xs font-mono font-bold text-cyber-pink min-w-[40px] mt-0.5">${formatDate(article.date)}</span>
+            <div class="flex-1">
+                <h4 class="text-xs font-bold text-gray-700 dark:text-gray-200 group-hover:text-cyber-blue transition-colors leading-snug mb-1">
+                    ${article.title}
+                </h4>
+                <p class="text-[10px] text-gray-400 line-clamp-1">${article.description}</p>
+            </div>
+        </a>
+    `;
+}
+
+/**
+ * Récupère, trie et injecte le code HTML des articles de veille technologique
+ * dans le conteneur principal '#veille-container'.
+ *
+ * @returns {void}
+ */
 function renderVeilleArticles() {
     const container = document.getElementById('veille-container');
     if (!container) return;
-    const visibleArticles = [...mockStrapiData].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
-    let htmlContent = '';
-    visibleArticles.forEach(article => {
-        htmlContent += `
-            <a href="#" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
-                <span class="text-xs font-mono font-bold text-cyber-pink min-w-[40px] mt-0.5">${formatDate(article.date)}</span>
-                <div class="flex-1">
-                    <h4 class="text-xs font-bold text-gray-700 dark:text-gray-200 group-hover:text-cyber-blue transition-colors leading-snug mb-1">
-                        ${article.title}
-                    </h4>
-                    <p class="text-[10px] text-gray-400 line-clamp-1">${article.description}</p>
-                </div>
-            </a>
-        `;
-    });
-    container.innerHTML = htmlContent;
+    const sortedArticles = [...mockStrapiData]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 6);
+    container.innerHTML = sortedArticles.map(generateVeilleArticleHTML).join('');
 }
 
+/**
+ * Génère le code HTML correspondant à un article briefing.
+ *
+ * @param {Object} article - Les données de l'article (id, date, title, description, category, views, theme, icon).
+ * @returns {string} Le fragment de code HTML représentant l'article.
+ */
+function generateBriefingArticleHTML(article) {
+    const theme = briefingThemes[article.theme] || briefingThemes['blue'];
+    const colorClass = theme.color;
+    const shadowColor = theme.shadow;
+    return `
+        <article class="bg-white dark:bg-cyber-panel border border-gray-200 dark:border-gray-800 hover:border-${colorClass} dark:hover:border-${colorClass} transition-all duration-300 hover:shadow-lg group relative overflow-hidden rounded-md flex flex-col h-full shadow-sm theme-transition" style="--hover-shadow: ${shadowColor}">
+            <style>.group:hover { box-shadow: 0 0 15px var(--hover-shadow); }</style>
+            <div class="absolute top-0 right-0 p-2 opacity-30 dark:opacity-20">
+                <i data-lucide="${article.icon}" class="text-gray-400 dark:text-gray-600 group-hover:text-${colorClass} transition-colors w-8 h-8"></i>
+            </div>
+            <div class="p-6 flex-grow relative z-10">
+                <div class="flex items-center justify-between text-xs font-mono text-${colorClass} font-bold mb-3">
+                    <div class="flex space-x-2">
+                        <span class="border border-${colorClass} px-1 bg-${colorClass}/5 dark:bg-transparent uppercase">${article.category}</span>
+                        <span class="text-gray-500 dark:text-gray-400">${formatLongDate(article.date)}</span>
+                    </div>
+                    <span class="flex items-center text-gray-500 dark:text-gray-400">
+                        <i data-lucide="eye" class="w-3 h-3 mr-1"></i>
+                        <span>${article.views.toLocaleString()}</span>
+                    </span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-${colorClass} transition-colors font-orbitron">${article.title}</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4 font-sans leading-relaxed text-sm">${article.description}</p>
+                <a href="#" class="inline-flex items-center text-${colorClass} hover:text-cyber-black dark:hover:text-white font-mono text-sm uppercase tracking-wider mt-auto font-bold transition-colors">
+                    <span>Initialiser lecture</span>
+                    <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i>
+                </a>
+            </div>
+            <div class="h-1 w-full bg-gradient-to-r from-${colorClass} to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+        </article>
+    `;
+}
+
+/**
+ * Récupère, trie et injecte le code HTML des articles briefing
+ * dans la grille d'affichage '#briefing-grid'.
+ *
+ * @returns {void}
+ */
 function renderBriefingArticles() {
     const container = document.getElementById('briefing-grid');
     if (!container) return;
-    const visibleArticles = [...mockBriefingData].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 4);
-    let htmlContent = '';
-    visibleArticles.forEach(article => {
-        const theme = briefingThemes[article.theme] || briefingThemes['blue'];
-        const colorClass = theme.color;
-        const shadowColor = theme.shadow;
-        htmlContent += `
-            <article class="bg-white dark:bg-cyber-panel border border-gray-200 dark:border-gray-800 hover:border-${colorClass} dark:hover:border-${colorClass} transition-all duration-300 hover:shadow-lg group relative overflow-hidden rounded-md flex flex-col h-full shadow-sm theme-transition" style="--hover-shadow: ${shadowColor}">
-                <style>.group:hover { box-shadow: 0 0 15px var(--hover-shadow); }</style>
-                <div class="absolute top-0 right-0 p-2 opacity-30 dark:opacity-20">
-                    <i data-lucide="${article.icon}" class="text-gray-400 dark:text-gray-600 group-hover:text-${colorClass} transition-colors w-8 h-8"></i>
-                </div>
-                <div class="p-6 flex-grow relative z-10">
-                    <div class="flex items-center justify-between text-xs font-mono text-${colorClass} font-bold mb-3">
-                        <div class="flex space-x-2">
-                            <span class="border border-${colorClass} px-1 bg-${colorClass}/5 dark:bg-transparent uppercase">${article.category}</span>
-                            <span class="text-gray-500 dark:text-gray-400">${formatLongDate(article.date)}</span>
-                        </div>
-                        <span class="flex items-center text-gray-500 dark:text-gray-400">
-                            <i data-lucide="eye" class="w-3 h-3 mr-1"></i>
-                            <span>${article.views.toLocaleString()}</span>
-                        </span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-${colorClass} transition-colors font-orbitron">${article.title}</h3>
-                    <p class="text-gray-600 dark:text-gray-400 mb-4 font-sans leading-relaxed text-sm">${article.description}</p>
-                    <a href="#" class="inline-flex items-center text-${colorClass} hover:text-cyber-black dark:hover:text-white font-mono text-sm uppercase tracking-wider mt-auto font-bold transition-colors">
-                        <span>Initialiser lecture</span>
-                        <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i>
-                    </a>
-                </div>
-                <div class="h-1 w-full bg-gradient-to-r from-${colorClass} to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-            </article>
-        `;
-    });
-    container.innerHTML = htmlContent;
+    const sortedArticles = [...mockBriefingData]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 4);
+    container.innerHTML = sortedArticles.map(generateBriefingArticleHTML).join('');
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
@@ -222,26 +297,52 @@ function toggleMenu() {
 // --- Login Modal Logic ---
 
 /**
+ * Ferme la modale de connexion et rétablit le défilement de la page.
+ *
+ * @returns {void}
+ */
+function closeLoginModal() {
+    loginModal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+/**
+ * Réinitialise les messages d'état de l'authentification.
+ *
+ * @returns {void}
+ */
+function resetAuthMessage() {
+    if (!authMessage) return;
+    authMessage.textContent = '';
+    authMessage.classList.add('hidden');
+    authMessage.classList.remove('text-cyber-green');
+    authMessage.classList.add('text-red-600');
+}
+
+/**
+ * Ouvre la modale de connexion, réinitialise les messages et désactive le défilement.
+ *
+ * @returns {void}
+ */
+function openLoginModal() {
+    resetAuthMessage();
+    loginModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+/**
  * Ouvre ou ferme la boîte de dialogue de connexion (modale).
  * Réinitialise les éventuels messages d'erreur et bloque le défilement de la page en arrière-plan lorsque la modale est active.
  *
  * @returns {void}
  */
 function toggleLoginModal() {
-    if(!loginModal) return;
+    if (!loginModal) return;
     const isOpen = !loginModal.classList.contains('hidden');
     if (isOpen) {
-        loginModal.classList.add('hidden');
-        document.body.style.overflow = 'auto';
+        closeLoginModal();
     } else {
-        if(authMessage) {
-            authMessage.textContent = '';
-            authMessage.classList.add('hidden');
-            authMessage.classList.remove('text-cyber-green');
-            authMessage.classList.add('text-red-600');
-        }
-        loginModal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
+        openLoginModal();
     }
 }
 if(loginModal) {
@@ -267,40 +368,89 @@ function checkAuthStatus() {
 }
 
 /**
+ * Vérifie si les identifiants saisis sont valides (non vides).
+ *
+ * @param {string} username - Le nom d'utilisateur.
+ * @param {string} password - Le mot de passe.
+ * @returns {boolean} True si valide, false sinon.
+ */
+function isValidCredentials(username, password) {
+    return !!(username && username.trim() !== "" && password && password.trim() !== "");
+}
+
+/**
+ * Affiche un message d'erreur d'authentification sur l'IHM.
+ *
+ * @param {string} message - Le message d'erreur à afficher.
+ * @returns {void}
+ */
+function showLoginError(message) {
+    if (!authMessage) return;
+    authMessage.textContent = message;
+    authMessage.classList.remove('hidden');
+}
+
+/**
+ * Simule la connexion réseau, sauvegarde la session dans le localStorage et retourne l'utilisateur.
+ *
+ * @param {string} username - Le nom d'utilisateur.
+ * @returns {Object} Les données utilisateur de session.
+ */
+function loginUser(username) {
+    const userData = { username: username.toUpperCase(), token: 'fake-jwt-token-123456' };
+    localStorage.setItem('cyberScopeUser', JSON.stringify(userData));
+    return userData;
+}
+
+/**
+ * Affiche le message de réussite de la connexion.
+ *
+ * @returns {void}
+ */
+function showLoginSuccess() {
+    if (!authMessage) return;
+    authMessage.classList.remove('text-red-600', 'text-cyber-red', 'text-cyber-blue', 'text-cyber-pink');
+    authMessage.classList.add('text-cyber-green');
+    authMessage.textContent = 'CONNEXION RÉUSSIE. ACCÈS ACCORDÉ.';
+    authMessage.classList.remove('hidden');
+}
+
+/**
+ * Termine la session de connexion en mettant à jour l'IHM et fermant la modale.
+ *
+ * @param {string} username - Le nom d'utilisateur de la session.
+ * @returns {void}
+ */
+function completeLoginSession(username) {
+    setUIStateLoggedIn(username);
+    toggleLoginModal();
+}
+
+/**
  * Gère la soumission du formulaire de connexion utilisateur (simulation).
  * Valide les champs obligatoires, simule un appel réseau asynchrone et met à jour l'interface.
  *
  * @param {Event} event - L'événement de soumission du formulaire.
- * @returns {void}
+ * @returns {Promise<void>} Une promesse résolue une fois l'authentification finalisée.
  */
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
-    const usernameInput = document.getElementById('username-input')?.value;
-    const passwordInput = document.getElementById('password-input')?.value;
-    if(authMessage) authMessage.classList.add('hidden');
+    const username = document.getElementById('username-input')?.value;
+    const password = document.getElementById('password-input')?.value;
+    
+    if (authMessage) authMessage.classList.add('hidden');
 
-    if (!usernameInput || usernameInput.trim() === "" || !passwordInput || passwordInput.trim() === "") {
-        if(authMessage) {
-            authMessage.textContent = 'ERREUR: Identifiants/Mot de passe requis.';
-            authMessage.classList.remove('hidden');
-        }
+    if (!isValidCredentials(username, password)) {
+        showLoginError('ERREUR: Identifiants/Mot de passe requis.');
         return;
     }
 
-    setTimeout(() => {
-        const userData = { username: usernameInput.toUpperCase(), token: 'fake-jwt-token-123456' };
-        localStorage.setItem('cyberScopeUser', JSON.stringify(userData));
-        if(authMessage) {
-            authMessage.classList.remove('text-red-600', 'text-cyber-red', 'text-cyber-blue', 'text-cyber-pink');
-            authMessage.classList.add('text-cyber-green');
-            authMessage.textContent = 'CONNEXION RÉUSSIE. ACCÈS ACCORDÉ.';
-            authMessage.classList.remove('hidden');
-        }
-        setTimeout(() => {
-            setUIStateLoggedIn(userData.username);
-            toggleLoginModal(); 
-        }, 1500);
-    }, 500);
+    await delay(500);
+    const userData = loginUser(username);
+    showLoginSuccess();
+
+    await delay(1500);
+    completeLoginSession(userData.username);
 }
 
 /**
@@ -436,15 +586,36 @@ const hasConsent = getCookieConsent(window.AppCookieConfig.consentName);
 const isBannerDismissed = sessionStorage.getItem('cookieBannerDismissed');
 
 /**
+ * Affiche la modale de cookies (effets visuels et interactifs).
+ *
+ * @returns {void}
+ */
+function displayCookieModal() {
+    if (!cookieModal) return;
+    cookieModal.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+    cookieModal.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+}
+
+/**
+ * Masque la modale de cookies (effets visuels et interactifs).
+ *
+ * @returns {void}
+ */
+function concealCookieModal() {
+    if (!cookieModal) return;
+    cookieModal.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+    cookieModal.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
+}
+
+/**
  * Affiche la modale d'avertissement de cookies si l'utilisateur n'a pas encore consenti
  * et que la bannière n'a pas été temporairement masquée pour cette session.
  *
  * @returns {void}
  */
 function showCookieModal() {
-    if (!hasConsent && !isBannerDismissed && cookieModal) {
-        cookieModal.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-        cookieModal.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
+    if (!hasConsent && !isBannerDismissed) {
+        displayCookieModal();
     }
 }
 
@@ -464,10 +635,7 @@ function dismissCookieBanner() {
  * @returns {void}
  */
 function hideCookieModal() {
-    if(cookieModal) {
-        cookieModal.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-        cookieModal.classList.remove('translate-y-0', 'opacity-100', 'pointer-events-auto');
-    }
+    concealCookieModal();
 }
 
 /**
@@ -524,10 +692,7 @@ function closePreferencesModal() {
  */
 function returnToCookieBanner() {
     closePreferencesModal();
-    if (cookieModal) {
-        cookieModal.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-        cookieModal.classList.add('translate-y-0', 'opacity-100', 'pointer-events-auto');
-    }
+    displayCookieModal();
 }
 
 /**
@@ -605,6 +770,9 @@ if (typeof module !== 'undefined' && module.exports) {
         closePreferencesModal,
         returnToCookieBanner,
         declineCookiesAndClosePreferences,
-        saveSpecificPreferences
+        saveSpecificPreferences,
+        renderVeilleArticles,
+        renderBriefingArticles,
+        delay
     };
 }

@@ -199,34 +199,37 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             global.document.getElementById.mockImplementation(() => mockElement);
         });
 
-        test('devrait empêcher le comportement par défaut de l\'événement', () => {
+        test('devrait empêcher le comportement par défaut de l\'événement', async () => {
             mockUsernameInput.value = '';
             mockPasswordInput.value = '';
-            app.handleLogin(mockEvent);
+            const loginPromise = app.handleLogin(mockEvent);
             expect(mockEvent.preventDefault).toHaveBeenCalled();
+            await loginPromise;
         });
 
-        test('devrait afficher une erreur si l\'identifiant ou le mot de passe est vide', () => {
+        test('devrait afficher une erreur si l\'identifiant ou le mot de passe est vide', async () => {
             mockUsernameInput.value = '   ';
             mockPasswordInput.value = '';
             
-            app.handleLogin(mockEvent);
+            const loginPromise = app.handleLogin(mockEvent);
 
             expect(mockElement.textContent).toBe('ERREUR: Identifiants/Mot de passe requis.');
             expect(mockClassList.remove).toHaveBeenCalledWith('hidden');
+            await loginPromise;
         });
 
-        test('devrait connecter l\'utilisateur après le délai de 500ms et fermer la modale après 1500ms supplémentaires', () => {
+        test('devrait connecter l\'utilisateur après le délai de 500ms et fermer la modale après 1500ms supplémentaires', async () => {
             mockUsernameInput.value = 'nicolas';
             mockPasswordInput.value = 'monmotdepasse';
 
-            app.handleLogin(mockEvent);
+            const loginPromise = app.handleLogin(mockEvent);
 
             // Avant l'écoulement du timer de 500ms, localStorage ne doit pas avoir été modifié
             expect(global.localStorage.setItem).not.toHaveBeenCalled();
 
             // Avancer de 500ms pour déclencher la connexion
             jest.advanceTimersByTime(500);
+            await Promise.resolve();
 
             // Vérifier localStorage
             expect(global.localStorage.setItem).toHaveBeenCalledWith(
@@ -239,9 +242,12 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
 
             // Avancer de 1500ms supplémentaires
             jest.advanceTimersByTime(1500);
+            await Promise.resolve();
 
             // Vérifier la fermeture de la modale
             expect(mockClassList.add).toHaveBeenCalledWith('hidden');
+
+            await loginPromise;
         });
     });
 
@@ -362,22 +368,26 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             global.document.getElementById.mockImplementation(() => mockElement);
         });
 
-        test('devrait empêcher le comportement par défaut de l\'événement, afficher le toast et le masquer après le délai', () => {
-            app.handleSave(mockEvent, 'Sauvegarde réussie');
+        test('devrait empêcher le comportement par défaut de l\'événement, afficher le toast et le masquer après le délai', async () => {
+            const savePromise = app.handleSave(mockEvent, 'Sauvegarde réussie');
 
             expect(mockEvent.preventDefault).toHaveBeenCalled();
             expect(mockToastMsg.innerText).toBe('Sauvegarde réussie');
             expect(mockToast.classList.remove).toHaveBeenCalledWith('hidden');
             expect(mockToast.classList.add).toHaveBeenCalledWith('opacity-100');
 
-            // Avancer de 3000ms
+            // Avancer de 3000ms et vider les microtâches de promesse
             jest.advanceTimersByTime(3000);
+            await Promise.resolve();
             expect(mockToast.classList.remove).toHaveBeenCalledWith('opacity-100');
             expect(mockToast.classList.add).toHaveBeenCalledWith('opacity-0');
 
-            // Avancer de 300ms
+            // Avancer de 300ms et vider les microtâches de promesse
             jest.advanceTimersByTime(300);
+            await Promise.resolve();
             expect(mockToast.classList.add).toHaveBeenCalledWith('hidden');
+
+            await savePromise;
         });
     });
 
@@ -404,6 +414,54 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             app.updateViewCounts();
 
             expect(mockElement.textContent).toBe('laissez-moi tranquille');
+        });
+    });
+
+    describe('renderVeilleArticles', () => {
+        let mockContainer;
+
+        beforeEach(() => {
+            mockContainer = { innerHTML: '' };
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'veille-container') return mockContainer;
+                return mockElement;
+            });
+        });
+
+        afterEach(() => {
+            global.document.getElementById.mockImplementation(() => mockElement);
+        });
+
+        test('devrait trier et injecter le HTML des articles de veille dans le conteneur', () => {
+            app.renderVeilleArticles();
+
+            expect(global.document.getElementById).toHaveBeenCalledWith('veille-container');
+            expect(mockContainer.innerHTML).toContain('14/10');
+            expect(mockContainer.innerHTML).toContain('Deepfakes vocaux');
+        });
+    });
+
+    describe('renderBriefingArticles', () => {
+        let mockGrid;
+
+        beforeEach(() => {
+            mockGrid = { innerHTML: '' };
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'briefing-grid') return mockGrid;
+                return mockElement;
+            });
+        });
+
+        afterEach(() => {
+            global.document.getElementById.mockImplementation(() => mockElement);
+        });
+
+        test('devrait trier et injecter le HTML des articles briefing dans le conteneur', () => {
+            app.renderBriefingArticles();
+
+            expect(global.document.getElementById).toHaveBeenCalledWith('briefing-grid');
+            expect(mockGrid.innerHTML).toContain('NeonLock');
+            expect(mockGrid.innerHTML).toContain('L\'IA Offensive');
         });
     });
 
