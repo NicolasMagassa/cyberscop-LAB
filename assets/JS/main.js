@@ -3,6 +3,14 @@
  *  FONCTIONS DE L'ANCIENNE VERSION (gerer_compte)
  * =========================================
  */
+
+/**
+ * Permet de basculer l'affichage entre les différents onglets de l'interface utilisateur.
+ * Modifie l'état visuel et l'accessibilité (attributs ARIA) des onglets et panneaux correspondants.
+ *
+ * @param {string} tabId - L'identifiant de l'onglet à activer (ex: 'danger', 'info').
+ * @returns {void}
+ */
 function switchTab(tabId) {
     const panels = document.querySelectorAll('.panel');
     panels.forEach(panel => panel.classList.add('hidden'));
@@ -33,6 +41,13 @@ function switchTab(tabId) {
     }
 }
 
+/**
+ * Gère l'action de sauvegarde en affichant un message de notification (toast).
+ *
+ * @param {Event|null} event - L'événement de soumission ou de clic à intercepter.
+ * @param {string} message - Le message à afficher dans la notification.
+ * @returns {void}
+ */
 function handleSave(event, message) {
     if (event) event.preventDefault();
     const toast = document.getElementById('toast');
@@ -99,6 +114,12 @@ const briefingThemes = {
     red: { color: 'cyber-red', shadow: 'rgba(255,0,60,0.15)' }
 };
 
+/**
+ * Formate une date ISO sous format court (JJ/MM).
+ *
+ * @param {string} dateString - Chaîne de caractères représentant la date (format ISO AAAA-MM-JJ).
+ * @returns {string} La date formatée (JJ/MM).
+ */
 function formatDate(dateString) {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
@@ -106,6 +127,12 @@ function formatDate(dateString) {
     return `${day}/${month}`;
 }
 
+/**
+ * Formate une date ISO sous format long (JJ MOIS AAAA), le mois étant en toutes lettres abrégé.
+ *
+ * @param {string} dateString - Chaîne de caractères représentant la date (format ISO AAAA-MM-JJ).
+ * @returns {string} La date formatée (ex: "18 JUIN 2026").
+ */
 function formatLongDate(dateString) {
     const date = new Date(dateString);
     const day = date.getDate();
@@ -182,12 +209,24 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- Menu Mobile Toggle ---
+/**
+ * Affiche ou masque le menu de navigation sur mobile en basculant la classe CSS 'hidden'.
+ *
+ * @returns {void}
+ */
 function toggleMenu() {
     const menu = document.getElementById('mobile-menu');
     if (menu) menu.classList.toggle('hidden');
 }
 
 // --- Login Modal Logic ---
+
+/**
+ * Ouvre ou ferme la boîte de dialogue de connexion (modale).
+ * Réinitialise les éventuels messages d'erreur et bloque le défilement de la page en arrière-plan lorsque la modale est active.
+ *
+ * @returns {void}
+ */
 function toggleLoginModal() {
     if(!loginModal) return;
     const isOpen = !loginModal.classList.contains('hidden');
@@ -211,6 +250,12 @@ if(loginModal) {
     });
 }
 
+/**
+ * Vérifie le statut d'authentification de l'utilisateur au chargement de la page.
+ * Restaure la session depuis le localStorage si des identifiants existent.
+ *
+ * @returns {void}
+ */
 function checkAuthStatus() {
     const storedUser = localStorage.getItem('cyberScopeUser');
     if (storedUser) {
@@ -221,6 +266,13 @@ function checkAuthStatus() {
     }
 }
 
+/**
+ * Gère la soumission du formulaire de connexion utilisateur (simulation).
+ * Valide les champs obligatoires, simule un appel réseau asynchrone et met à jour l'interface.
+ *
+ * @param {Event} event - L'événement de soumission du formulaire.
+ * @returns {void}
+ */
 function handleLogin(event) {
     event.preventDefault();
     const usernameInput = document.getElementById('username-input')?.value;
@@ -251,11 +303,22 @@ function handleLogin(event) {
     }, 500);
 }
 
+/**
+ * Déconnecte l'utilisateur actuel en supprimant sa session du localStorage et en réinitialisant l'interface utilisateur.
+ *
+ * @returns {void}
+ */
 function handleLogout() {
     localStorage.removeItem('cyberScopeUser');
     setUIStateLoggedOut();
 }
 
+/**
+ * Met à jour l'interface graphique (desktop et mobile) pour refléter un état connecté.
+ *
+ * @param {string} username - Le nom d'utilisateur à afficher dans le menu de profil.
+ * @returns {void}
+ */
 function setUIStateLoggedIn(username) {
     if(loginBtnTrigger) loginBtnTrigger.classList.add('hidden');
     if(userDropdown) userDropdown.classList.remove('hidden');
@@ -265,6 +328,11 @@ function setUIStateLoggedIn(username) {
     if(mobileUsernameDisplay) mobileUsernameDisplay.textContent = username;
 }
 
+/**
+ * Met à jour l'interface graphique (desktop et mobile) pour refléter un état déconnecté.
+ *
+ * @returns {void}
+ */
 function setUIStateLoggedOut() {
     if(loginBtnTrigger) loginBtnTrigger.classList.remove('hidden');
     if(userDropdown) userDropdown.classList.add('hidden');
@@ -330,6 +398,12 @@ window.AppCookieConfig = window.AppCookieConfig || {
     sameSite: 'Strict'
 };
 
+/**
+ * Récupère la valeur d'un cookie donné par son nom.
+ *
+ * @param {string} name - Le nom du cookie à rechercher.
+ * @returns {string|null} La valeur du cookie décodée, ou null s'il n'existe pas.
+ */
 function getCookieConsent(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -337,6 +411,13 @@ function getCookieConsent(name) {
     return null;
 }
 
+/**
+ * Enregistre le consentement et les préférences de cookies dans les cookies du document.
+ *
+ * @param {string} value - L'état global du consentement (ex: 'accepted', 'refused', 'custom').
+ * @param {Object} [prefsObj] - Un objet contenant les consentements détaillés (ex: { functional: true, analytics: false }).
+ * @returns {void}
+ */
 function setCookieConsent(value, prefsObj) {
     const config = window.AppCookieConfig;
     const isSecure = window.location.protocol === 'https:' ? 'Secure;' : '';
@@ -354,6 +435,12 @@ function setCookieConsent(value, prefsObj) {
 const hasConsent = getCookieConsent(window.AppCookieConfig.consentName);
 const isBannerDismissed = sessionStorage.getItem('cookieBannerDismissed');
 
+/**
+ * Affiche la modale d'avertissement de cookies si l'utilisateur n'a pas encore consenti
+ * et que la bannière n'a pas été temporairement masquée pour cette session.
+ *
+ * @returns {void}
+ */
 function showCookieModal() {
     if (!hasConsent && !isBannerDismissed && cookieModal) {
         cookieModal.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
@@ -361,11 +448,21 @@ function showCookieModal() {
     }
 }
 
+/**
+ * Masque temporairement la bannière de cookies pour la session en cours.
+ *
+ * @returns {void}
+ */
 function dismissCookieBanner() {
     sessionStorage.setItem('cookieBannerDismissed', 'true');
     hideCookieModal();
 }
 
+/**
+ * Masque la modale d'avertissement de cookies en appliquant les classes CSS de transition appropriées.
+ *
+ * @returns {void}
+ */
 function hideCookieModal() {
     if(cookieModal) {
         cookieModal.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
@@ -373,17 +470,33 @@ function hideCookieModal() {
     }
 }
 
+/**
+ * Accepte tous les cookies en enregistrant le consentement global et ferme le bandeau.
+ *
+ * @returns {void}
+ */
 function acceptCookies() {
     setCookieConsent('accepted', { necessary: true, functional: true, analytics: true });
     hideCookieModal();
 }
 
+/**
+ * Refuse les cookies non essentiels en enregistrant le choix et ferme le bandeau et le panneau des préférences.
+ *
+ * @returns {void}
+ */
 function declineCookies() {
      setCookieConsent('refused', { necessary: true, functional: false, analytics: false });
      hideCookieModal();
      closePreferencesModal();
 }
 
+/**
+ * Ouvre le panneau de configuration fine des préférences de cookies.
+ * Masque la bannière d'avertissement générale et bloque le défilement de la page.
+ *
+ * @returns {void}
+ */
 function showPreferencesModal() {
     hideCookieModal();
     if (preferencesModal) {
@@ -392,6 +505,11 @@ function showPreferencesModal() {
     }
 }
 
+/**
+ * Ferme le panneau des préférences de cookies et réactive le défilement de la page.
+ *
+ * @returns {void}
+ */
 function closePreferencesModal() {
     if (preferencesModal) {
         preferencesModal.classList.add('hidden');
@@ -399,6 +517,11 @@ function closePreferencesModal() {
     }
 }
 
+/**
+ * Retourne au bandeau de cookies principal à partir du panneau de configuration fine.
+ *
+ * @returns {void}
+ */
 function returnToCookieBanner() {
     closePreferencesModal();
     if (cookieModal) {
@@ -407,11 +530,21 @@ function returnToCookieBanner() {
     }
 }
 
+/**
+ * Décline tous les cookies non essentiels et ferme le panneau de configuration.
+ *
+ * @returns {void}
+ */
 function declineCookiesAndClosePreferences() {
     declineCookies();
     closePreferencesModal();
 }
 
+/**
+ * Enregistre les préférences de cookies spécifiques sélectionnées par l'utilisateur via les cases à cocher du panneau de configuration.
+ *
+ * @returns {void}
+ */
 function saveSpecificPreferences() {
     const functional = document.getElementById('cookie-functional') ? document.getElementById('cookie-functional').checked : false;
     const analytics = document.getElementById('cookie-analytics') ? document.getElementById('cookie-analytics').checked : false;
@@ -442,3 +575,36 @@ updateViewCounts();
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 });
+
+// Exporter les fonctions pour les tests unitaires sous Node/Jest
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        formatDate,
+        formatLongDate,
+        switchTab,
+        handleSave,
+        toggleMenu,
+        toggleLoginModal,
+        checkAuthStatus,
+        handleLogin,
+        handleLogout,
+        setUIStateLoggedIn,
+        setUIStateLoggedOut,
+        handleSignupAttempt,
+        handlePasswordResetAttempt,
+        toggleTheme,
+        updateViewCounts,
+        getCookieConsent,
+        setCookieConsent,
+        showCookieModal,
+        dismissCookieBanner,
+        hideCookieModal,
+        acceptCookies,
+        declineCookies,
+        showPreferencesModal,
+        closePreferencesModal,
+        returnToCookieBanner,
+        declineCookiesAndClosePreferences,
+        saveSpecificPreferences
+    };
+}

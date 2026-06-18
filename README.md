@@ -7,7 +7,15 @@
 
   *Développé avec les outils et technologies suivants :*
 
-  [![Python](https://img.shields.io/badge/Python-3776AB.svg?style=default&logo=Python&logoColor=white)](https://www.python.org)
+font-end
+  HTML
+  CSS
+  JAVASCRIPT
+  TAILWIND CSS
+back-end
+  PYTHON
+  NODE JS
+  NPM
 </div>
 
 ---
@@ -148,6 +156,11 @@ Pour lancer la totalité de la suite de tests, exécutez :
 
 ```bash
 npm test
+
+installer dans un premier temps node js puis npm. il se peut qu'au premier test tout plante, c'est normal il faut donc eteindre vscode puis le relancer et dans le terminal taper :
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+npm test
+
 ```
 
 Pour lancer un test spécifique en particulier, exécutez :
@@ -155,6 +168,8 @@ Pour lancer un test spécifique en particulier, exécutez :
 ```bash
 npm test nom-du-test
 ```
+**Test automatisés
+
 
 ## Feuille de route
 
@@ -164,7 +179,8 @@ npm test nom-du-test
 - [x] **Conformité & GRC :** Intégration des pages CGU, Mentions Légales, Politique de Confidentialité et Cookies.
 - [x] **Gestion des Cookies (RGPD) :** Bandeau d'avertissement et panneau de configuration fine des consentements (essentiels, fonctionnels, analytiques).
 - [x] **Automatisation :** Scripts Python de maintenance (correction des liens, encodage des accents, injection de composants).
-- [ ] **Tests Automatisés :** Couverture de test (TDD) pour la logique JavaScript des cookies et des formulaires.
+- [x] **documentation des fonctions JS :** documentation des fonctions fonction métier/comportement via JSdoc . 
+- [x] **Tests Automatisés :** Couverture de test (TDD) pour la logique JavaScript des cookies et des formulaires.
 - [ ] **Déploiement :** Configuration de la chaîne CI/CD et mise en ligne du site.
 
 ## Contribution

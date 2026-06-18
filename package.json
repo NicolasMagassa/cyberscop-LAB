@@ -1,0 +1,13 @@
+{
+  "name": "cyberscop-lab",
+  "version": "1.0.0",
+  "description": "NicolasMagassa/cyberscop-LAB",
+  "main": "assets/JS/main.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jsdoc": "^4.0.5"
+  }
+}
