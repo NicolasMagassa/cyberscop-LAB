@@ -13,7 +13,7 @@ font-end
   JAVASCRIPT
   TAILWIND CSS
 back-end
-  PYTHON
+  PYTHON script (maintenance des liens)
   NODE JS
   NPM
 </div>
@@ -180,7 +180,8 @@ npm test nom-du-test
 - [x] **Gestion des Cookies (RGPD) :** Bandeau d'avertissement et panneau de configuration fine des consentements (essentiels, fonctionnels, analytiques).
 - [x] **Automatisation :** Scripts Python de maintenance (correction des liens, encodage des accents, injection de composants).
 - [x] **documentation des fonctions JS :** documentation des fonctions fonction métier/comportement via JSdoc . 
-- [x] **Tests Automatisés :** Couverture de test (TDD) pour la logique JavaScript des cookies et des formulaires.
+- [x] **Tests Automatisés :** Couverture de test (TDD) pour la logique JavaScript des cookies et des formulaires. le 19/06/2026 35 tests unitaires et comportementaux très solides dans [test.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/tests/test.js) qui simulent le DOM. 
+- [] **connection du blog avec strapi (backend) :** installer Playwright pour tester les vrais flux dans un vrai navigateur (vérifier que les articles s'affichent correctement en provenance de l'API est indispensable).
 - [ ] **Déploiement :** Configuration de la chaîne CI/CD et mise en ligne du site.
 
 ## Contribution
