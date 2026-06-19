@@ -4,9 +4,11 @@
   "description": "NicolasMagassa/cyberscop-LAB",
   "main": "assets/JS/main.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint ."
   },
   "devDependencies": {
+    "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "jsdoc": "^4.0.5"
   }

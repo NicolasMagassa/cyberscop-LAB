@@ -27,5 +27,11 @@ jobs:
       - name: Installer les dépendances
         run: npm ci
 
+      - name: Vérifier la qualité du code (ESLint)
+        run: npm run lint
+
+      - name: Audit de sécurité des dépendances (Niveau High/Critical)
+        run: npm audit --audit-level=high
+
       - name: Exécuter les tests unitaires et comportementaux
         run: npm test
