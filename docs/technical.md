@@ -47,13 +47,13 @@ npm test
    Mettre en place l'intégration continue (CI) avec GitHub Actions pour exécuter automatiquement les 35 tests Jest lors de chaque `push` ou `pull_request` sur les branches `dev` et `main`.
 
 2. **Prérequis**  
-   - Les dépendances de test configurées dans le fichier [package.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/package.json).
-   - Un fichier [package-lock.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/package-lock.json) à jour à la racine.
-   - Les tests écrits dans [test.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/tests/test.js).
-   - Un dépôt distant configuré sur GitHub.
+   - Les dépendances de test configurées dans le fichier [package.json](../package.json)
+   - Un fichier [package-lock.json](../package-lock.json) à jour à la racine
+   - Les tests écrits dans [tests/test.js](../tests/test.js)
+   - Un dépôt distant configuré sur GitHub
 
 3. **Commande**  
-   Créez le fichier de configuration du workflow sous [.github/workflows/jest.yml](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/.github/workflows/jest.yml) avec la configuration souhaitée, puis envoyez les modifications :
+   Créez le fichier de configuration du workflow sous [.github/workflows/jest.yml](../.github/workflows/jest.yml) avec la configuration souhaitée, puis envoyez les modifications :
 
 ```bash
 git add .github/workflows/jest.yml
@@ -68,4 +68,4 @@ git push origin dev
    Rendez-vous sur l'onglet **Actions** de votre dépôt GitHub. Vous devriez y voir démarrer un "workflow" nommé **Tests de non-régression (Jest)**. Confirmez que toutes les étapes s'exécutent correctement et que le workflow se termine par une coche verte de succès.
 
 6. **Notes et conseils supplémentaires**  
-   - Nous utilisons `npm ci` au lieu de `npm install` car cette commande est optimisée pour les environnements de CI : elle est plus rapide, plus stricte et échoue si le fichier `package-lock.json` n'est pas synchronisé avec `package.json`.
+   > **Astuce :** `npm ci` au lieu de `npm install` est optimisé pour la CI : plus rapide, plus stricte, échoue si `package-lock.json` non synchronisé avec `package.json`.
