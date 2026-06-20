@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="fr" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberScope Lab | Console de Test</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap"
+        rel="stylesheet">
     <!-- Tailwind CSS pour le style rapide (utilisé pour les démonstrations de test) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -42,15 +45,18 @@
             background-image: linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px);
             background-size: 40px 40px;
         }
+
         .neon-border {
             box-shadow: 0 0 15px rgba(0, 184, 194, 0.2);
             border: 1px solid #00b8c2;
         }
+
         .neon-text-green {
             text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
         }
     </style>
 </head>
+
 <body class="min-h-screen p-8">
 
     <!-- ÉLÉMENTS DU DOM SIMULÉS POUR main.js (masqués) -->
@@ -95,12 +101,13 @@
         <!-- CONSOLE DU RUNNER -->
         <section class="bg-cyber-panel/90 border border-gray-800 rounded-lg p-6 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyber-blue to-cyber-pink"></div>
-            
+
             <div class="flex justify-between items-center mb-6">
                 <h2 class="font-orbitron text-lg font-bold uppercase tracking-wider text-gray-200">
                     Console d'exécution
                 </h2>
-                <button onclick="runTests()" class="px-4 py-2 bg-cyber-blue hover:bg-cyber-blue/80 text-cyber-black font-orbitron font-bold text-xs uppercase tracking-widest rounded transition-all duration-200 active:scale-95 shadow-[0_0_10px_rgba(0,184,194,0.3)]">
+                <button onclick="runTests()"
+                    class="px-4 py-2 bg-cyber-blue hover:bg-cyber-blue/80 text-cyber-black font-orbitron font-bold text-xs uppercase tracking-widest rounded transition-all duration-200 active:scale-95 shadow-[0_0_10px_rgba(0,184,194,0.3)]">
                     Lancer les tests
                 </button>
             </div>
@@ -109,8 +116,10 @@
                 <!-- Rempli dynamiquement -->
             </div>
 
-            <div class="bg-black/60 rounded border border-gray-850 p-4 font-mono text-xs min-h-[200px] max-h-[400px] overflow-y-auto" id="test-log">
-                <span class="text-gray-500">// Appuyez sur "LANCER LES TESTS" pour commencer la validation du système.</span>
+            <div class="bg-black/60 rounded border border-gray-850 p-4 font-mono text-xs min-h-[200px] max-h-[400px] overflow-y-auto"
+                id="test-log">
+                <span class="text-gray-500">// Appuyez sur "LANCER LES TESTS" pour commencer la validation du
+                    système.</span>
             </div>
         </section>
 
@@ -119,14 +128,16 @@
             <div class="bg-cyber-panel/60 border border-gray-800/60 rounded-lg p-5">
                 <h3 class="font-orbitron font-bold text-cyber-blue text-sm uppercase mb-3">À propos de ce Runner</h3>
                 <p class="text-gray-400 text-sm leading-relaxed">
-                    Ce fichier HTML permet de tester vos fonctions JavaScript directement dans votre navigateur. 
-                    Il n'a pas besoin de Node.js et fonctionne instantanément via un simple double-clic ou via votre serveur local.
+                    Ce fichier HTML permet de tester vos fonctions JavaScript directement dans votre navigateur.
+                    Il n'a pas besoin de Node.js et fonctionne instantanément via un simple double-clic ou via votre
+                    serveur local.
                 </p>
             </div>
             <div class="bg-cyber-panel/60 border border-gray-800/60 rounded-lg p-5">
                 <h3 class="font-orbitron font-bold text-cyber-pink text-sm uppercase mb-3">Couverture</h3>
                 <p class="text-gray-400 text-sm leading-relaxed">
-                    Il teste les fonctions de formatage de date, de stockage et d'écriture de cookies, ainsi que la simulation des ouvertures/fermetures de modales de votre application.
+                    Il teste les fonctions de formatage de date, de stockage et d'écriture de cookies, ainsi que la
+                    simulation des ouvertures/fermetures de modales de votre application.
                 </p>
             </div>
         </section>
@@ -143,10 +154,10 @@
         function log(message, type = 'info') {
             const line = document.createElement('div');
             line.className = 'py-1 border-b border-gray-900/30';
-            
+
             let prefix = '[INFO]';
             let color = 'text-gray-400';
-            
+
             if (type === 'success') {
                 prefix = '[OK]';
                 color = 'text-cyber-neonGreen';
@@ -157,7 +168,7 @@
                 prefix = '>>';
                 color = 'text-cyber-blue font-bold mt-2';
             }
-            
+
             line.innerHTML = `<span class="${color} font-mono">${prefix} ${message}</span>`;
             logContainer.appendChild(line);
             logContainer.scrollTop = logContainer.scrollHeight;
@@ -176,9 +187,9 @@
         function runTests() {
             logContainer.innerHTML = '';
             summaryBanner.className = 'hidden mb-6 p-4 rounded border font-mono text-sm';
-            
+
             log('Initialisation du protocole de test...', 'header');
-            
+
             let total = 0;
             let passed = 0;
 
@@ -190,12 +201,12 @@
             try {
                 // --- 1. TESTS UNITAIRES (Dates) ---
                 log('Section 1 : Fonctions de formatage', 'header');
-                
+
                 runAssert(
                     typeof formatDate === 'function',
                     'La fonction "formatDate" doit être définie.'
                 );
-                
+
                 if (typeof formatDate === 'function') {
                     runAssert(
                         formatDate('2025-10-14') === '14/10',
@@ -211,7 +222,7 @@
                     typeof formatLongDate === 'function',
                     'La fonction "formatLongDate" doit être définie.'
                 );
-                
+
                 if (typeof formatLongDate === 'function') {
                     const longDate = formatLongDate('2025-10-12');
                     runAssert(
@@ -222,18 +233,18 @@
 
                 // --- 2. TESTS UNITAIRES (Cookies) ---
                 log('Section 2 : Gestion des cookies et consentement', 'header');
-                
+
                 // Nettoyage avant test
                 document.cookie = "consent_state=; max-age=-99999999;";
                 document.cookie = "consent_prefs=; max-age=-99999999;";
-                
+
                 runAssert(
                     getCookieConsent('consent_state') === null,
                     'getCookieConsent renvoie null pour un cookie inexistant'
                 );
 
                 setCookieConsent('accepted', { necessary: true, functional: true });
-                
+
                 runAssert(
                     getCookieConsent('consent_state') === 'accepted',
                     'setCookieConsent enregistre correctement la valeur "accepted"'
@@ -241,17 +252,17 @@
 
                 // --- 3. TESTS COMPORTEMENTAUX (Interface) ---
                 log('Section 3 : Comportement de l\'interface utilisateur (Modales & Dom)', 'header');
-                
+
                 const loginModalEl = document.getElementById('login-modal');
                 loginModalEl.classList.add('hidden'); // Initial state
-                
+
                 if (typeof toggleLoginModal === 'function') {
                     toggleLoginModal();
                     runAssert(
                         !loginModalEl.classList.contains('hidden'),
                         'toggleLoginModal() affiche la modale de connexion (retire la classe "hidden")'
                     );
-                    
+
                     toggleLoginModal();
                     runAssert(
                         loginModalEl.classList.contains('hidden'),
@@ -280,4 +291,5 @@
         }
     </script>
 </body>
+
 </html>

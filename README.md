@@ -181,10 +181,10 @@ npm test nom-du-test
 - [x] **Gestion des Cookies (RGPD) :** Bandeau d'avertissement et panneau de configuration fine des consentements (essentiels, fonctionnels, analytiques).
 - [x] **Automatisation :** Scripts Python de maintenance (correction des liens, encodage des accents, injection de composants).
 - [x] **documentation des fonctions JS :** documentation des fonctions fonction métier/comportement via JSdoc . 
-- [x] **Tests Automatisés :** Couverture de test (TDD) pour la logique JavaScript des cookies et des formulaires. le 19/06/2026 35 tests unitaires et comportementaux très solides dans [test.js](./tests/test.js) qui simulent le DOM. 
+- [x] **Tests Automatisés :** Couverture de test (TDD) pour la logique JavaScript des cookies et des formulaires. le 19/06/2026 35 tests unitaires et comportementaux très solides dans [test.js](./tests/test.js) qui simulent le DOM. chaque test est associé au nom d'une fonction qui a ete documentée a l'etape precedente.
 - [x] **CI/CD, Qualité & Sécurité (SAST) :** Intégration continue avec GitHub Actions exécutant les tests, la validation de syntaxe (ESLint), et l'audit de sécurité des dépendances (`npm audit`). Déploiement de l'analyse SAST avec GitHub CodeQL. 
 - [] **connection du blog avec strapi (backend) :** installer Playwright pour tester les vrais flux dans un vrai navigateur (vérifier que les articles s'affichent correctement en provenance de l'API est indispensable).
-- [ ] **Déploiement :** Configuration de la chaîne CI/CD et mise en ligne du site.
+- [ ] **Déploiement :** Configuration de la chaîne CI/CD et mise en ligne du site. 
 
 ## Contribution
 
