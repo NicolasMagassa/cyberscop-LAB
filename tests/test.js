@@ -89,6 +89,10 @@ describe('Tests Unitaires - Fonctions de formatage et de cookies', () => {
         global.document.cookie = '';
     });
 
+    // =========================================================================
+    // Cible : Fonction formatDate() dans main.js
+    // Rôle  : Formate une date ISO (AAAA-MM-JJ) en format court (JJ/MM)
+    // =========================================================================
     describe('formatDate', () => {
         test('devrait formater correctement une date YYYY-MM-DD en DD/MM', () => {
             expect(app.formatDate('2025-10-14')).toBe('14/10');
@@ -100,6 +104,10 @@ describe('Tests Unitaires - Fonctions de formatage et de cookies', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction formatLongDate() dans main.js
+    // Rôle  : Formate une date ISO (AAAA-MM-JJ) en format long (JJ MOIS AAAA)
+    // =========================================================================
     describe('formatLongDate', () => {
         test('devrait formater une date en format long (D MMM YYYY)', () => {
             // Note: Le mois renvoyé dépend de la locale du système (souvent en anglais par défaut dans Node/Jest)
@@ -109,6 +117,10 @@ describe('Tests Unitaires - Fonctions de formatage et de cookies', () => {
         });
     });
 
+    // =========================================================================
+    // Cibles : Fonctions getCookieConsent() et setCookieConsent() dans main.js
+    // Rôle   : Lecture et écriture de l'état/des préférences de cookies de l'utilisateur
+    // =========================================================================
     describe('Gestion des Cookies (getCookieConsent / setCookieConsent)', () => {
         test('getCookieConsent devrait renvoyer null si le cookie n\'existe pas', () => {
             global.document.cookie = 'other_cookie=value';
@@ -137,6 +149,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         global.document.body.style.overflow = 'auto';
     });
 
+    // =========================================================================
+    // Cible : Fonction switchTab() dans main.js
+    // Rôle  : Gère le basculement d'onglet et l'accessibilité visuelle (attributs ARIA)
+    // =========================================================================
     describe('switchTab', () => {
         test('devrait modifier les classes des panneaux et boutons d\'onglets', () => {
             app.switchTab('danger');
@@ -150,6 +166,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction checkAuthStatus() dans main.js
+    // Rôle  : Vérifie si l'utilisateur est connecté via localStorage et met à jour l'IHM
+    // =========================================================================
     describe('checkAuthStatus', () => {
         test('devrait configurer l\'IHM pour un utilisateur connecté si localStorage contient un utilisateur valide', () => {
             const fakeUser = { username: 'ADMIN', token: 'token-xyz' };
@@ -175,6 +195,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction handleLogin() dans main.js
+    // Rôle  : Gère la soumission du formulaire de connexion, simule un appel API et connecte l'utilisateur
+    // =========================================================================
     describe('handleLogin', () => {
         let mockEvent;
         let mockUsernameInput;
@@ -251,6 +275,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction handleLogout() dans main.js
+    // Rôle  : Déconnecte l'utilisateur en effaçant localStorage et en réinitialisant l'IHM
+    // =========================================================================
     describe('handleLogout', () => {
         test('devrait supprimer la session de localStorage et mettre à jour l\'IHM', () => {
             app.handleLogout();
@@ -261,6 +289,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction handleSignupAttempt() dans main.js
+    // Rôle  : Affiche le message d'inscription sur l'IHM (simulation de redirection)
+    // =========================================================================
     describe('handleSignupAttempt', () => {
         test('devrait afficher le message d\'inscription sur l\'IHM', () => {
             mockElement.textContent = '';
@@ -270,6 +302,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction handlePasswordResetAttempt() dans main.js
+    // Rôle  : Affiche le message de récupération de mot de passe (simulation)
+    // =========================================================================
     describe('handlePasswordResetAttempt', () => {
         test('devrait afficher le message de récupération de mot de passe', () => {
             mockElement.textContent = '';
@@ -279,6 +315,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction toggleTheme() dans main.js
+    // Rôle  : Bascule entre les modes clair (light) et sombre (dark) et persiste le choix dans localStorage
+    // =========================================================================
     describe('toggleTheme', () => {
         test('devrait passer du mode sombre au mode clair si le mode sombre est actif', () => {
             mockClassList.contains.mockReturnValueOnce(true);
@@ -299,6 +339,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction saveSpecificPreferences() dans main.js
+    // Rôle  : Enregistre le choix granulaire des cookies (analytics/fonctionnels) via des cases à cocher
+    // =========================================================================
     describe('saveSpecificPreferences', () => {
         let mockFunctionalInput;
         let mockAnalyticsInput;
@@ -333,6 +377,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction toggleMenu() dans main.js
+    // Rôle  : Affiche/masque le menu de navigation mobile en basculant la classe CSS 'hidden'
+    // =========================================================================
     describe('toggleMenu', () => {
         test('devrait basculer la classe hidden sur le menu mobile', () => {
             app.toggleMenu();
@@ -340,6 +388,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction handleSave() dans main.js
+    // Rôle  : Affiche temporairement une notification visuelle (toast) lors des sauvegardes
+    // =========================================================================
     describe('handleSave', () => {
         let mockEvent;
         let mockToast;
@@ -391,6 +443,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction updateViewCounts() dans main.js
+    // Rôle  : Incrémente de façon aléatoire et périodique le nombre de vues simulé sur les articles
+    // =========================================================================
     describe('updateViewCounts', () => {
         test('devrait incrémenter les compteurs de vues de façon aléatoire', () => {
             mockElement.getAttribute.mockReturnValueOnce('12500');
@@ -417,6 +473,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction renderVeilleArticles() dans main.js
+    // Rôle  : Trie et injecte dynamiquement les articles de veille technologique (depuis Strapi mock)
+    // =========================================================================
     describe('renderVeilleArticles', () => {
         let mockContainer;
 
@@ -441,6 +501,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction renderBriefingArticles() dans main.js
+    // Rôle  : Trie et injecte dynamiquement les articles de briefing de sécurité
+    // =========================================================================
     describe('renderBriefingArticles', () => {
         let mockGrid;
 
@@ -465,6 +529,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cible : Fonction toggleLoginModal() dans main.js
+    // Rôle  : Ouvre ou ferme la modale d'authentification utilisateur
+    // =========================================================================
     describe('toggleLoginModal', () => {
         test('devrait ouvrir la modale de connexion quand elle est masquée', () => {
             // Simuler une modale masquée (contient la classe hidden)
@@ -489,6 +557,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
+    // =========================================================================
+    // Cibles : Fonctions de cookies (acceptCookies, declineCookies, showCookieModal, etc.) dans main.js
+    // Rôle   : Regroupe tous les gestionnaires d'événements relatifs au bandeau et panneau RGPD
+    // =========================================================================
     describe('Gestion des actions de cookies', () => {
         test('acceptCookies devrait enregistrer le consentement accepté', () => {
             app.acceptCookies();

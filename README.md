@@ -13,7 +13,8 @@ font-end
   JAVASCRIPT
   TAILWIND CSS
 back-end
-  PYTHON script (maintenance des liens)
+  PYTHON script (maintenance des liens) scripts Python autonomes conçus pour automatiser des modifications répétitives ou globales sur l'ensemble de tes pages HTML statiques.
+
   NODE JS
   NPM
 </div>
