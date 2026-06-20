@@ -169,7 +169,6 @@ Pour lancer un test spécifique en particulier, exécutez :
 ```bash
 npm test nom-du-test
 ```
-**Test automatisés
 
 
 ## Feuille de route
