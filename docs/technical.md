@@ -41,7 +41,7 @@ npm test
 
 ---
 
-## Étape 1 : Configuration du Workflow GitHub Actions pour Jest
+## Étape 1 : Configuration du Workflow GitHub Actions pour Jest (test TDD)
 
 1. **Objectif de l'étape**  
    Mettre en place l'intégration continue (CI) avec GitHub Actions pour exécuter automatiquement les 35 tests Jest lors de chaque `push` ou `pull_request` sur les branches `dev` et `main`.
@@ -51,6 +51,7 @@ npm test
    - Un fichier [package-lock.json](../package-lock.json) à jour à la racine
    - Les tests écrits dans [tests/test.js](../tests/test.js)
    - Un dépôt distant configuré sur GitHub
+   - documentation des fonctions fonction métier/comportement via JSdoc avant l'ecriture des tests. 
 
 3. **Commande**  
    Créez le fichier de configuration du workflow sous [.github/workflows/jest.yml](../.github/workflows/jest.yml) avec la configuration souhaitée, puis envoyez les modifications :
@@ -150,3 +151,85 @@ git push origin dev
 
 6. **Notes et conseils supplémentaires**  
    - L'analyse est configurée pour scanner le code à chaque `push` ou `pull_request` sur les branches `dev` et `main`, ainsi que de manière planifiée une fois par semaine (cron).
+
+---
+
+## Étape 5 : Signature des commits Git
+
+1. **Objectif de l'étape**  
+   Configurer Git localement pour signer numériquement chaque commit avec une clé SSH, permettant d'assurer l'authenticité de l'auteur et la non-répudiation des modifications sur GitHub.
+
+2. **Prérequis**  
+   - Avoir Git installé localement (version 2.34 ou supérieure recommandée pour le support des clés SSH).
+   - Avoir généré une clé SSH dédiée à la signature.
+
+3. **Commande**  
+   Générez une clé SSH de signature et configurez Git pour l'utiliser :
+   ```bash
+   # Générer la clé SSH de signature
+   ssh-keygen -t ed25519 -f ~/.ssh/id_signing_key -C "signing-key" -N ""
+
+   # Configurer Git pour utiliser SSH pour la signature
+   git config --global commit.gpgsign true
+   git config --global gpg.format ssh
+   git config --global user.signingkey "C:/Users/user/.ssh/id_signing_key.pub"
+   ```
+
+4. **Explication courte**  
+   Ces commandes indiquent à Git d'utiliser l'utilitaire SSH (au lieu de GPG) pour signer cryptographiquement chaque commit avec la clé privée locale. La clé publique doit être déclarée sur GitHub pour permettre la validation automatique.
+
+5. **Vérification du résultat**  
+   - Affichez votre clé publique de signature et copiez-la :
+     ```bash
+     cat ~/.ssh/id_signing_key.pub
+     ```
+   - Ajoutez-la à votre compte GitHub dans **Settings** > **SSH and GPG keys** > **New SSH key** (en choisissant le type **Signing Key**).
+   - Faites un commit de test, puis poussez-le. Sur GitHub, un badge vert **"Verified"** doit apparaître à côté de votre commit.
+
+6. **Notes et conseils supplémentaires**  
+   - > **Sécurité :** Ne partagez jamais votre clé privée `id_signing_key`. La signature locale protège contre l'usurpation d'identité, une pratique courante où un attaquant configure votre nom et email localement pour pousser du code malveillant en se faisant passer pour vous.
+
+---
+
+## Étape 6 : Secret Scanning local avec pre-commit et Gitleaks
+
+1. **Objectif de l'étape**  
+   Configurer un système d'analyse préventif local pour empêcher physiquement l'ajout accidentel de secrets (clés d'API, mots de passe, clés SSH) dans le dépôt Git au moment du `git commit`.
+
+2. **Prérequis**  
+   - Python et `pip` installés localement.
+   - Avoir initialisé Git dans le dossier du projet.
+
+3. **Commande**  
+   Installez le gestionnaire de hooks, écrivez la configuration et configurez Git :
+   ```bash
+   # Installer pre-commit via pip
+   python -m pip install pre-commit
+
+   # Créer le fichier .pre-commit-config.yaml à la racine du projet
+   # Contenu :
+   # repos:
+   #   - repo: https://github.com/gitleaks/gitleaks
+   #     rev: v8.21.2
+   #     hooks:
+   #       - id: gitleaks
+
+   # Installer le hook de pre-commit dans votre dépôt Git local
+   python -m pre_commit install
+   ```
+
+4. **Explication courte**  
+   Le gestionnaire `pre-commit` intercepte la commande `git commit` et exécute automatiquement les hooks configurés. Ici, le hook `gitleaks` analyse l'ensemble des fichiers modifiés et bloque le commit s'il détecte des clés d'API, des mots de passe en clair ou d'autres formats de signatures de secrets connus.
+
+5. **Vérification du résultat**  
+   - Lancez l'analyse manuelle sur tous les fichiers du dépôt :
+     ```bash
+     python -m pre_commit run --all-files
+     ```
+   - L'étape doit s'exécuter avec succès et renvoyer la ligne suivante pour confirmer que tout est valide et qu'aucun secret n'a été détecté :
+     ```text
+     Detect hardcoded secrets.................................................Passed
+     ```
+
+6. **Notes et conseils supplémentaires**  
+   - > **Sécurité :** Si le hook bloque un commit en signalant un faux positif, ou si vous devez absolument passer outre dans un cadre spécifique et maîtrisé, vous pouvez utiliser l'option `git commit --no-verify`. Utilisez-la avec la plus grande prudence.

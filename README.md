@@ -182,6 +182,8 @@ npm test nom-du-test
 - [x] **documentation des fonctions JS :** documentation des fonctions fonction métier/comportement via JSdoc . 
 - [x] **Tests Automatisés :** Couverture de test (TDD) pour la logique JavaScript des cookies et des formulaires. le 19/06/2026 35 tests unitaires et comportementaux très solides dans [test.js](./tests/test.js) qui simulent le DOM. chaque test est associé au nom d'une fonction qui a ete documentée a l'etape precedente.
 - [x] **CI/CD, Qualité & Sécurité (SAST) :** Intégration continue avec GitHub Actions exécutant les tests, la validation de syntaxe (ESLint), et l'audit de sécurité des dépendances (`npm audit`). Déploiement de l'analyse SAST avec GitHub CodeQL. 
+- [x] **Signature des commits Git :** Configuration de Git pour signer numériquement chaque commit avec une clé SSH dédiée, garantissant l'authenticité et la non-répudiation (badge "Verified" sur GitHub).
+- [x] **Secret Scanning local (Pre-commit & Gitleaks) :** Configuration d'un hook Git de pre-commit exécutant Gitleaks pour analyser le code localement à la recherche de secrets, clés d'API ou mots de passe avant chaque commit.
 - [] **connection du blog avec strapi (backend) :** installer Playwright pour tester les vrais flux dans un vrai navigateur (vérifier que les articles s'affichent correctement en provenance de l'API est indispensable).
 - [ ] **Déploiement :** Configuration de la chaîne CI/CD et mise en ligne du site. 
 
