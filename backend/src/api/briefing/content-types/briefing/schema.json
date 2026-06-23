@@ -1,0 +1,50 @@
+{
+  "kind": "collectionType",
+  "collectionName": "briefings",
+  "info": {
+    "singularName": "briefing",
+    "pluralName": "briefings",
+    "displayName": "Briefing",
+    "description": "Briefings de sécurité"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    },
+    "category": {
+      "type": "string",
+      "required": true
+    },
+    "views": {
+      "type": "integer",
+      "default": 0
+    },
+    "theme": {
+      "type": "enumeration",
+      "enum": [
+        "green",
+        "pink",
+        "blue",
+        "purple",
+        "red"
+      ],
+      "default": "blue"
+    },
+    "icon": {
+      "type": "string",
+      "default": "shield"
+    }
+  }
+}

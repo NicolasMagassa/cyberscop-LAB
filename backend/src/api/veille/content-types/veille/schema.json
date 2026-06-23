@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "veilles",
+  "info": {
+    "singularName": "veille",
+    "pluralName": "veilles",
+    "displayName": "Veille",
+    "description": "Articles de veille cyber"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

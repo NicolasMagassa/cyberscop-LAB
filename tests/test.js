@@ -492,8 +492,8 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             global.document.getElementById.mockImplementation(() => mockElement);
         });
 
-        test('devrait trier et injecter le HTML des articles de veille dans le conteneur', () => {
-            app.renderVeilleArticles();
+        test('devrait trier et injecter le HTML des articles de veille dans le conteneur', async () => {
+            await app.renderVeilleArticles();
 
             expect(global.document.getElementById).toHaveBeenCalledWith('veille-container');
             expect(mockContainer.innerHTML).toContain('14/10');
@@ -520,8 +520,8 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             global.document.getElementById.mockImplementation(() => mockElement);
         });
 
-        test('devrait trier et injecter le HTML des articles briefing dans le conteneur', () => {
-            app.renderBriefingArticles();
+        test('devrait trier et injecter le HTML des articles briefing dans le conteneur', async () => {
+            await app.renderBriefingArticles();
 
             expect(global.document.getElementById).toHaveBeenCalledWith('briefing-grid');
             expect(mockGrid.innerHTML).toContain('NeonLock');

@@ -4,3 +4,12 @@ Thumbs.db
 .env
 *.log
 node_modules/
+
+# Strapi backend exclusions
+backend/node_modules/
+backend/.tmp/
+backend/build/
+backend/.cache/
+backend/dist/
+backend/exports/
+backend/.env

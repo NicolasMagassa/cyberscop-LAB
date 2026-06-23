@@ -71,6 +71,9 @@ git push origin dev
 6. **Notes et conseils supplémentaires**  
    > **Astuce :** `npm ci` au lieu de `npm install` est optimisé pour la CI : plus rapide, plus stricte, échoue si `package-lock.json` non synchronisé avec `package.json`.
 
+7. **Danger (si non réalisé)**  
+   > **Alerte Sécurité :** Sans tests automatisés exécutés de manière transparente lors de la CI, des bugs ou des régressions critiques affectant des fonctions de sécurité (ex. la validation RGPD des cookies ou la conformité des formulaires) peuvent être déployés par inadvertance en production, offrant des failles faciles à exploiter pour un attaquant.
+
 ---
 
 ## Étape 2 : Configuration et Utilisation d'ESLint (Linter)
@@ -98,6 +101,9 @@ git push origin dev
    - Les environnements configurés dans `.eslintrc.json` sont `browser`, `node`, `jest` et `es2022` afin d'éviter les faux négatifs de type "variable globale non définie" (comme `document` ou `jest`).
    - La globale `lucide` (pour l'affichage des icônes) est déclarée en lecture seule pour éviter que le linter ne la signale comme indéfinie.
 
+7. **Danger (si non réalisé)**  
+   > **Alerte Sécurité :** L'absence d'analyse statique syntaxique permet à des variables non déclarées ou à des instabilités logiques d'être intégrées. Un attaquant peut exploiter ces faiblesses pour provoquer un déni de service (crash de l'interface client) ou exploiter des failles de logique métier.
+
 ---
 
 ## Étape 3 : Audit de sécurité des dépendances (npm audit) dans la CI
@@ -123,6 +129,9 @@ git push origin dev
 
 6. **Notes et conseils supplémentaires**  
    > **Important :** Nous limitons le seuil à `--audit-level=high`. Le projet possède actuellement des dépendances de développement (notamment via Jest 29) contenant des alertes de niveau modéré (`js-yaml`). En ciblant uniquement le niveau `high`, nous évitons de bloquer inutilement la CI tout en restant alertés en cas de menace réelle.
+
+7. **Danger (si non réalisé)**  
+   > **Alerte Sécurité :** Sans audit de sécurité des dépendances, une bibliothèque tierce contenant une vulnérabilité critique de type RCE (exécution de code à distance) ou XSS peut s'infiltrer dans le projet. Un attaquant pourrait l'exploiter directement pour compromettre le système ou voler les données des utilisateurs.
 
 ---
 
@@ -152,12 +161,15 @@ git push origin dev
 6. **Notes et conseils supplémentaires**  
    - L'analyse est configurée pour scanner le code à chaque `push` ou `pull_request` sur les branches `dev` et `main`, ainsi que de manière planifiée une fois par semaine (cron).
 
+7. **Danger (si non réalisé)**  
+   > **Alerte Sécurité :** Sans analyse SAST (CodeQL), des vulnérabilités complexes écrites directement dans votre code (comme les failles XSS dues à une injection via `innerHTML`, ou des faiblesses cryptographiques) ne seront jamais détectées avant la mise en ligne, permettant à des pirates de cibler vos utilisateurs.
+
 ---
 
 ## Étape 5 : Signature des commits Git
 
 1. **Objectif de l'étape**  
-   Configurer Git localement pour signer numériquement chaque commit avec une clé SSH, permettant d'assurer l'authenticité de l'auteur et la non-répudiation des modifications sur GitHub.
+   Configurer Git localement pour signer numériquement chaque commit avec une clé SSH, permettant d'assurer l'authenticité de l'auteur et la non-répudiation des modifications sur GitHub. Assurer l'authenticité des commits et empêcher l'usurpation d'identité en signant numériquement chaque commit à l'aide d'une clé SSH privée locale. Ainsi github reconnaîtra mes commits comme authentiques et y apposera un badge vert Verified. Cela renforce la sécurité de mon dépôt. 
 
 2. **Prérequis**  
    - Avoir Git installé localement (version 2.34 ou supérieure recommandée pour le support des clés SSH).
@@ -169,9 +181,16 @@ git push origin dev
    # Générer la clé SSH de signature
    ssh-keygen -t ed25519 -f ~/.ssh/id_signing_key -C "signing-key" -N ""
 
-   # Configurer Git pour utiliser SSH pour la signature
+   # Configurer Git pour utiliser SSH pour la signature.
+   # Indique à Git d'utiliser automatiquement le protocole SSH avec votre clé de signature locale pour valider chaque commit.
+
+   # Activer la signature automatique globale
    git config --global commit.gpgsign true
+
+   # Spécifier le format SSH pour la signature
    git config --global gpg.format ssh
+
+   # Définir le chemin vers la clé de signature publique
    git config --global user.signingkey "C:/Users/user/.ssh/id_signing_key.pub"
    ```
 
@@ -189,40 +208,48 @@ git push origin dev
 6. **Notes et conseils supplémentaires**  
    - > **Sécurité :** Ne partagez jamais votre clé privée `id_signing_key`. La signature locale protège contre l'usurpation d'identité, une pratique courante où un attaquant configure votre nom et email localement pour pousser du code malveillant en se faisant passer pour vous.
 
+   - **Validation :** Chaque commit poussé affiche désormais le badge vert **"Verified"** sur GitHub.
+
+7. **Danger (si non réalisé)**  
+   > **Alerte Sécurité :** Si vous ne signez pas vos commits, un pirate peut très facilement usurper votre identité Git en configurant vos coordonnées (nom et e-mail) sur sa machine. Il peut alors pousser du code malveillant sous votre identité sans éveiller les soupçons, détruisant ainsi l'intégrité de votre chaîne de livraison (supply chain attack).
+
 ---
 
 ## Étape 6 : Secret Scanning local avec pre-commit et Gitleaks
 
 1. **Objectif de l'étape**  
-   Configurer un système d'analyse préventif local pour empêcher physiquement l'ajout accidentel de secrets (clés d'API, mots de passe, clés SSH) dans le dépôt Git au moment du `git commit`.
+   Configurer un système d'analyse préventif local pour empêcher physiquement l'ajout accidentel de secrets (clés d'API, mots de passe, clés SSH) dans le dépôt Git au moment du `git commit`, évitant ainsi leur fuite sur des dépôts distants publics.
 
 2. **Prérequis**  
    - Python et `pip` installés localement.
    - Avoir initialisé Git dans le dossier du projet.
 
-3. **Commande**  
-   Installez le gestionnaire de hooks, écrivez la configuration et configurez Git :
-   ```bash
-   # Installer pre-commit via pip
-   python -m pip install pre-commit
+3. **Commande et configuration**  
 
-   # Créer le fichier .pre-commit-config.yaml à la racine du projet
-   # Contenu :
-   # repos:
-   #   - repo: https://github.com/gitleaks/gitleaks
-   #     rev: v8.21.2
-   #     hooks:
-   #       - id: gitleaks
+   - **Étape A :** Installez le gestionnaire `pre-commit` via Python/pip :
+     ```bash
+     python -m pip install pre-commit
+     ```
 
-   # Installer le hook de pre-commit dans votre dépôt Git local
-   python -m pre_commit install
-   ```
+   - **Étape B :** Créez le fichier de configuration [.pre-commit-config.yaml](../.pre-commit-config.yaml) à la racine du projet avec le contenu suivant :
+     ```yaml
+     repos:
+       - repo: https://github.com/gitleaks/gitleaks
+         rev: v8.21.2
+         hooks:
+           - id: gitleaks
+     ```
+
+   - **Étape C :** Installez le hook de pre-commit dans votre dépôt Git local pour qu'il s'exécute à chaque commit :
+     ```bash
+     python -m pre_commit install
+     ```
 
 4. **Explication courte**  
    Le gestionnaire `pre-commit` intercepte la commande `git commit` et exécute automatiquement les hooks configurés. Ici, le hook `gitleaks` analyse l'ensemble des fichiers modifiés et bloque le commit s'il détecte des clés d'API, des mots de passe en clair ou d'autres formats de signatures de secrets connus.
 
 5. **Vérification du résultat**  
-   - Lancez l'analyse manuelle sur tous les fichiers du dépôt :
+   - Lancez l'analyse manuelle sur tous les fichiers du dépôt pour vérifier le bon fonctionnement :
      ```bash
      python -m pre_commit run --all-files
      ```
@@ -233,3 +260,7 @@ git push origin dev
 
 6. **Notes et conseils supplémentaires**  
    - > **Sécurité :** Si le hook bloque un commit en signalant un faux positif, ou si vous devez absolument passer outre dans un cadre spécifique et maîtrisé, vous pouvez utiliser l'option `git commit --no-verify`. Utilisez-la avec la plus grande prudence.
+   - **Mise à jour :** Pour mettre à jour automatiquement les versions des hooks configurés (comme Gitleaks), vous pouvez lancer la commande `python -m pre_commit autoupdate`.
+
+7. **Danger (si non réalisé)**  
+   > **Alerte Sécurité :** Sans protection pre-commit comme Gitleaks, des informations secrètes (clés d'API cloud, identifiants de base de données, clés privées) peuvent être poussées par accident sur des dépôts. Les pirates déploient des scanners de secrets automatisés qui détectent ces informations publiques en moins de quelques secondes pour compromettre immédiatement vos serveurs et services.

@@ -189,6 +189,20 @@ function formatLongDate(dateString) {
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
+ * Aplatit la structure de réponse de Strapi pour prendre en charge les formats v4 et v5.
+ *
+ * @param {Object} item - Un élément de données renvoyé par Strapi.
+ * @returns {Object} L'élément aplati.
+ */
+function flattenStrapiItem(item) {
+    if (!item) return null;
+    if (item.attributes) {
+        return { id: item.id, ...item.attributes };
+    }
+    return item;
+}
+
+/**
  * Génère le code HTML correspondant à un article de veille technologique.
  *
  * @param {Object} article - Les données de l'article (id, date, title, description).
@@ -212,12 +226,31 @@ function generateVeilleArticleHTML(article) {
  * Récupère, trie et injecte le code HTML des articles de veille technologique
  * dans le conteneur principal '#veille-container'.
  *
- * @returns {void}
+ * @returns {Promise<void>}
  */
-function renderVeilleArticles() {
+async function renderVeilleArticles() {
     const container = document.getElementById('veille-container');
     if (!container) return;
-    const sortedArticles = [...mockStrapiData]
+    
+    let articles = [];
+    try {
+        const response = await fetch('http://localhost:1337/api/veilles');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const json = await response.json();
+        const rawData = json.data || [];
+        articles = rawData.map(flattenStrapiItem);
+        
+        if (articles.length === 0) {
+            articles = mockStrapiData;
+        }
+    } catch (error) {
+        console.warn("Strapi non démarré ou erreur réseau, repli sur les données mockées :", error);
+        articles = mockStrapiData;
+    }
+
+    const sortedArticles = [...articles]
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 6);
     container.innerHTML = sortedArticles.map(generateVeilleArticleHTML).join('');
@@ -266,12 +299,31 @@ function generateBriefingArticleHTML(article) {
  * Récupère, trie et injecte le code HTML des articles briefing
  * dans la grille d'affichage '#briefing-grid'.
  *
- * @returns {void}
+ * @returns {Promise<void>}
  */
-function renderBriefingArticles() {
+async function renderBriefingArticles() {
     const container = document.getElementById('briefing-grid');
     if (!container) return;
-    const sortedArticles = [...mockBriefingData]
+
+    let articles = [];
+    try {
+        const response = await fetch('http://localhost:1337/api/briefings');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const json = await response.json();
+        const rawData = json.data || [];
+        articles = rawData.map(flattenStrapiItem);
+
+        if (articles.length === 0) {
+            articles = mockBriefingData;
+        }
+    } catch (error) {
+        console.warn("Strapi non démarré ou erreur réseau, repli sur les données mockées :", error);
+        articles = mockBriefingData;
+    }
+
+    const sortedArticles = [...articles]
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 4);
     container.innerHTML = sortedArticles.map(generateBriefingArticleHTML).join('');
@@ -773,6 +825,7 @@ if (typeof module !== 'undefined' && module.exports) {
         saveSpecificPreferences,
         renderVeilleArticles,
         renderBriefingArticles,
+        flattenStrapiItem,
         delay
     };
 }
