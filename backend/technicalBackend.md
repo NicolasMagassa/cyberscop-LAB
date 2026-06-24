@@ -87,8 +87,28 @@ Une fois les permissions définies, les données sont accessibles publiquement v
 
 ---
 
+## 🧪 Validation & Tests d'Intégration (Playwright)
+
+Pour garantir la résilience et la bonne communication entre le frontend et le backend Strapi, une suite de tests E2E avec **Playwright** a été configuré à la racine du projet.
+
+Les tests valident trois comportements fondamentaux :
+1. **Mode nominal (API connectée)** : Simulation d'une réponse de l'API Strapi. Playwright intercepte l'appel réseau et retourne des données simulées conformes au format JSON de Strapi (v4/v5) pour s'assurer que le frontend les déstructure et les affiche correctement.
+2. **Mode de repli (API hors-ligne)** : Simulation d'une coupure du serveur Strapi ou d'une erreur réseau. Playwright bloque les requêtes API pour s'assurer que le frontend bascule de manière transparente sur les données locales simulées (`mockStrapiData` et `mockBriefingData`) sans planter.
+3. **Mode Réel (Unmocked)** : Teste la **connexion réelle en direct entre le frontend et le backend**. Playwright tente de requêter directement le serveur local Strapi sur `http://localhost:1337` pour valider que le serveur répond et que l'intégration fonctionne en conditions réelles (renvoie une alerte si le serveur est éteint ou si l'accès public 403 est bloqué).
+
+### Exécuter les tests E2E
+Depuis la **racine du projet** :
+* `npm run test:e2e` : Lance les tests en arrière-plan.
+* `npm run test:e2e:ui` : Lance l'interface utilisateur interactive de Playwright pour analyser visuellement le déroulement des scénarios.
+
+---
+
 ## 🚀 Commandes utiles
 
-- `npm run dev` : Démarre Strapi pour travailler sur le projet. Ouvrez votre terminal dans le dossier `backend` tape cd backend puis : `npm run dev` (le serveur se relancera tout seul à chaque modification).
-- `npm run build` : Prépare et construit l'interface du tableau de bord d'administration (obligatoire pour mettre le site en ligne).
-- `npm run start` : Lance le serveur en mode final (plus rapide, mais ne prend pas en compte les modifications de fichiers en direct). 
+- **Backend (depuis `/backend`)** :
+  - `npm run dev` : Démarre Strapi pour travailler sur le projet (le serveur se relancera tout seul à chaque modification).
+  - `npm run build` : Prépare et construit l'interface du tableau de bord d'administration (obligatoire pour mettre le site en ligne).
+  - `npm run start` : Lance le serveur en mode final (plus rapide, mais sans prise en compte des modifications de fichiers en direct).
+- **E2E & Frontend (depuis la racine `/`)** :
+  - `npm run test:e2e` : Lance toute la suite de tests Playwright (smoke tests + intégration Strapi).
+  - `npm run test:e2e:ui` : Lance l'interface interactive de Playwright. 

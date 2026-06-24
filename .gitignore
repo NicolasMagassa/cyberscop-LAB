@@ -13,3 +13,8 @@ backend/.cache/
 backend/dist/
 backend/exports/
 backend/.env
+
+# Playwright exclusions
+playwright-report/
+test-results/
+blob-report/
