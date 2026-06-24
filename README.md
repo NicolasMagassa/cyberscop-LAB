@@ -151,24 +151,21 @@ Ouvrez ou modifiez les fichiers HTML/CSS/JS, ou utilisez les scripts Python de m
 
 ## Tests
 
-Le projet intègre des tests automatisés et unitaires pour valider la logique des scripts JavaScript (JS).
+Le projet intègre deux types de tests automatisés :
 
-Pour lancer la totalité de la suite de tests, exécutez :
-
+### 1. Tests unitaires et comportementaux (Jest)
+Valident la logique JavaScript (cookies, formulaires) dans un DOM simulé. Pour exécuter :
 ```bash
 npm test
-
-installer dans un premier temps node js puis npm. il se peut qu'au premier test tout plante, c'est normal il faut donc eteindre vscode puis le relancer et dans le terminal taper :
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-npm test
-
 ```
+*Note : sous Windows, en cas de blocage d'exécution de script dans PowerShell, vous pouvez autoriser temporairement en tapant : `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` puis relancer.*
 
-Pour lancer un test spécifique en particulier, exécutez :
-
+### 2. Tests de bout en bout (Playwright)
+Valident le rendu de la page d'accueil dans un navigateur réel et testent la connexion directe avec l'API Strapi (mode connecté, hors-ligne et réel). Pour exécuter :
 ```bash
-npm test nom-du-test
+npm run test:e2e
 ```
+Pour plus de détails sur l'intégration et la validation front-back, consultez la section dédiée dans [technicalBackend.md](./backend/technicalBackend.md#-validation--tests-dintégration-playwright).
 
 
 ## Feuille de route

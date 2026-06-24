@@ -264,3 +264,39 @@ git push origin dev
 
 7. **Danger (si non réalisé)**  
    > **Alerte Sécurité :** Sans protection pre-commit comme Gitleaks, des informations secrètes (clés d'API cloud, identifiants de base de données, clés privées) peuvent être poussées par accident sur des dépôts. Les pirates déploient des scanners de secrets automatisés qui détectent ces informations publiques en moins de quelques secondes pour compromettre immédiatement vos serveurs et services.
+
+---
+
+## Étape 7 : Tests de bout en bout (E2E) avec Playwright et Validation de la Connexion Strapi
+
+1. **Objectif de l'étape**  
+   Mettre en place et exécuter une suite de tests de bout en bout (E2E) à l'aide de Playwright pour valider l'affichage du site dans un vrai navigateur Chromium et tester le bon fonctionnement de la liaison entre le Frontend et le CMS Backend Strapi (en mode connecté, hors-ligne/fallback et réel).
+
+2. **Prérequis**  
+   - Avoir installé `@playwright/test` et `http-server` (pour exécuter le serveur statique local automatique).
+   - Avoir configuré le fichier [playwright.config.js](../playwright.config.js) à la racine.
+   - Les tests E2E écrits dans [tests/e2e/smoke.spec.js](../tests/e2e/smoke.spec.js) et [tests/e2e/strapi-integration.spec.js](../tests/e2e/strapi-integration.spec.js).
+
+3. **Commande**  
+   Pour exécuter les tests E2E en arrière-plan :
+   ```bash
+   npm run test:e2e
+   ```
+   Pour lancer les tests avec l'interface graphique interactive de Playwright :
+   ```bash
+   npm run test:e2e:ui
+   ```
+
+4. **Explication courte**  
+   Ces commandes lancent Playwright qui va d'abord démarrer le serveur web local sur le port `8080` (grâce à `http-server`), puis lancer un navigateur Chromium headless (ou avec interface via `--ui`) pour simuler le comportement d'un utilisateur réel. Les tests vérifient l'affichage de la page d'accueil, l'ouverture de la modale de connexion, la détection de la panne de Strapi (chargement avec repli transparent sur données mockées) et le bon formatage de l'API Strapi.
+
+5. **Vérification du résultat**  
+   Tous les scénarios de test doivent se terminer avec succès (6 tests passés). Si le serveur Strapi local tourne sur le port `1337`, le test vérifie également la validité de la connexion réseau non interceptée (Mode Réel).
+
+6. **Notes et conseils supplémentaires**  
+   - > **Important :** Le dossier `playwright-report/` et `test-results/` sont exclus du suivi Git dans [.gitignore](../.gitignore) pour éviter de polluer le dépôt distant.
+   - **Visualisation :** En cas d'erreur de test, un rapport HTML détaillé est généré automatiquement dans `playwright-report/` et peut être visualisé avec `npx playwright show-report`.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Qualité & Sécurité :** Sans tests E2E, il est impossible de garantir que l'application communique correctement avec son CMS ou que les modifications de style (comme le dark mode ou les modales) ne cassent pas l'expérience utilisateur dans un vrai navigateur (effets de régression sur le DOM réel).
+
