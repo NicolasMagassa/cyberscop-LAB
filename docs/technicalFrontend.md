@@ -142,21 +142,25 @@ git push origin dev
 
 2. **Prérequis**  
    - Un dépôt public sur GitHub (CodeQL est gratuit et activé par défaut sur les projets publics).
-   - Avoir ajouté le fichier de configuration du workflow sous [.github/workflows/codeql.yml](../.github/workflows/codeql.yml).
+   - Un dépôt distant configuré sur GitHub.
 
-3. **Commande**  
-   Aucune commande locale n'est requise. Les étapes sont automatisées par GitHub Actions sur les serveurs de GitHub via le workflow :
-   ```yaml
-   # Déclenché à chaque push ou pull request sur dev/main
-   uses: github/codeql-action/init@v3
-   uses: github/codeql-action/analyze@v3
+3. **Commande et déploiement du workflow**  
+   Créez le fichier de configuration du workflow sous [.github/workflows/codeql.yml](../.github/workflows/codeql.yml) puis déployez-le sur votre dépôt :
+   ```bash
+   # Ajouter le fichier de configuration
+   git add .github/workflows/codeql.yml
+   
+   # Commiter et pousser vers la branche dev
+   git commit -m "ci: ajouter le workflow GitHub Actions pour l'analyse SAST CodeQL"
+   git push origin dev
    ```
 
 4. **Explication courte**  
-   CodeQL analyse statiquement le code en créant une base de données logique de ton code, puis exécute des requêtes de sécurité complexes pour identifier des flux de données non sécurisés (ex: saisie utilisateur non nettoyée affichée directement).
+   CodeQL analyse statiquement le code en créant une base de données relationnelle modélisant le code source de l'application, puis exécute des requêtes de sécurité complexes pour identifier les failles d'injections ou de mauvaise gestion du flux de données (ex: injection HTML via `innerHTML`).
 
 5. **Vérification du résultat**  
-   Rendez-vous dans l'onglet **Security** de votre dépôt GitHub, puis sous **Code scanning**. Vous y trouverez le rapport d'analyse détaillé ainsi que les éventuelles alertes trouvées.
+   - **Exécution du workflow** : Allez sur l'onglet **Actions** de votre dépôt GitHub, puis cliquez sur le workflow **CodeQL Security Analysis** pour voir les étapes de compilation et d'analyse.
+   - **Rapport de vulnérabilité** : Allez sur l'onglet **Security** de votre dépôt GitHub, puis sous la section **Code scanning** (dans la barre latérale gauche) pour consulter le tableau de bord des alertes de sécurité détectées par CodeQL.
 
 6. **Notes et conseils supplémentaires**  
    - L'analyse est configurée pour scanner le code à chaque `push` ou `pull_request` sur les branches `dev` et `main`, ainsi que de manière planifiée une fois par semaine (cron).
@@ -172,25 +176,39 @@ git push origin dev
    Intégrer Semgrep, un outil SAST (Static Application Security Testing) ultra-rapide et hautement personnalisable, dans notre pipeline d'intégration continue (CI/CD) sur GitHub Actions. Son rôle est de détecter les configurations non sécurisées, les erreurs d'encodage, les vulnérabilités de logique de code et les faiblesses d'implémentation en scannant le code source à chaque `push` ou `pull_request`.
 
 2. **Prérequis**  
-   - Avoir un dépôt distant GitHub configuré.
-   - Avoir ajouté le fichier de configuration du workflow sous [.github/workflows/semgrep.yml](../.github/workflows/semgrep.yml).
+   - Un dépôt distant configuré sur GitHub.
+   - (Facultatif) Python/pip ou Docker installé pour l'exécution locale.
 
-3. **Commande de test local**  
-   Pour exécuter un scan Semgrep localement (nécessite Docker ou l'outil CLI Semgrep installé) :
+3. **Commande, installation et déploiement**  
+   
+   **Déploiement du workflow CI/CD :**  
+   Créez le fichier de configuration du workflow sous [.github/workflows/semgrep.yml](../.github/workflows/semgrep.yml) puis déployez-le sur votre dépôt :
    ```bash
-   # Option A : Lancer via Docker (recommandé pour éviter d'installer Semgrep localement)
-   docker run --rm -v "${PWD}:/src" semgrep/semgrep semgrep scan --config auto
+   # Ajouter le fichier de configuration
+   git add .github/workflows/semgrep.yml
+   
+   # Commiter et pousser vers la branche dev
+   git commit -m "ci: intégration de Semgrep SAST dans GitHub Actions"
+   git push origin dev
+   ```
 
-   # Option B : Lancer directement via l'outil CLI (si installé via pip/brew)
+   **Installation et exécution en local :**  
+   Pour tester la configuration et lancer une analyse de sécurité sur votre machine avant de pousser le code :
+   ```bash
+   # Option A : Installation directe de l'outil CLI Semgrep (via Python/pip)
+   pip install semgrep
    semgrep scan --config auto
+
+   # Option B : Utilisation sans installation via Docker (recommandé si Docker est installé)
+   docker run --rm -v "${PWD}:/src" semgrep/semgrep semgrep scan --config auto
    ```
 
 4. **Explication courte**  
-   Cette configuration ajoute un job automatique dans le pipeline GitHub Actions qui exécute Semgrep dans un conteneur officiel (`semgrep/semgrep`), analyse le code source à l'aide de ses règles de sécurité communautaires par défaut (`--config auto`), puis exporte un rapport de vulnérabilité au format standard SARIF (`semgrep.sarif`). Ce rapport est ensuite injecté dans l'onglet **Security** de GitHub.
+   Cette configuration ajoute un job automatisé dans GitHub Actions qui récupère votre code, lance Semgrep à l'aide de son image Docker officielle, scanne le projet avec les règles communautaires par défaut (`--config auto`), puis exporte les résultats au format standardisé SARIF.
 
 5. **Vérification du résultat**  
-   - **En local** : La commande affiche un résumé dans la console listant les fichiers scannés et les éventuelles alertes de sécurité trouvées.
-   - **Sur GitHub** : Rendez-vous dans l'onglet **Security** > **Code scanning** de votre dépôt GitHub pour consulter les alertes remontées par le scan Semgrep après l'exécution du workflow.
+   - **Exécution du workflow** : Allez sur l'onglet **Actions** de votre dépôt GitHub, puis cliquez sur le workflow **Semgrep Security Analysis** pour valider le bon déroulement du scan.
+   - **Rapport de vulnérabilité** : Allez sur l'onglet **Security** de votre dépôt GitHub, puis sous la section **Code scanning** (dans la barre latérale gauche). Les alertes Semgrep y sont fusionnées avec celles de CodeQL pour vous donner un tableau de bord de sécurité unifié.
 
 6. **Notes et conseils supplémentaires**  
    - > **Synergie :** Semgrep fonctionne en parfaite complémentarité avec CodeQL. CodeQL est exceptionnel pour suivre le flux des données complexes (injections XSS complexes), tandis que Semgrep brille par sa rapidité d'exécution et sa détection de patterns de codage à risque ou de mauvaise configuration.
