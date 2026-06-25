@@ -165,7 +165,7 @@ Valident le rendu de la page d'accueil dans un navigateur réel et testent la co
 ```bash
 npm run test:e2e
 ```
-Pour plus de détails sur l'intégration et la validation front-back, consultez la section dédiée dans [technicalBackend.md](./backend/technicalBackend.md#-validation--tests-dintégration-playwright).
+Pour plus de détails sur l'intégration et la validation front-back, consultez la section dédiée dans [technicalBackend.md](./docs/technicalBackend.md#-validation--tests-dintégration-playwright).
 
 
 ## Feuille de route
@@ -181,8 +181,8 @@ Pour plus de détails sur l'intégration et la validation front-back, consultez 
 - [x] **CI/CD, Qualité & Sécurité (SAST) :** Intégration continue avec GitHub Actions exécutant les tests, la validation de syntaxe (ESLint), et l'audit de sécurité des dépendances (`npm audit`). Déploiement de l'analyse SAST avec GitHub CodeQL. 
 - [x] **Signature des commits Git :** Configuration de Git pour signer numériquement chaque commit avec une clé SSH dédiée, garantissant l'authenticité et la non-répudiation (badge "Verified" sur GitHub).
 - [x] **Secret Scanning local (Pre-commit & Gitleaks) :** Configuration d'un hook Git de pre-commit exécutant Gitleaks pour analyser le code localement à la recherche de secrets, clés d'API ou mots de passe avant chaque commit.
-- [x] **Connexion du blog avec Strapi (Backend) :** Initialisation locale de l'instance Strapi, configuration des fichiers d'exclusion `.gitignore` pour sécuriser les clés secrètes et la base de données SQLite locale, définition des schémas de données (`Veille` et `Briefing`), et développement des requêtes d'API asynchrones dans le frontend avec système de repli (voir [technicalBackend.md](./backend/technicalBackend.md) pour les détails d'installation, de droits d'accès et de sécurité).
-- [x] **Tests E2E avec Playwright :** Installation et configuration de Playwright. Le 24/06/2026, écriture de 6 tests E2E solides (smoke tests et intégration Strapi) vérifiant le rendu réel de la page d'accueil, l'ouverture fonctionnelle de la modale de connexion, la robustesse du mode de repli (offline fallback) et la connexion directe non-mockée avec le serveur local Strapi (pour plus de détails, voir [technicalBackend.md](./backend/technicalBackend.md#-validation--tests-dintégration-playwright) - Validation & Tests d'Intégration (Playwright)).
+- [x] **Connexion du blog avec Strapi (Backend) :** Initialisation locale de l'instance Strapi, configuration des fichiers d'exclusion `.gitignore` pour sécuriser les clés secrètes et la base de données SQLite locale, définition des schémas de données (`Veille` et `Briefing`), et développement des requêtes d'API asynchrones dans le frontend avec système de repli (voir [technicalBackend.md](./docs/technicalBackend.md) pour les détails d'installation, de droits d'accès et de sécurité).
+- [x] **Tests E2E avec Playwright :** Installation et configuration de Playwright. Le 24/06/2026, écriture de 6 tests E2E solides (smoke tests et intégration Strapi) vérifiant le rendu réel de la page d'accueil, l'ouverture fonctionnelle de la modale de connexion, la robustesse du mode de repli (offline fallback) et la connexion directe non-mockée avec le serveur local Strapi (pour plus de détails, voir [technicalBackend.md](./docs/technicalBackend.md#-validation--tests-dintégration-playwright) - Validation & Tests d'Intégration (Playwright)).
 - [ ] **Déploiement :** Configuration de la chaîne CI/CD et mise en ligne du site. 
 
 ## Contribution

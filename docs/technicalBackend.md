@@ -53,6 +53,57 @@ Par défaut, Strapi bloque l'accès public aux APIs pour des raisons de sécurit
    - Pour **Veille** : Cochez les cases `find` et `findOne`.
 5. Cliquez sur **Save** en haut à droite.
 
+### Étape 6 : Liaison automatique Frontend & Backend
+Le code de liaison est **déjà entièrement intégré et opérationnel** côté frontend (dans le fichier [main.js](file:///C:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/JS/main.js)). 
+
+Une fois les permissions de l'Étape 5 accordées :
+- **Si le serveur Strapi est démarré (`npm run dev`) :** Le frontend détecte le serveur, charge et affiche automatiquement les vrais articles saisis dans votre interface d'administration Strapi.
+- **Si le serveur Strapi est arrêté ou inaccessible :** Un mécanisme de secours automatique (*offline fallback*) prend le relais de manière transparente pour afficher les données locales de démonstration, empêchant ainsi le site de planter.
+
+#### ⚙️ Détails techniques de l'implémentation dans [main.js](file:///C:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/JS/main.js) :
+
+##### 1. Normalisation des données Strapi (`flattenStrapiItem`)
+Les versions récentes de Strapi (v4/v5) enveloppent les champs de données dans un objet `attributes`. Pour garantir la compatibilité entre l'API et nos structures de données locales, nous utilisons la fonction `flattenStrapiItem` pour extraire et aplatir les propriétés :
+```javascript
+function flattenStrapiItem(item) {
+    if (!item) return null;
+    if (item.attributes) {
+        return { id: item.id, ...item.attributes };
+    }
+    return item;
+}
+```
+
+##### 2. Requêtes asynchrones et résilience
+Les fonctions de rendu `renderVeilleArticles()` et `renderBriefingArticles()` effectuent des requêtes `fetch` vers les points d'entrée de l'API locale. Si le serveur Strapi est injoignable, l'erreur est interceptée par un bloc `try/catch` afin de rebasculer automatiquement sur les données de démonstration :
+
+```javascript
+async function renderVeilleArticles() {
+    const container = document.getElementById('veille-container');
+    if (!container) return;
+    
+    let articles = [];
+    try {
+        const response = await fetch('http://localhost:1337/api/veilles');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const json = await response.json();
+        const rawData = json.data || [];
+        articles = rawData.map(flattenStrapiItem); // Extraction des données
+        
+        if (articles.length === 0) {
+            articles = mockStrapiData; // Repli si l'API est vide
+        }
+    } catch (error) {
+        console.warn("Strapi non démarré ou erreur réseau, repli sur les données mockées :", error);
+        articles = mockStrapiData; // Repli automatique si le serveur est éteint
+    }
+
+    // Tri par date décroissante et rendu HTML...
+}
+```
+
 ---
 
 ## 🔒 Sécurité et d'exclusions Git (.gitignore)
