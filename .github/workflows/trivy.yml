@@ -1,0 +1,62 @@
+name: Trivy Dependency Scan (SCA)
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+  schedule:
+    - cron: '0 22 * * 5' # Exécution hebdomadaire le vendredi soir
+
+jobs:
+  scan-root:
+    name: SCA Root (Blocking)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy on Root package-lock.json
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'package-lock.json'
+          format: 'sarif'
+          output: 'trivy-root-results.sarif'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1' # Échoue si une vulnérabilité critique ou haute est détectée
+
+      - name: Upload Trivy Root results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-root-results.sarif'
+        if: always()
+
+  scan-backend:
+    name: SCA Backend (Informational)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy on Backend package-lock.json
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'backend/package-lock.json'
+          format: 'sarif'
+          output: 'trivy-backend-results.sarif'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '0' # Non bloquant pour ne pas pénaliser la CI sur les dépendances Strapi tierces
+
+      - name: Upload Trivy Backend results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-backend-results.sarif'
+        if: always()

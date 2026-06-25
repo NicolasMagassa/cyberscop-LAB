@@ -219,7 +219,59 @@ git push origin dev
 
 ---
 
-## Étape 6 : Signature des commits Git
+## Étape 6 : Analyse SCA (Software Composition Analysis) avec Trivy et Dependabot
+
+1. **Objectif de l'étape**  
+   Mettre en place une analyse automatisée des dépendances tierces (SCA) pour détecter et corriger les vulnérabilités introduites par les bibliothèques npm et paquets externes, à la fois pour le frontend (racine) et le backend (Strapi). Le but est de bloquer l'intégration si une vulnérabilité haute/critique est introduite à la racine, et de suivre automatiquement les vulnérabilités de Strapi.
+
+2. **Prérequis**  
+   - Avoir un dépôt distant GitHub configuré.
+   - Avoir ajouté le fichier de configuration de Dependabot [.github/dependabot.yml](../.github/dependabot.yml).
+   - Avoir ajouté le fichier de configuration du workflow Trivy [.github/workflows/trivy.yml](../.github/workflows/trivy.yml).
+
+3. **Commande, installation et déploiement**  
+   
+   **Déploiement des configurations CI/CD :**  
+   Ajoutez et poussez les configurations de Dependabot et du workflow Trivy :
+   ```bash
+   # Ajouter les nouveaux fichiers
+   git add .github/dependabot.yml
+   git add .github/workflows/trivy.yml
+   
+   # Commiter et pousser vers la branche dev
+   git commit -m "ci: intégration de Dependabot et Trivy pour l'analyse SCA"
+   git push origin dev
+   ```
+
+   **Exécution d'un audit de sécurité en local (npm audit) :**  
+   Pour auditer manuellement les vulnérabilités des dépendances du projet localement :
+   ```bash
+   # Audit des dépendances du Frontend (à la racine)
+   npm audit
+   
+   # Audit des dépendances du Backend (dans /backend)
+   cd backend
+   npm audit
+   ```
+
+4. **Explication courte**  
+   - **Dependabot** scanne périodiquement (chaque semaine) vos fichiers `package.json` et ouvre automatiquement des Pull Requests pour mettre à jour les paquets vulnérables ou obsolètes vers des versions sécurisées.
+   - **Trivy** est exécuté via GitHub Actions à chaque push et Pull Request. Il scanne les fichiers de verrouillage (`package-lock.json`). Le scan du frontend est **bloquant** (`exit-code: 1` sur sévérité `HIGH,CRITICAL`) pour interdire l'ajout de dépendances vulnérables. Le scan du backend (Strapi) est **informateur** (`exit-code: 0`) car certaines dépendances imbriquées de Strapi échappent à notre contrôle direct mais doivent être surveillées.
+
+5. **Vérification du résultat**  
+   - **Dependabot** : Rendez-vous dans l'onglet **Security** > **Dependabot** de votre dépôt GitHub pour voir la liste des alertes de dépendances et les pull requests de mise à jour automatique créées.
+   - **Trivy** : Rendez-vous dans l'onglet **Actions** de votre dépôt pour voir l'exécution du workflow **Trivy Dependency Scan (SCA)**, et dans **Security** > **Code scanning** pour consulter le tableau unifié des alertes.
+
+6. **Notes et conseils supplémentaires**  
+   - > **Bonne pratique :** Ne désactivez pas les alertes Dependabot. Si une dépendance à la racine est vulnérable, lancez `npm audit fix` ou `npm audit fix --force` pour la corriger rapidement.
+   - **Exclusion Strapi :** Le backend (Strapi) possède un socle technique imposant contenant des vulnérabilités héritées non corrigeables par de simples mises à jour directes. C'est pourquoi le workflow Trivy y est configuré en mode informatif.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Sécurité :** L'écrasante majorité du code d'une application moderne provient de paquets tiers. Sans SCA, une faille critique de type RCE (Exécution de Code à Distance) ou Prototype Pollution dans une dépendance tierce peut être déployée en production, donnant aux pirates le contrôle complet de votre serveur.
+
+---
+
+## Étape 7 : Signature des commits Git
 
 1. **Objectif de l'étape**  
    Configurer Git localement pour signer numériquement chaque commit avec une clé SSH, permettant d'assurer l'authenticité de l'auteur et la non-répudiation des modifications sur GitHub. Assurer l'authenticité des commits et empêcher l'usurpation d'identité en signant numériquement chaque commit à l'aide d'une clé SSH privée locale. Ainsi github reconnaîtra mes commits comme authentiques et y apposera un badge vert Verified. Cela renforce la sécurité de mon dépôt. 
@@ -268,7 +320,7 @@ git push origin dev
 
 ---
 
-## Étape 7 : Secret Scanning local avec pre-commit et Gitleaks
+## Étape 8 : Secret Scanning local avec pre-commit et Gitleaks
 
 1. **Objectif de l'étape**  
    Configurer un système d'analyse préventif local pour empêcher physiquement l'ajout accidentel de secrets (clés d'API, mots de passe, clés SSH) dans le dépôt Git au moment du `git commit`, évitant ainsi leur fuite sur des dépôts distants publics.
@@ -320,7 +372,7 @@ git push origin dev
 
 ---
 
-## Étape 8 : Tests de bout en bout (E2E) avec Playwright et Validation de la Connexion Strapi
+## Étape 9 : Tests de bout en bout (E2E) avec Playwright et Validation de la Connexion Strapi
 
 1. **Objectif de l'étape**  
    Mettre en place et exécuter une suite de tests de bout en bout (E2E) à l'aide de Playwright pour valider l'affichage du site dans un vrai navigateur Chromium et tester le bon fonctionnement de la liaison entre le Frontend et le CMS Backend Strapi (en mode connecté, hors-ligne/fallback et réel).
