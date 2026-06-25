@@ -166,7 +166,42 @@ git push origin dev
 
 ---
 
-## Étape 5 : Signature des commits Git
+## Étape 5 : Analyse SAST avec Semgrep
+
+1. **Objectif de l'étape**  
+   Intégrer Semgrep, un outil SAST (Static Application Security Testing) ultra-rapide et hautement personnalisable, dans notre pipeline d'intégration continue (CI/CD) sur GitHub Actions. Son rôle est de détecter les configurations non sécurisées, les erreurs d'encodage, les vulnérabilités de logique de code et les faiblesses d'implémentation en scannant le code source à chaque `push` ou `pull_request`.
+
+2. **Prérequis**  
+   - Avoir un dépôt distant GitHub configuré.
+   - Avoir ajouté le fichier de configuration du workflow sous [.github/workflows/semgrep.yml](../.github/workflows/semgrep.yml).
+
+3. **Commande de test local**  
+   Pour exécuter un scan Semgrep localement (nécessite Docker ou l'outil CLI Semgrep installé) :
+   ```bash
+   # Option A : Lancer via Docker (recommandé pour éviter d'installer Semgrep localement)
+   docker run --rm -v "${PWD}:/src" semgrep/semgrep semgrep scan --config auto
+
+   # Option B : Lancer directement via l'outil CLI (si installé via pip/brew)
+   semgrep scan --config auto
+   ```
+
+4. **Explication courte**  
+   Cette configuration ajoute un job automatique dans le pipeline GitHub Actions qui exécute Semgrep dans un conteneur officiel (`semgrep/semgrep`), analyse le code source à l'aide de ses règles de sécurité communautaires par défaut (`--config auto`), puis exporte un rapport de vulnérabilité au format standard SARIF (`semgrep.sarif`). Ce rapport est ensuite injecté dans l'onglet **Security** de GitHub.
+
+5. **Vérification du résultat**  
+   - **En local** : La commande affiche un résumé dans la console listant les fichiers scannés et les éventuelles alertes de sécurité trouvées.
+   - **Sur GitHub** : Rendez-vous dans l'onglet **Security** > **Code scanning** de votre dépôt GitHub pour consulter les alertes remontées par le scan Semgrep après l'exécution du workflow.
+
+6. **Notes et conseils supplémentaires**  
+   - > **Synergie :** Semgrep fonctionne en parfaite complémentarité avec CodeQL. CodeQL est exceptionnel pour suivre le flux des données complexes (injections XSS complexes), tandis que Semgrep brille par sa rapidité d'exécution et sa détection de patterns de codage à risque ou de mauvaise configuration.
+   - **Règles personnalisées :** Vous pouvez étendre la configuration en ciblant des règles spécifiques via l'argument `--config`.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Sécurité :** Sans l'analyse automatisée de Semgrep, des fautes de sécurité typiques (comme l'utilisation de méthodes de chiffrement obsolètes, de mauvaises configurations d'en-têtes HTTP, ou des bugs logiques introduits par des librairies tierces) peuvent passer inaperçues lors de la phase de révision du code, augmentant le risque d'exploitation de vulnérabilités connues par des tiers.
+
+---
+
+## Étape 6 : Signature des commits Git
 
 1. **Objectif de l'étape**  
    Configurer Git localement pour signer numériquement chaque commit avec une clé SSH, permettant d'assurer l'authenticité de l'auteur et la non-répudiation des modifications sur GitHub. Assurer l'authenticité des commits et empêcher l'usurpation d'identité en signant numériquement chaque commit à l'aide d'une clé SSH privée locale. Ainsi github reconnaîtra mes commits comme authentiques et y apposera un badge vert Verified. Cela renforce la sécurité de mon dépôt. 
@@ -215,7 +250,7 @@ git push origin dev
 
 ---
 
-## Étape 6 : Secret Scanning local avec pre-commit et Gitleaks
+## Étape 7 : Secret Scanning local avec pre-commit et Gitleaks
 
 1. **Objectif de l'étape**  
    Configurer un système d'analyse préventif local pour empêcher physiquement l'ajout accidentel de secrets (clés d'API, mots de passe, clés SSH) dans le dépôt Git au moment du `git commit`, évitant ainsi leur fuite sur des dépôts distants publics.
@@ -267,7 +302,7 @@ git push origin dev
 
 ---
 
-## Étape 7 : Tests de bout en bout (E2E) avec Playwright et Validation de la Connexion Strapi
+## Étape 8 : Tests de bout en bout (E2E) avec Playwright et Validation de la Connexion Strapi
 
 1. **Objectif de l'étape**  
    Mettre en place et exécuter une suite de tests de bout en bout (E2E) à l'aide de Playwright pour valider l'affichage du site dans un vrai navigateur Chromium et tester le bon fonctionnement de la liaison entre le Frontend et le CMS Backend Strapi (en mode connecté, hors-ligne/fallback et réel).
