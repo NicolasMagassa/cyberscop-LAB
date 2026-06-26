@@ -482,11 +482,13 @@ git push origin dev
 
 6. **Notes et conseils supplémentaires**  
    - > **Réglementation & Gouvernance :** Le format de sortie est ici CycloneDX, l'un des deux standards industriels majeurs approuvés pour la conformité cyber.
+   - > **Surveillance continue en production (sans push)** : Même si le projet est figé et que vous ne faites plus de push, le déclenchement planifié hebdomadaire (`schedule` configuré dans `trivy.yml` chaque vendredi soir) va exécuter automatiquement Trivy pour générer un nouveau SBOM à jour avec les dernières failles découvertes. Vous aurez ainsi toujours un SBOM de moins de 7 jours (valide 14 jours) disponible au téléchargement dans l'onglet **Actions** de GitHub, même sur un dépôt dormant.
    - **Outils de visualisation du SBOM en ligne (gratuits et sécurisés)** :  
      Une fois le fichier `sbom.json` récupéré, vous pouvez l'analyser ou le visualiser sur ces plateformes s'exécutant côté client (les données restent dans votre navigateur) :
-     * **[sbom.sh](https://sbom.sh)** : Le plus simple. Glissez-déposez votre fichier `sbom.json` pour obtenir instantanément une analyse graphique et un découpage propre de vos dépendances.
+     * **[sbom.sh](https://sbom.sh)** : Le plus simple. Glissez-deposez votre fichier `sbom.json` pour obtenir instantanément une analyse graphique et un découpage propre de vos dépendances.
      * **[CycloneDX Web Tool](https://cyclonedx.github.io/cyclonedx-web-tool)** : L'outil officiel. Il vous permet de valider la conformité de votre fichier par rapport au schéma standard de CycloneDX.
      * **[Sunshine SBOM](https://cyclonedx.github.io/sunshine/)** : Visualisation hiérarchique. Idéal pour voir l'arbre de vos dépendances et les scores de vulnérabilité associés de manière visuelle et interactive.
+
 
 
 7. **Danger (si non réalisé)**  
