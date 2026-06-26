@@ -186,7 +186,9 @@ Pour plus de détails sur l'intégration et la validation front-back, consultez 
 - [x] **Tests E2E avec Playwright :** Configuration et écriture de 6 tests E2E robustes validant le rendu réel, les modales et l'intégration Strapi en conditions réelles (voir [Étape 9](./docs/technicalFrontend.md#étape-9--tests-de-bout-en-bout-e2e-avec-playwright-et-validation-de-la-connexion-strapi)).
 - [x] **Dockerisation & Scan IaC (Software Infrastructure Security) :** Création des configurations d'exécution isolées (Dockerfiles, Nginx sécurisé, Compose) et analyse de sécurité de l'IaC avec Trivy pour bloquer la CI/CD en cas de mauvaise configuration (voir [Étape 10](./docs/technicalFrontend.md#étape-10--analyse-de-la-sécurité-de-linfrastructure-iac-scanning-avec-trivy)).
 - [x] **Génération de SBOM (Software Bill of Materials) :** Inventaire automatisé CycloneDX des dépendances logicielles et système à chaque build avec stockage comme artefact (voir [Étape 11](./docs/technicalFrontend.md#étape-11--génération-automatique-de-sbom-software-bill-of-materials-avec-trivy)).
+- [x] **Policy-as-Code (Gouvernance automatisée) :** Intégration de Conftest (Open Policy Agent) pour valider automatiquement la conformité des configurations IaC et des Dockerfiles par rapport aux politiques d'entreprise (voir [Étape 12](./docs/technicalFrontend.md#étape-12--policy-as-code-validation-de-la-conformité-avec-conftest)).
 - [ ] **Déploiement :** Configuration finale de la chaîne CI/CD et mise en ligne du site.
+
  
 
 ## Contribution

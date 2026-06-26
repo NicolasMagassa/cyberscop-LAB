@@ -1,0 +1,36 @@
+name: Policy-as-Code (Conftest)
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  conftest-scan:
+    name: Policy Compliance Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Conftest
+        run: |
+          # Récupération automatique de la dernière version stable de Conftest
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/open-policy-agent/conftest/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c 2-)
+          curl -L -o conftest.tar.gz "https://github.com/open-policy-agent/conftest/releases/download/v${LATEST_VERSION}/conftest_${LATEST_VERSION}_Linux_x86_64.tar.gz"
+          tar xzf conftest.tar.gz
+          sudo mv conftest /usr/local/bin
+          rm conftest.tar.gz
+
+      - name: Test Docker Compose configuration
+        run: |
+          conftest test docker-compose.yml --policy policy/
+
+      - name: Test Frontend Dockerfile
+        run: |
+          conftest test Dockerfile --policy policy/
+
+      - name: Test Backend Dockerfile
+        run: |
+          conftest test backend/Dockerfile --policy policy/

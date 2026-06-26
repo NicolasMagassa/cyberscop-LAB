@@ -492,4 +492,45 @@ git push origin dev
 7. **Danger (si non réalisé)**  
    - > **Alerte Gouvernance :** Sans SBOM, vous êtes incapable de savoir instantanément si une nouvelle vulnérabilité publique (CVE) critique impacte votre projet sans devoir cloner et réanalyser l'intégralité de votre code source, ce qui ralentit considérablement la réponse aux incidents de sécurité.
 
+---
+
+## Étape 12 : Policy-as-Code (Validation de la conformité avec Conftest)
+
+1. **Objectif de l'étape**  
+   Valider automatiquement nos fichiers de configuration (docker-compose, Dockerfiles) par rapport à nos politiques de sécurité et de conformité légale (ex. utilisateur non-root, redémarrages de sécurité, chargement de secrets externes).
+
+2. **Prérequis**  
+   - Les fichiers de règles Rego dans le dossier [policy/](../policy) : [docker_compose.rego](../policy/docker_compose.rego) et [dockerfile.rego](../policy/dockerfile.rego).
+   - Conftest installé localement (optionnel pour test) ou configuré dans GitHub Actions.
+
+3. **Commande**  
+   Pour tester localement vos fichiers de configuration par rapport à vos politiques :
+   ```bash
+   # Pour docker-compose.yml
+   conftest test docker-compose.yml --policy policy/
+   
+   # Pour le Dockerfile
+   conftest test Dockerfile --policy policy/
+   ```
+   Pour envoyer et valider dans la CI/CD :
+   ```bash
+   git add policy/ .github/workflows/conftest.yml docs/technicalFrontend.md README.md
+   git commit -m "ci: intégrer Conftest pour le Policy-as-Code"
+   git push origin dev
+   ```
+
+4. **Explication courte**  
+   Le **Policy-as-Code** (PaC) permet de traduire vos chartes de gouvernance et de sécurité (GRC) sous forme de code exécutable. Conftest utilise le moteur OPA (Open Policy Agent) et le langage Rego pour analyser statiquement les fichiers JSON, YAML ou Dockerfile, renvoyant une erreur bloquante dans la CI si les critères de sécurité ne sont pas respectés.
+
+5. **Vérification du résultat**  
+   - Localement, Conftest renvoie `FAIL` si une règle Rego est enfreinte, ou un message de succès si tout est conforme.
+   - Sur GitHub Actions, le workflow **Policy-as-Code (Conftest)** doit s'exécuter avec succès.
+
+6. **Notes et conseils supplémentaires**  
+   - > **Règle d'or GRC :** Cette approche remplace les audits manuels de conformité longs et sujets à l'erreur humaine en automatisant les règles de validation au plus près du code de livraison.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Gouvernance :** Sans Policy-as-Code, des dérives de configuration non conformes aux chartes de l'entreprise (ex. : images Docker utilisant le tag `:latest`, secrets d'API hardcodés dans Docker Compose, ou licences non autorisées) peuvent être déployées en production sans aucun contrôle, entraînant des risques juridiques, de stabilité et de sécurité.
+
+
 
