@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cyberscop-frontend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cyberscop-backend
+    ports:
+      - "1337:1337"
+    env_file:
+      - .env
+    volumes:
+      - backend-data:/opt/app/.tmp
+    restart: unless-stopped
+
+volumes:
+  backend-data:

@@ -1,4 +1,4 @@
-name: Trivy Dependency Scan (SCA)
+name: Trivy Security Scan (SCA, IaC & SBOM)
 
 on:
   push:
@@ -60,3 +60,52 @@ jobs:
         with:
           sarif_file: 'trivy-backend-results.sarif'
         if: always()
+
+  scan-iac:
+    name: IaC Configuration Scan (Blocking)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy IaC Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          hide-progress: false
+          format: 'sarif'
+          output: 'trivy-iac-results.sarif'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1' # Bloquant en cas de mauvaise configuration d'infra (ex: root dans Dockerfile)
+
+      - name: Upload Trivy IaC results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-iac-results.sarif'
+        if: always()
+
+  generate-sbom:
+    name: Generate Software Bill of Materials (SBOM)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate SBOM with Trivy (CycloneDX)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'cyclonedx'
+          output: 'cyberscop-lab-sbom.json'
+
+      - name: Upload SBOM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyberscop-lab-sbom
+          path: cyberscop-lab-sbom.json
+          retention-days: 14 # Garder l'artefact pendant 14 jours

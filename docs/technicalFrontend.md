@@ -405,3 +405,91 @@ git push origin dev
 7. **Danger (si non réalisé)**  
    - > **Alerte Qualité & Sécurité :** Sans tests E2E, il est impossible de garantir que l'application communique correctement avec son CMS ou que les modifications de style (comme le dark mode ou les modales) ne cassent pas l'expérience utilisateur dans un vrai navigateur (effets de régression sur le DOM réel).
 
+---
+
+## Étape 10 : Analyse de la Sécurité de l'Infrastructure (IaC Scanning) avec Trivy
+
+1. **Objectif de l'étape**  
+   Auditer et valider automatiquement la configuration de nos fichiers d'infrastructure (les Dockerfiles et le fichier `docker-compose.yml`) pour empêcher des failles de déploiement (ex. exécution en root, ports exposés).
+
+2. **Prérequis**  
+   - Les fichiers [Dockerfile](../Dockerfile), [nginx.conf](../nginx.conf), [backend/Dockerfile](../backend/Dockerfile) et [docker-compose.yml](../docker-compose.yml) créés et configurés.
+   - Trivy installé localement (pour les scans locaux) ou intégré dans GitHub Actions.
+
+3. **Commande**  
+   Pour tester la configuration IaC localement :
+   ```bash
+   trivy config .
+   ```
+   Pour envoyer et valider dans la CI/CD :
+   ```bash
+   git add Dockerfile nginx.conf backend/Dockerfile docker-compose.yml .github/workflows/trivy.yml
+   git commit -m "ci: ajouter la dockerisation et le scan de sécurité IaC"
+   git push origin dev
+   ```
+
+4. **Explication courte**  
+   Cette étape utilise Trivy pour analyser les structures de configuration (Kubernetes, Terraform, Docker, etc.) sans démarrer de conteneur. Il recherche des failles courantes comme l'absence de directive `USER` non-root ou des ports trop permissifs, et génère un rapport bloquant dans la CI/CD si une anomalie majeure est trouvée.
+
+5. **Vérification du résultat**  
+   - Localement, Trivy affiche un rapport avec `PASS` ou `FAIL` pour chaque règle d'infrastructure.
+   - Sur GitHub Actions, le job **IaC Configuration Scan (Blocking)** du workflow Trivy doit se terminer avec succès.
+
+6. **Notes et conseils supplémentaires**  
+   - > **Sécurité :** Notre configuration force Nginx à utiliser le port `8080` pour pouvoir s'exécuter en tant qu'utilisateur non-root `nginx` (UID 101), ce qui est requis pour passer le scan sans alerte de sécurité.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Sécurité :** Sans scan IaC, vous pouvez facilement déployer des conteneurs s'exécutant en tant qu'utilisateur `root` ou exposer inutilement des ports de base de données à internet. En cas de faille applicative, un attaquant obtiendrait instantanément des privilèges d'administrateur total sur votre machine hôte.
+
+---
+
+## Étape 11 : Génération Automatique de SBOM (Software Bill of Materials) avec Trivy
+
+1. **Objectif de l'étape**  
+   Générer de façon automatisée un inventaire complet et standardisé des composants logiciels et d'infrastructure du projet (SBOM) pour la transparence logicielle et le suivi de conformité (GRC).
+
+2. **Prérequis**  
+   - Un workflow GitHub Actions fonctionnel pour Trivy.
+   - *(Optionnel pour test local)* Avoir Trivy installé sur sa machine.
+
+3. **Commande**  
+   * **Option A : Via l'intégration continue (CI/CD GitHub Actions - Recommandé, sans installation locale)**  
+     Il suffit de pousser le code pour déclencher la génération automatique du SBOM :
+     ```bash
+     git add .
+     git commit -m "ci: configurer la dockerisation, le scan IaC et le SBOM"
+     git push origin dev
+     ```
+   * **Option B : En local (nécessite d'avoir installé Trivy sur sa machine)**  
+     Exécutez la commande suivante à la racine du projet :
+     ```bash
+     trivy fs --format cyclonedx --output sbom.json .
+     ```
+
+4. **Explication courte**  
+   Le SBOM est la "liste d'ingrédients" de votre projet. Trivy analyse l'intégralité du système de fichiers local ou de l'image de conteneur et produit un fichier standard JSON décrivant chaque dépendance (npm, paquets système, versions, licences). Ce fichier est ensuite stocké comme artefact sécurisé de build dans GitHub Actions pendant 14 jours.
+
+   *Exemple concret d'utilité* : Imaginez que dans 6 mois, une faille de sécurité critique mondiale est découverte sur une bibliothèque que vous utilisez. Votre site est en production et vous n'avez pas modifié le code ou fait de push depuis des semaines.
+   - **Sans SBOM** : Vous devez cloner votre projet, relancer vos pipelines de tests et de scan pour savoir si vous êtes concerné, ce qui prend du temps.
+   - **Avec le SBOM** : Vous possédez déjà la "fiche d'ingrédients" (`sbom.json`) de votre application en production. Il vous suffit de soumettre ce fichier JSON à un outil de veille (comme *Dependency-Track*, *Snyk* ou même *Trivy* en local) qui va comparer instantanément votre inventaire avec les failles nouvellement découvertes. Vous savez en 2 secondes si votre site en production est vulnérable, sans toucher au code.
+
+
+5. **Vérification du résultat**  
+   Une fois que le workflow de la CI/CD s'est exécuté sur GitHub :
+   - Rendez-vous sur l'onglet **Actions** de votre dépôt GitHub.
+   - Cliquez sur le dernier run de workflow associé à votre commit.
+   - Faites défiler la page tout en bas : dans la section **Artifacts**, vous trouverez un fichier ZIP nommé `cyberscop-lab-sbom` contenant votre fichier `cyberscop-lab-sbom.json` généré automatiquement par le serveur de la CI.
+
+6. **Notes et conseils supplémentaires**  
+   - > **Réglementation & Gouvernance :** Le format de sortie est ici CycloneDX, l'un des deux standards industriels majeurs approuvés pour la conformité cyber.
+   - **Outils de visualisation du SBOM en ligne (gratuits et sécurisés)** :  
+     Une fois le fichier `sbom.json` récupéré, vous pouvez l'analyser ou le visualiser sur ces plateformes s'exécutant côté client (les données restent dans votre navigateur) :
+     * **[sbom.sh](https://sbom.sh)** : Le plus simple. Glissez-déposez votre fichier `sbom.json` pour obtenir instantanément une analyse graphique et un découpage propre de vos dépendances.
+     * **[CycloneDX Web Tool](https://cyclonedx.github.io/cyclonedx-web-tool)** : L'outil officiel. Il vous permet de valider la conformité de votre fichier par rapport au schéma standard de CycloneDX.
+     * **[Sunshine SBOM](https://cyclonedx.github.io/sunshine/)** : Visualisation hiérarchique. Idéal pour voir l'arbre de vos dépendances et les scores de vulnérabilité associés de manière visuelle et interactive.
+
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Gouvernance :** Sans SBOM, vous êtes incapable de savoir instantanément si une nouvelle vulnérabilité publique (CVE) critique impacte votre projet sans devoir cloner et réanalyser l'intégralité de votre code source, ce qui ralentit considérablement la réponse aux incidents de sécurité.
+
+
