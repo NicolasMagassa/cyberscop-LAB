@@ -29,3 +29,20 @@ deny[msg] {
     host_port < 1024
     msg := sprintf("Conformité GRC - Le port exposé '%v' du frontend doit être supérieur à 1024 pour autoriser l'exécution non-root", [host_port])
 }
+
+# Règle 4 : Isolation réseau - Interdire d'exposer directement un port de base de données (ex: 5432, 3306, 27017, 6379) sur l'hôte
+# Les communications avec la base de données doivent rester internes au réseau privé des conteneurs
+deny[msg] {
+    some service_name
+    service := input.services[service_name]
+    port_mapping := service.ports[_]
+    parts := split(port_mapping, ":")
+    host_port := to_number(parts[0])
+    
+    # Liste des ports de bases de données courants à bloquer
+    db_ports := {5432, 3306, 27017, 6379} # Postgres, MySQL, MongoDB, Redis
+    db_ports[host_port]
+    
+    msg := sprintf("Conformité GRC - Le service '%v' expose le port de base de données '%v' sur l'hôte. C'est interdit, la communication doit rester interne au réseau de conteneurs.", [service_name, host_port])
+}
+
