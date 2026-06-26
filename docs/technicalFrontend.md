@@ -529,8 +529,73 @@ git push origin dev
 6. **Notes et conseils supplémentaires**  
    - > **Règle d'or GRC :** Cette approche remplace les audits manuels de conformité longs et sujets à l'erreur humaine en automatisant les règles de validation au plus près du code de livraison.
 
+   ---
+
+   ### 📜 Charte de Gouvernance GRC & RGPD / CNIL du Projet
+
+   Voici la charte de conformité mise en place pour le projet, combinant des règles d'organisation et des mécanismes de contrôle automatique ou manuel :
+
+   #### A. Principes de Conformité des Données (CNIL & RGPD)
+
+   *   **1. Minimisation des données et finalités documentées**
+       *   *Règle* : Ne collecter que les données strictement nécessaires pour la finalité explicitée (contact, newsletter, commentaires, etc.). Documenter la finalité pour chaque champ de formulaire.
+       *   *Contrôle* : Revue trimestrielle des formulaires et suppression des champs inutiles.
+   *   **2. Transparence et informations**
+       *   *Règle* : Publier une page « Politique de confidentialité » claire avec le responsable, les finalités, la base légale, la durée de conservation, les destinataires, le transfert hors UE éventuel et la procédure d’exercice des droits. Inclure les mentions CNIL pour chaque formulaire.
+       *   *Contrôle* : Vérifier la présence et la lisibilité (mobile/desktop) avant la mise en production.
+   *   **3. Cookies et traceurs — consentement granularisé**
+       *   *Règle* : Mettre en place un bandeau CMP qui bloque les traceurs non essentiels jusqu’au consentement (mesure d’audience non anonyme, publicité, boutons sociaux embarqués). Fournir un choix granularisé (tout accepter / tout refuser / sélectionner).
+       *   *Contrôle* : Test automatique (CI) qui détecte les scripts tiers et signale s’ils sont injectés sans consentement.
+   *   **4. Droits des personnes (accès, rectification, suppression)**
+       *   *Règle* : Exposer un moyen simple pour exercer ses droits (email dédié ou formulaire) et conserver un log d’action (qui a demandé quoi, quand, et la réponse apportée).
+       *   *Contrôle* : Procédure et SLA (ex. 1 mois maximum pour répondre) ; test annuel sur cas factice.
+   *   **5. Durées de conservation et purge automatique**
+       *   *Règle* : Définir des durées de conservation par type (ex. contact : 2 ans, newsletter : jusqu’à désabonnement) et un mécanisme de purge automatique des données expirées.
+       *   *Contrôle* : Job automatisé (cron) qui purge et journalise les suppressions.
+   *   **6. Consentements pour newsletter / mailing**
+       *   *Règle* : Opt‑in explicite (double opt‑in recommandé) et piste d’audit sur le consentement (qui, quand, comment). Possibilité de retrait simple dans chaque email (unsubscribe).
+       *   *Contrôle* : Conserver la preuve de consentement et le log d’unsubscribe.
+   *   **7. Transferts hors UE et cookies tiers**
+       *   *Règle* : Si utilisation de services hors UE (ex. analytics, CDN, plates‑formes), vérifier la conformité et les clauses contractuelles (SCC/garanties).
+       *   *Contrôle* : Liste des fournisseurs et pays, revue annuelle.
+   *   **8. Traitement des données des mineurs**
+       *   *Règle* : Ne pas collecter de données de mineurs sans vérification du consentement parental. Si le blog cible le grand public, préciser l’interdiction ou la politique associée.
+       *   *Contrôle* : Formulaire qui refuse la collecte de dates de naissance non requises.
+
+   #### B. Sécurité & Hardening de l'Infrastructure
+
+   *   **9. Sécurité des transferts et hébergement**
+       *   *Règle* : TLS partout, HSTS, désactivation des protocoles TLS anciens. Envoyer les emails sans y inclure d’informations sensibles. Limiter le stockage local d’informations personnelles. Documenter les sous-traitants (hébergeur, SMTP, analytics) et s’assurer de leurs garanties RGPD.
+       *   *Contrôle* : Scan TLS régulier, revue des contrats et des prestations avec les prestataires.
+   *   **10. Journalisation et conservation minimale des logs**
+       *   *Règle* : Logger uniquement les événements nécessaires pour la sécurité (connexion, erreurs), mais anonymiser/agréger ou tronquer les logs contenant des données personnelles (PII) ; définir une durée de conservation limitée pour les logs.
+       *   *Contrôle* : Pipeline qui rédige/masque les PII, et mécanisme de rotation des logs.
+   *   **11. Gestion des incidents et notification**
+       *   *Règle* : Procédure d’incident claire (détection, confinement, évaluation, notification CNIL si nécessaire dans les 72h) et responsable identifié.
+       *   *Contrôle* : Playbook d’incident, exercices annuels et template de notification CNIL.
+   *   **12. Registre des traitements (micro‑entreprise incluse)**
+       *   *Règle* : Tenir un registre simple des traitements (finalité, base légale, durée, catégories de données, catégories de destinataires) pour la preuve de conformité.
+       *   *Contrôle* : Garder le registre versionné dans votre dépôt (privé) et l’actualiser lors de modifications.
+   *   **13. Mesures techniques complémentaires (Hardening)**
+       *   *Règle* : Validation/filtrage des entrées (XSS/CSRF), intégration d’une CSP (Content Security Policy) stricte, protection contre les injections SQL, WAF basique, et corrections régulières des dépendances. Garder la base de données inaccessible depuis l’internet public (sous-réseau privé).
+       *   *Contrôle* : Intégration de scanners SCA (dependencies), tests automatisés de sécurité (SAST), et exécution régulière d’un pentest ou audit ciblé.
+   *   **14. Gestion des secrets et accès (Hardening pratique)**
+       *   *Règle* : Centraliser les secrets (Vault ou variables d'environnement sécurisées), rotation automatique. Aucun secret ne doit figurer dans le dépôt ou les logs de build. Authentification MFA obligatoire pour tous les accès administrateurs.
+       *   *Contrôle* : CI qui refuse les commits contenant des secrets détectés (Gitleaks) et MFA imposé sur tous les accès.
+
+   #### C. Priorités d'implémentation (Ordre conseillé)
+
+   1.  **Phase 1 (Fondation Légale)** : Politique de confidentialité + mentions CNIL + page de contact sécurisée (Obligatoire).
+   2.  **Phase 2 (Consentement)** : CMP (bandeau cookies) et blocage des traceurs non essentiels.
+   3.  **Phase 3 (Gestion des données)** : Minimisation des données + durées de conservation + purge automatisée.
+   4.  **Phase 4 (Sécurité réseau & hébergement)** : TLS + sous-réseau privé pour la base de données + rotation des secrets + MFA.
+   5.  **Phase 5 (Gouvernance & Réponse)** : Journalisation anonymisée + registre des traitements + playbook incident.
+   6.  **Phase 6 (Automatisation)** : Raccorder ces politiques à des règles Policy-as-Code (Conftest) supplémentaires dans la CI/CD pour refuser automatiquement les builds non conformes.
+
 7. **Danger (si non réalisé)**  
    - > **Alerte Gouvernance :** Sans Policy-as-Code, des dérives de configuration non conformes aux chartes de l'entreprise (ex. : images Docker utilisant le tag `:latest`, secrets d'API hardcodés dans Docker Compose, ou licences non autorisées) peuvent être déployées en production sans aucun contrôle, entraînant des risques juridiques, de stabilité et de sécurité.
+
+
 
 
 
