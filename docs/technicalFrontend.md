@@ -522,15 +522,6 @@ git push origin dev
 4. **Explication courte**  
    Le **Policy-as-Code** (PaC) permet de traduire vos chartes de gouvernance et de sécurité (GRC) sous forme de code exécutable. Conftest utilise le moteur OPA (Open Policy Agent) et le langage Rego pour analyser statiquement les fichiers JSON, YAML ou Dockerfile, renvoyant une erreur bloquante dans la CI si les critères de sécurité ne sont pas respectés.
 
-5. **Vérification du résultat**  
-   - Localement, Conftest renvoie `FAIL` si une règle Rego est enfreinte, ou un message de succès si tout est conforme.
-   - Sur GitHub Actions, le workflow **Policy-as-Code (Conftest)** doit s'exécuter avec succès.
-
-6. **Notes et conseils supplémentaires**  
-   - > **Règle d'or GRC :** Cette approche remplace les audits manuels de conformité longs et sujets à l'erreur humaine en automatisant les règles de validation au plus près du code de livraison.
-
-   ---
-
    ### 📜 Charte de Gouvernance GRC & RGPD / CNIL du Projet
 
    Voici la charte de conformité mise en place pour le projet, combinant des règles d'organisation et des mécanismes de contrôle automatique ou manuel :
@@ -538,50 +529,106 @@ git push origin dev
    #### A. Principes de Conformité des Données (CNIL & RGPD)
 
    *   **1. Minimisation des données et finalités documentées**
+       *   *Référentiel* : RGPD Art. 5.1.b (Limitation des finalités), Art. 5.1.c (Minimisation), CNIL Guide Sécurité Fiche 2.
        *   *Règle* : Ne collecter que les données strictement nécessaires pour la finalité explicitée (contact, newsletter, commentaires, etc.). Documenter la finalité pour chaque champ de formulaire.
        *   *Contrôle* : Revue trimestrielle des formulaires et suppression des champs inutiles.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Amende administrative de la CNIL (jusqu'à 20 M€ ou 4 % du CA mondial) pour collecte disproportionnée.
+           *   *Sécurité* : Augmentation inutile de la surface d'attaque ; en cas de fuite de données, la gravité de l'incident est démultipliée par le volume de données superflues compromises.
    *   **2. Transparence et informations**
-       *   *Règle* : Publier une page « Politique de confidentialité » claire avec le responsable, les finalités, la base légale, la durée de conservation, les destinataires, le transfert hors UE éventuel et la procédure d’exercice des droits. Inclure les mentions CNIL pour chaque formulaire.
+       *   *Référentiel* : RGPD Art. 12, 13 et 14 (Obligation d'information), CNIL Modèles de mentions d'information.
+       *   *Règle* : Publier une page « Politique de confidentialité » claire détaillant l'identité du responsable, les finalités, la base légale, la durée de conservation, les destinataires, le transfert hors UE éventuel et la procédure d’exercice des droits. Inclure les mentions d'information CNIL obligatoires sur chaque formulaire.
        *   *Contrôle* : Vérifier la présence et la lisibilité (mobile/desktop) avant la mise en production.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Sanctions CNIL pour traitement déloyal et opacité.
+           *   *Sécurité* : Perte de réputation et de confiance des utilisateurs, rendant le site suspect et réduisant l'engagement.
    *   **3. Cookies et traceurs — consentement granularisé**
-       *   *Règle* : Mettre en place un bandeau CMP qui bloque les traceurs non essentiels jusqu’au consentement (mesure d’audience non anonyme, publicité, boutons sociaux embarqués). Fournir un choix granularisé (tout accepter / tout refuser / sélectionner).
+       *   *Référentiel* : Directive ePrivacy (Art. 5.3), RGPD Art. 7 (Consentement), Lignes directrices de la CNIL sur les cookies.
+       *   *Règle* : Mettre en place un bandeau CMP qui bloque les traceurs non essentiels jusqu’au consentement (mesure d’audience non anonyme, publicité, boutons sociaux embarqués). Fournir un choix granularisé (tout accepter / tout refuser / configurer).
        *   *Contrôle* : Test automatique (CI) qui détecte les scripts tiers et signale s’ils sont injectés sans consentement.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Astreintes et amendes records de la CNIL (historiquement très ciblées sur les cookies non conformes).
+           *   *Sécurité* : Fuites de données comportementales et pistage non consenti des utilisateurs par des tiers (GAFAM, régies publicitaires).
    *   **4. Droits des personnes (accès, rectification, suppression)**
-       *   *Règle* : Exposer un moyen simple pour exercer ses droits (email dédié ou formulaire) et conserver un log d’action (qui a demandé quoi, quand, et la réponse apportée).
-       *   *Contrôle* : Procédure et SLA (ex. 1 mois maximum pour répondre) ; test annuel sur cas factice.
+       *   *Référentiel* : RGPD Art. 15 à 22 (Droits des personnes concernées), CNIL Fiche Exercice des droits.
+       *   *Règle* : Exposer un moyen simple pour exercer ses droits (email dédié ou formulaire) et conserver un log d’action sécurisé (qui a demandé quoi, quand, et la réponse apportée).
+       *   *Contrôle* : Procédure et SLA (délai légal de réponse de 1 mois maximum) ; test annuel sur cas factice.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Rappels à l'ordre et amendes pour non-respect des droits suite à des plaintes directes à la CNIL.
+           *   *Sécurité* : Risque d'ingénierie sociale ; si l'identité du demandeur n'est pas rigoureusement vérifiée, divulgation involontaire de données à un usurpateur.
    *   **5. Durées de conservation et purge automatique**
-       *   *Règle* : Définir des durées de conservation par type (ex. contact : 2 ans, newsletter : jusqu’à désabonnement) et un mécanisme de purge automatique des données expirées.
+       *   *Référentiel* : RGPD Art. 5.1.e (Limitation de la conservation), CNIL Guide pratique des durées de conservation.
+       *   *Règle* : Définir des durées de conservation par type de données (ex. contact : 2 ans, newsletter : jusqu’à désabonnement) et implémenter un mécanisme de purge automatique des données expirées.
        *   *Contrôle* : Job automatisé (cron) qui purge et journalise les suppressions.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Condamnation CNIL classique pour conservation excessive ("droit à l'oubli" bafoué).
+           *   *Sécurité* : Les données anciennes stockées indéfiniment augmentent l'impact d'une fuite lors d'une intrusion ultérieure.
    *   **6. Consentements pour newsletter / mailing**
-       *   *Règle* : Opt‑in explicite (double opt‑in recommandé) et piste d’audit sur le consentement (qui, quand, comment). Possibilité de retrait simple dans chaque email (unsubscribe).
+       *   *Référentiel* : Directive ePrivacy Art. 13, Code des postes et des communications électroniques (Art. L.34-5), RGPD Art. 7.
+       *   *Règle* : Opt‑in explicite et piste d’audit sur le consentement (qui, quand, comment). Possibilité de retrait simple dans chaque email (unsubscribe).
        *   *Contrôle* : Conserver la preuve de consentement et le log d’unsubscribe.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Poursuites pour prospection directe illicite et spamming de masse.
+           *   *Sécurité* : Blocage/blacklistage IP et SMTP par les serveurs de messagerie (Google, Microsoft) pour réputation abusive.
    *   **7. Transferts hors UE et cookies tiers**
+       *   *Référentiel* : RGPD Chapitre V (Transferts), Arrêt Schrems II de la CJUE, Clauses Contractuelles Types (SCC).
        *   *Règle* : Si utilisation de services hors UE (ex. analytics, CDN, plates‑formes), vérifier la conformité et les clauses contractuelles (SCC/garanties).
        *   *Contrôle* : Liste des fournisseurs et pays, revue annuelle.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Nullité des traitements et amendes pour transfert illicite vers un pays n'offrant pas de protection adéquate (ex. USA sans accord valide).
+           *   *Sécurité* : Interception passive de données personnelles par des services de renseignement étrangers.
    *   **8. Traitement des données des mineurs**
-       *   *Règle* : Ne pas collecter de données de mineurs sans vérification du consentement parental. Si le blog cible le grand public, préciser l’interdiction ou la politique associée.
+       *   *Référentiel* : RGPD Art. 8 (Consentement des mineurs dans les services de l'information).
+       *   *Règle* : Ne pas collecter de données de mineurs de moins de 15 ans sans vérification du consentement parental. Si le blog cible le grand public, préciser l’interdiction ou la politique de contrôle.
        *   *Contrôle* : Formulaire qui refuse la collecte de dates de naissance non requises.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Circonstance aggravante lors des contrôles CNIL (le mineur est considéré comme une personne particulièrement vulnérable).
+           *   *Sécurité* : Exposition de mineurs à des risques d'usurpation d'identité ou de harcèlement en ligne.
 
    #### B. Sécurité & Hardening de l'Infrastructure
 
    *   **9. Sécurité des transferts et hébergement**
-       *   *Règle* : TLS partout, HSTS, désactivation des protocoles TLS anciens. Envoyer les emails sans y inclure d’informations sensibles. Limiter le stockage local d’informations personnelles. Documenter les sous-traitants (hébergeur, SMTP, analytics) et s’assurer de leurs garanties RGPD.
+       *   *Référentiel* : RGPD Art. 32 (Sécurité des traitements), CNIL Guide Sécurité Fiches 3 (Chiffrement) et 10 (Flux réseau).
+       *   *Règle* : Protocoles TLS partout, HSTS, désactivation des chiffrements obsolètes. Envoyer les emails sans y inclure d’informations sensibles. Limiter le stockage local d’informations personnelles. Documenter les sous-traitants (hébergeur, SMTP, analytics) et s’assurer de leurs garanties RGPD.
        *   *Contrôle* : Scan TLS régulier, revue des contrats et des prestations avec les prestataires.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Manquement grave à l'obligation réglementaire d'assurer la sécurité et l'intégrité des traitements.
+           *   *Sécurité* : Interception passive des données en transit (*Man-in-the-Middle*), vol de jetons de session et interception de courriels confidentiels.
    *   **10. Journalisation et conservation minimale des logs**
+       *   *Référentiel* : RGPD Art. 32, CNIL Guide Sécurité Fiche 14 (Tracer les événements).
        *   *Règle* : Logger uniquement les événements nécessaires pour la sécurité (connexion, erreurs), mais anonymiser/agréger ou tronquer les logs contenant des données personnelles (PII) ; définir une durée de conservation limitée pour les logs.
        *   *Contrôle* : Pipeline qui rédige/masque les PII, et mécanisme de rotation des logs.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Conservation abusive de données personnelles (les IPs sont des PII) au-delà des durées légales recommandées (souvent 1 an).
+           *   *Sécurité* : Absence de logs (aveuglement en cas d'intrusion) ou, au contraire, logs contenant des données sensibles en clair (mots de passe, jetons) exploitables en cas d'accès non autorisé au serveur.
    *   **11. Gestion des incidents et notification**
+       *   *Référentiel* : RGPD Art. 33 (Notification à l'autorité) et Art. 34 (Notification aux personnes concernées).
        *   *Règle* : Procédure d’incident claire (détection, confinement, évaluation, notification CNIL si nécessaire dans les 72h) et responsable identifié.
        *   *Contrôle* : Playbook d’incident, exercices annuels et template de notification CNIL.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Sanction autonome spécifique pour défaut de notification de violation dans le délai légal de 72 heures.
+           *   *Sécurité* : Propagation incontrôlée d'une intrusion ou d'une fuite par manque de réactivité opérationnelle.
    *   **12. Registre des traitements (micro‑entreprise incluse)**
+       *   *Référentiel* : RGPD Art. 30 (Registre des activités).
        *   *Règle* : Tenir un registre simple des traitements (finalité, base légale, durée, catégories de données, catégories de destinataires) pour la preuve de conformité.
        *   *Contrôle* : Garder le registre versionné dans votre dépôt (privé) et l’actualiser lors de modifications.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Incapacité de démontrer sa conformité (inversion de la charge de la preuve lors d'un contrôle de la CNIL).
+           *   *Sécurité* : Méconnaissance de la cartographie des données, augmentant le risque d'oublier des systèmes ou serveurs non sécurisés.
    *   **13. Mesures techniques complémentaires (Hardening)**
+       *   *Référentiel* : RGPD Art. 32, CNIL Guide Sécurité Fiche 8 (Sécuriser les canaux) et Fiche 12 (Protéger le site).
        *   *Règle* : Validation/filtrage des entrées (XSS/CSRF), intégration d’une CSP (Content Security Policy) stricte, protection contre les injections SQL, WAF basique, et corrections régulières des dépendances. Garder la base de données inaccessible depuis l’internet public (sous-réseau privé).
        *   *Contrôle* : Intégration de scanners SCA (dependencies), tests automatisés de sécurité (SAST), et exécution régulière d’un pentest ou audit ciblé.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Responsabilité civile et pénale engagée pour défaut flagrant de protection technique de l'hébergeur.
+           *   *Sécurité* : Compromission totale du site web, défiguration, vol de cookies de session et vol complet des bases de données.
    *   **14. Gestion des secrets et accès (Hardening pratique)**
+       *   *Référentiel* : RGPD Art. 32, CNIL Guide Sécurité Fiche 1 (Authentification) et Fiche 4 (Habilitations).
        *   *Règle* : Centraliser les secrets (Vault ou variables d'environnement sécurisées), rotation automatique. Aucun secret ne doit figurer dans le dépôt ou les logs de build. Authentification MFA obligatoire pour tous les accès administrateurs.
        *   *Contrôle* : CI qui refuse les commits contenant des secrets détectés (Gitleaks) et MFA imposé sur tous les accès.
+       *   *Dangers si non appliqué* :
+           *   *Juridique* : Non-respect de l'obligation de sécuriser les accès privilégiés aux données.
+           *   *Sécurité* : Vol de comptes administrateurs, compromission du dépôt ou de la console d'administration, destruction ou chiffrement de l'infrastructure par ransomware.
 
    #### C. Priorités d'implémentation (Ordre conseillé)
 
