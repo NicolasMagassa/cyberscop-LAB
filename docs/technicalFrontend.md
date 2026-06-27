@@ -644,6 +644,48 @@ git push origin dev
 7. **Danger (si non réalisé)**  
    - > **Alerte Gouvernance :** Sans Policy-as-Code, des dérives de configuration non conformes aux chartes de l'entreprise (ex. : images Docker utilisant le tag `:latest`, secrets d'API hardcodés dans Docker Compose, ou licences non autorisées) peuvent être déployées en production sans aucun contrôle, entraînant des risques juridiques, de stabilité et de sécurité.
 
+---
+
+## Étape 13 : Pages de Veille et Lecture dédiée (veille.html, article.html)
+
+1. **Objectif de l'étape**  
+   Intégrer les pages de veille technologique (`veille.html`) et de lecture d'article (`article.html`), avec récupération dynamique depuis le CMS backend Strapi, repli automatique (fallback) sur des mocks locaux en cas de panne réseau ou de serveur hors-ligne, et valider le comportement via des tests unitaires Jest.
+
+2. **Prérequis**  
+   - Les pages [veille.html](../veille.html) et [article.html](../article.html) créées.
+   - Les scripts [veille.js](../assets/JS/veille.js) et [article.js](../assets/JS/article.js) implémentant la logique.
+   - Les tests unitaires correspondants écrits dans [tests/test.js](../tests/test.js).
+
+3. **Commande**  
+   Pour exécuter les tests unitaires et de comportement de la veille :
+   ```bash
+   npm test
+   ```
+
+4. **Explication courte**  
+   Les pages de veille et de lecture chargent dynamiquement les articles depuis Strapi en utilisant l'API asynchrone `fetch()`. En cas d'indisponibilité du serveur (réseau coupé ou API en maintenance), un mécanisme de secours (fallback) prend le relais pour charger les articles locaux pré-mockés. Les tests Jest simulent ces comportements (succès API, échecs/404 de Strapi, paramètres d'URL invalides) pour garantir la résilience de l'IHM.
+
+5. **Vérification du résultat**  
+   Tous les tests associés doivent passer avec succès :
+   ```text
+   Veille Cyber Page (veille.js)
+     √ generateVerticalVeilleArticleHTML devrait générer le HTML correct pour un article
+     √ renderVeillePageArticles devrait afficher le loader puis injecter les articles
+   Article Detail Page (article.js)
+     √ renderError devrait injecter un message d'erreur stylisé
+     √ renderArticleContent devrait injecter le contenu d'un article de type veille
+     √ renderArticleContent devrait injecter le contenu d'un article de type briefing
+     √ loadArticle devrait gérer les paramètres d'URL invalides et afficher une erreur
+     √ loadArticle devrait charger un article valide de type veille depuis le mock si hors-ligne
+   ```
+
+6. **Notes et conseils supplémentaires**  
+   - > **Bonne pratique :** Toujours valider la présence de paramètres requis (`id` et `type`) dans l'URL pour la page `article.html` afin d'éviter le chargement de données incohérentes ou des erreurs d'exécution JavaScript.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Qualité & Résilience :** Sans tests unitaires pour la logique de secours et d'injection DOM, les pannes du CMS backend Strapi (ex. lors du déploiement ou d'une maintenance de l'API) peuvent se traduire par des pages blanches ou des crashs de script pour l'utilisateur final.
+
+
 
 
 

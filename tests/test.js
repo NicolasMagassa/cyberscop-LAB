@@ -81,6 +81,36 @@ global.sessionStorage = {
 // Importation des fonctions à tester depuis main.js
 const app = require('../assets/JS/main.js');
 
+// Rendre les variables et fonctions de main.js disponibles globalement pour veille.js et article.js dans Jest
+global.mockStrapiData = [
+    { id: 1, date: "2025-10-14", title: "Deepfakes vocaux : Les CEO ciblés", description: "Clonage audio utilisé pour des fraudes au virement." },
+    { id: 2, date: "2025-10-12", title: "Jailbreak GPT-5 : Nouveau prompt", description: "La technique 'Do Anything Now' évolue encore." },
+    { id: 3, date: "2025-10-10", title: "Malwares polymorphes via LLM", description: "Code mutant généré à la volée par des IA locales." },
+    { id: 4, date: "2025-10-09", title: "Poisoning de dataset confirmé", description: "HuggingFace audite ses modèles majeurs." },
+    { id: 5, date: "2025-10-08", title: "Phishing IA : +300% de succès", description: "Les emails ne contiennent plus de fautes." },
+    { id: 6, date: "2025-10-05", title: "Auto-GPT et Botnets autonomes", description: "Analyse d'un trafic suspect sur le port 443." }
+];
+global.mockBriefingData = [
+    { id: 1, date: "2025-10-12", title: "Analyse du Ransomware 'NeonLock'", description: "Une nouvelle variante utilisant le chiffrement quantique cible les infrastructures critiques.", category: "MALWARE", views: 1542, theme: "green", icon: "lock" },
+    { id: 2, date: "2025-10-10", title: "L'IA Offensive : Algorithmes d'attaque", description: "Les outils de pentesting automatisés par l'IA changent la donne.", category: "IA & SÉCURITÉ", views: 1205, theme: "pink", icon: "brain-circuit" },
+    { id: 3, date: "2025-10-05", title: "La mort du VPN ? Architecture Zero Trust", description: "\"Ne jamais faire confiance, toujours vérifier\".", category: "ZERO TRUST", views: 980, theme: "blue", icon: "shield-alert" },
+    { id: 4, date: "2025-10-01", title: "Smart Home, Smart Hack ?", description: "Votre frigo mine-t-il du crypto ?", category: "IOT", views: 850, theme: "purple", icon: "wifi" }
+];
+global.briefingThemes = {
+    green: { color: 'cyber-green', shadow: 'rgba(0,170,44,0.15)' },
+    pink: { color: 'cyber-pink', shadow: 'rgba(214,0,214,0.15)' },
+    blue: { color: 'cyber-blue', shadow: 'rgba(0,184,194,0.15)' },
+    purple: { color: 'cyber-purple', shadow: 'rgba(138,0,189,0.15)' },
+    red: { color: 'cyber-red', shadow: 'rgba(255,0,60,0.15)' }
+};
+global.flattenStrapiItem = app.flattenStrapiItem;
+global.formatLongDate = app.formatLongDate;
+global.formatDate = app.formatDate;
+
+const veilleApp = require('../assets/JS/veille.js');
+const articleApp = require('../assets/JS/article.js');
+
+
 // --- 1. TESTS UNITAIRES (TDD) ---
 describe('Tests Unitaires - Fonctions de formatage et de cookies', () => {
 
@@ -614,6 +644,132 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             app.declineCookiesAndClosePreferences();
             expect(global.document.cookie).toContain('consent_state=refused');
             expect(mockClassList.add).toHaveBeenCalledWith('hidden');
+        });
+    });
+
+    // =========================================================================
+    // CIBLE  : Page de Veille (veille.html / veille.js)
+    // RÔLE   : Gérer l'affichage de la liste complète des flux de veille,
+    //          le tri chronologique et le fallback automatique sur mocks locaux.
+    // =========================================================================
+    describe('Veille Cyber Page (veille.js)', () => {
+        // Cible : Fonction generateVerticalVeilleArticleHTML dans veille.js
+        // Rôle  : Formater le rendu HTML d'un article individuel dans la liste verticale
+        test('generateVerticalVeilleArticleHTML devrait générer le HTML correct pour un article', () => {
+            const article = { id: 42, date: '2026-06-25', title: 'Test Veille Spec', description: 'Une description de test' };
+            const html = veilleApp.generateVerticalVeilleArticleHTML(article);
+            expect(html).toContain('article.html?type=veille&id=42');
+            expect(html).toContain('Test Veille Spec');
+            expect(html).toContain('Une description de test');
+            expect(html).toContain('SEC-FEED-0042');
+        });
+
+        // Cible : Fonction renderVeillePageArticles dans veille.js
+        // Rôle  : Gérer l'affichage du spinner de chargement, la requête API Strapi
+        //          et l'injection finale de la liste des articles
+        test('renderVeillePageArticles devrait afficher le loader puis injecter les articles', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
+            
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'veille-loader') return mockLoader;
+                if (id === 'veille-articles-list') return mockListContainer;
+                return mockElement;
+            });
+
+            // Tenter de faire le rendu (utilisera les mocks)
+            await veilleApp.renderVeillePageArticles();
+
+            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+            expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(mockListContainer.innerHTML).toContain('Deepfakes vocaux');
+        });
+    });
+
+    // =========================================================================
+    // CIBLE  : Page de Lecture d'Article (article.html / article.js)
+    // RÔLE   : Charger et afficher en plein format un article sélectionné (Veille ou Briefing)
+    //          avec vérification de l'intégrité des paramètres URL et fallback sécurisé.
+    // =========================================================================
+    describe('Article Detail Page (article.js)', () => {
+        // Cible : Fonction renderError dans article.js
+        // Rôle  : Injecter un écran d'erreur cyberpunk en cas de ressource introuvable
+        test('renderError devrait injecter un message d\'erreur stylisé', () => {
+            const mockContainer = { innerHTML: '' };
+            articleApp.renderError(mockContainer, 'Erreur Critique Test');
+            expect(mockContainer.innerHTML).toContain('ACCÈS REFUSÉ / CORRUPTION DE DONNÉES');
+            expect(mockContainer.innerHTML).toContain('Erreur Critique Test');
+        });
+
+        // Cible : Fonction renderArticleContent dans article.js
+        // Rôle  : Injecter dynamiquement les données formatées d'un article de type veille
+        test('renderArticleContent devrait injecter le contenu d\'un article de type veille', () => {
+            const mockContainer = { innerHTML: '' };
+            const article = { id: 1, date: '2026-06-25', title: 'Veille Titre', description: 'Veille Corps' };
+            articleApp.renderArticleContent(mockContainer, article, 'veille');
+            expect(mockContainer.innerHTML).toContain('Veille Titre');
+            expect(mockContainer.innerHTML).toContain('Veille Corps');
+            expect(mockContainer.innerHTML).toContain('Veille Cyber');
+            expect(mockContainer.innerHTML).not.toContain('Vues');
+        });
+
+        // Cible : Fonction renderArticleContent dans article.js
+        // Rôle  : Injecter dynamiquement les données formatées d'un article de type briefing (avec statistiques de vues)
+        test('renderArticleContent devrait injecter le contenu d\'un article de type briefing', () => {
+            const mockContainer = { innerHTML: '' };
+            const article = { id: 2, date: '2026-06-25', title: 'Briefing Titre', description: 'Briefing Corps', category: 'MALWARE', views: 777, theme: 'green', icon: 'lock' };
+            articleApp.renderArticleContent(mockContainer, article, 'briefing');
+            expect(mockContainer.innerHTML).toContain('Briefing Titre');
+            expect(mockContainer.innerHTML).toContain('Briefing Corps');
+            expect(mockContainer.innerHTML).toContain('777 Vues');
+            expect(mockContainer.innerHTML).toContain('MALWARE');
+        });
+
+        // Cible : Fonction loadArticle dans article.js
+        // Rôle  : Détecter et gérer l'absence d'identifiants valides dans l'URL pour renvoyer un état d'erreur propre
+        test('loadArticle devrait gérer les paramètres d\'URL invalides et afficher une erreur', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockContent = { innerHTML: '', classList: { remove: jest.fn() } };
+            const mockBackBtn = { href: '', innerHTML: '' };
+
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'article-loader') return mockLoader;
+                if (id === 'article-content') return mockContent;
+                if (id === 'article-back-btn') return mockBackBtn;
+                return mockElement;
+            });
+
+            // Simuler l'absence de paramètres URL
+            delete global.window.location;
+            global.window.location = { search: '?id=invalid&type=' };
+
+            await articleApp.loadArticle();
+
+            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+            expect(mockContent.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(mockContent.innerHTML).toContain('ACCÈS REFUSÉ');
+        });
+
+        // Cible : Fonction loadArticle dans article.js
+        // Rôle  : Charger un article depuis les mocks de secours lorsque l'API Strapi est inaccessible (mode hors-ligne)
+        test('loadArticle devrait charger un article valide de type veille depuis le mock si hors-ligne', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockContent = { innerHTML: '', classList: { remove: jest.fn() } };
+            const mockBackBtn = { href: '', innerHTML: '' };
+
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'article-loader') return mockLoader;
+                if (id === 'article-content') return mockContent;
+                if (id === 'article-back-btn') return mockBackBtn;
+                return mockElement;
+            });
+
+            global.window.location = { search: '?id=1&type=veille' };
+
+            await articleApp.loadArticle();
+
+            expect(mockBackBtn.href).toBe('veille.html');
+            expect(mockContent.innerHTML).toContain('Deepfakes vocaux');
         });
     });
 });

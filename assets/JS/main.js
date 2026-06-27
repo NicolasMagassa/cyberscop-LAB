@@ -210,7 +210,7 @@ function flattenStrapiItem(item) {
  */
 function generateVeilleArticleHTML(article) {
     return `
-        <a href="#" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
+        <a href="article.html?type=veille&id=${article.id}" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
             <span class="text-xs font-mono font-bold text-cyber-pink min-w-[40px] mt-0.5">${formatDate(article.date)}</span>
             <div class="flex-1">
                 <h4 class="text-xs font-bold text-gray-700 dark:text-gray-200 group-hover:text-cyber-blue transition-colors leading-snug mb-1">
@@ -285,7 +285,7 @@ function generateBriefingArticleHTML(article) {
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-${colorClass} transition-colors font-orbitron">${article.title}</h3>
                 <p class="text-gray-600 dark:text-gray-400 mb-4 font-sans leading-relaxed text-sm">${article.description}</p>
-                <a href="#" class="inline-flex items-center text-${colorClass} hover:text-cyber-black dark:hover:text-white font-mono text-sm uppercase tracking-wider mt-auto font-bold transition-colors">
+                <a href="article.html?type=briefing&id=${article.id}" class="inline-flex items-center text-${colorClass} hover:text-cyber-black dark:hover:text-white font-mono text-sm uppercase tracking-wider mt-auto font-bold transition-colors">
                     <span>Initialiser lecture</span>
                     <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i>
                 </a>
