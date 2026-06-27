@@ -96,6 +96,10 @@ global.mockBriefingData = [
     { id: 3, date: "2025-10-05", title: "La mort du VPN ? Architecture Zero Trust", description: "\"Ne jamais faire confiance, toujours vérifier\".", category: "ZERO TRUST", views: 980, theme: "blue", icon: "shield-alert" },
     { id: 4, date: "2025-10-01", title: "Smart Home, Smart Hack ?", description: "Votre frigo mine-t-il du crypto ?", category: "IOT", views: 850, theme: "purple", icon: "wifi" }
 ];
+global.mockReglementationData = [
+    { id: 1, date: "2025-10-15", title: "Directive NIS 2 : Nouvelles exigences cyber", description: "La directive NIS 2 renforce les exigences de sécurité pour les secteurs essentiels et importants au sein de l'UE. Elle introduit des règles strictes sur la gestion des risques et les notifications d'incidents." },
+    { id: 2, date: "2025-10-12", title: "Règlement DORA : Résilience opérationnelle", description: "Le règlement DORA (Digital Operational Resilience Act) harmonise la sécurité des systèmes d'information pour le secteur financier européen. Elle impose des tests de pénétration rigoureux et des audits tiers." }
+];
 global.briefingThemes = {
     green: { color: 'cyber-green', shadow: 'rgba(0,170,44,0.15)' },
     pink: { color: 'cyber-pink', shadow: 'rgba(214,0,214,0.15)' },
@@ -108,6 +112,7 @@ global.formatLongDate = app.formatLongDate;
 global.formatDate = app.formatDate;
 
 const veilleApp = require('../assets/JS/veille.js');
+const reglementationApp = require('../assets/JS/ReglementationDevSecOps.js');
 const articleApp = require('../assets/JS/article.js');
 
 
@@ -770,6 +775,79 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
 
             expect(mockBackBtn.href).toBe('veille.html');
             expect(mockContent.innerHTML).toContain('Deepfakes vocaux');
+        });
+
+        // Cible : Fonction renderArticleContent dans article.js
+        // Rôle  : Injecter dynamiquement les données d'un article de type reglementation
+        test('renderArticleContent devrait injecter le contenu d\'un article de type reglementation', () => {
+            const mockContainer = { innerHTML: '' };
+            const article = { id: 1, date: '2026-06-25', title: 'Reglementation Titre', description: 'Reglementation Corps' };
+            articleApp.renderArticleContent(mockContainer, article, 'reglementation');
+            expect(mockContainer.innerHTML).toContain('Reglementation Titre');
+            expect(mockContainer.innerHTML).toContain('Reglementation Corps');
+            expect(mockContainer.innerHTML).toContain('Réglementation & DevSecOps');
+            expect(mockContainer.innerHTML).not.toContain('Vues');
+        });
+
+        // Cible : Fonction loadArticle dans article.js
+        // Rôle  : Charger un article valide de type reglementation depuis le mock si hors-ligne
+        test('loadArticle devrait charger un article valide de type reglementation depuis le mock si hors-ligne', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockContent = { innerHTML: '', classList: { remove: jest.fn() } };
+            const mockBackBtn = { href: '', innerHTML: '' };
+
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'article-loader') return mockLoader;
+                if (id === 'article-content') return mockContent;
+                if (id === 'article-back-btn') return mockBackBtn;
+                return mockElement;
+            });
+
+            global.window.location = { search: '?id=1&type=reglementation' };
+
+            await articleApp.loadArticle();
+
+            expect(mockBackBtn.href).toBe('ReglementationDevSecOps.html');
+            expect(mockContent.innerHTML).toContain('Directive NIS 2');
+        });
+    });
+
+    // =========================================================================
+    // CIBLE  : Page de Réglementation & DevSecOps (ReglementationDevSecOps.html / ReglementationDevSecOps.js)
+    // RÔLE   : Gérer l'affichage de la liste complète des flux de conformité,
+    //          le tri chronologique et le fallback automatique sur mocks locaux.
+    // =========================================================================
+    describe('Réglementation & DevSecOps Page (ReglementationDevSecOps.js)', () => {
+        // Cible : Fonction generateVerticalReglementationArticleHTML dans ReglementationDevSecOps.js
+        // Rôle  : Formater le rendu HTML d'un article individuel dans la liste verticale
+        test('generateVerticalReglementationArticleHTML devrait générer le HTML correct pour un article', () => {
+            const article = { id: 42, date: '2026-06-25', title: 'Test Reglementation Spec', description: 'Une description de test' };
+            const html = reglementationApp.generateVerticalReglementationArticleHTML(article);
+            expect(html).toContain('article.html?type=reglementation&id=42');
+            expect(html).toContain('Test Reglementation Spec');
+            expect(html).toContain('Une description de test');
+            expect(html).toContain('SEC-REG-0042');
+        });
+
+        // Cible : Fonction renderReglementationPageArticles dans ReglementationDevSecOps.js
+        // Rôle  : Gérer l'affichage du spinner de chargement, la requête API Strapi
+        //          et l'injection finale de la liste des articles avec fallback
+        test('renderReglementationPageArticles devrait afficher le loader puis injecter les articles', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
+            
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'reglementation-loader') return mockLoader;
+                if (id === 'reglementation-articles-list') return mockListContainer;
+                return mockElement;
+            });
+
+            // Tenter le rendu
+            await reglementationApp.renderReglementationPageArticles();
+
+            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+            expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(mockListContainer.innerHTML).toContain('Directive NIS 2');
         });
     });
 });

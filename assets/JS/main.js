@@ -137,6 +137,14 @@ const mockStrapiData = [
     { id: 6, date: "2025-10-05", title: "Auto-GPT et Botnets autonomes", description: "Analyse d'un trafic suspect sur le port 443." }
 ];
 
+const mockReglementationData = [
+    { id: 1, date: "2025-10-15", title: "Directive NIS 2 : Nouvelles exigences cyber", description: "La directive NIS 2 renforce les exigences de sécurité pour les secteurs essentiels et importants au sein de l'UE. Elle introduit des règles strictes sur la gestion des risques et les notifications d'incidents." },
+    { id: 2, date: "2025-10-12", title: "Règlement DORA : Résilience opérationnelle", description: "Le règlement DORA (Digital Operational Resilience Act) harmonise la sécurité des systèmes d'information pour le secteur financier européen. Il impose des tests de pénétration rigoureux et des audits tiers." },
+    { id: 3, date: "2025-10-08", title: "Sécurisation du Pipeline CI/CD DevSecOps", description: "Guide pratique pour intégrer l'analyse de secrets (Gitleaks), le scan IaC (Trivy) et la validation de conformité (Conftest) dans vos pipelines de déploiement continu." },
+    { id: 4, date: "2025-10-05", title: "RGPD & Minimisation : Bonnes pratiques CNIL", description: "Application concrète du principe de minimisation des données (Art. 5.1.c du RGPD) sur les formulaires de collecte. Gestion des consentements granulaires et politique de purge automatique." },
+    { id: 5, date: "2025-10-02", title: "OWASP DevSecOps Guideline 2026", description: "Les nouvelles recommandations de l'OWASP pour l'automatisation de la sécurité dans le cycle de développement logiciel, en mettant l'accent sur les outils de SAST et SCA." }
+];
+
 const mockBriefingData = [
     { id: 1, date: "2025-10-12", title: "Analyse du Ransomware 'NeonLock'", description: "Une nouvelle variante utilisant le chiffrement quantique cible les infrastructures critiques.", category: "MALWARE", views: 1542, theme: "green", icon: "lock" },
     { id: 2, date: "2025-10-10", title: "L'IA Offensive : Algorithmes d'attaque", description: "Les outils de pentesting automatisés par l'IA changent la donne.", category: "IA & SÉCURITÉ", views: 1205, theme: "pink", icon: "brain-circuit" },

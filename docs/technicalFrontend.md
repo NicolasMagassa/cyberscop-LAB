@@ -685,6 +685,45 @@ git push origin dev
 7. **Danger (si non réalisé)**  
    - > **Alerte Qualité & Résilience :** Sans tests unitaires pour la logique de secours et d'injection DOM, les pannes du CMS backend Strapi (ex. lors du déploiement ou d'une maintenance de l'API) peuvent se traduire par des pages blanches ou des crashs de script pour l'utilisateur final.
 
+---
+
+## Étape 14 : Pages de Réglementation & DevSecOps (ReglementationDevSecOps.html, article.html)
+
+1. **Objectif de l'étape**  
+   Intégrer les pages de conformité réglementaire et DevSecOps (`ReglementationDevSecOps.html`) et de lecture d'article (`article.html`), avec récupération dynamique depuis le CMS backend Strapi (endpoint `/api/reglementations`), repli automatique (fallback) sur des mocks locaux en cas de panne réseau ou de serveur hors-ligne, et valider le comportement via des tests unitaires Jest.
+
+2. **Prérequis**  
+   - Les pages [ReglementationDevSecOps.html](../ReglementationDevSecOps.html) et [article.html](../article.html) créées ou modifiées.
+   - Les scripts [ReglementationDevSecOps.js](../assets/JS/ReglementationDevSecOps.js) et [article.js](../assets/JS/article.js) implémentant la logique.
+   - Les tests unitaires correspondants écrits dans [tests/test.js](../tests/test.js).
+
+3. **Commande**  
+   Pour exécuter les tests unitaires et de comportement de la réglementation :
+   ```bash
+   npm test
+   ```
+
+4. **Explication courte**  
+   Les pages de réglementation et de lecture chargent dynamiquement les articles réglementaires depuis Strapi (ou le mock local de secours `mockReglementationData` si le serveur API est hors-ligne) en utilisant l'API asynchrone `fetch()`. Les tests unitaires valident la bonne structuration des URLs dynamiques de lecture, l'intégration correcte du loader, la gestion du fallback hors-ligne et le rendu final dans le DOM.
+
+5. **Vérification du résultat**  
+   Tous les tests associés doivent passer avec succès :
+   ```text
+   Article Detail Page (article.js)
+     √ renderArticleContent devrait injecter le contenu d'un article de type reglementation
+     √ loadArticle devrait charger un article valide de type reglementation depuis le mock si hors-ligne
+   Réglementation & DevSecOps Page (ReglementationDevSecOps.js)
+     √ generateVerticalReglementationArticleHTML devrait générer le HTML correct pour un article
+     √ renderReglementationPageArticles devrait afficher le loader puis injecter les articles
+   ```
+
+6. **Notes et conseils supplémentaires**  
+   - > **Bonne pratique :** La page utilise une couleur d'accentuation spécifique `cyber-blue` et le préfixe d'identifiant `SEC-REG-` pour différencier visuellement les flux réglementaires des flux de veille classiques.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Qualité & Résilience :** Sans tests unitaires pour la logique de secours et d'injection DOM, les pannes du CMS backend Strapi peuvent se traduire par des pages blanches ou des crashs de script pour l'utilisateur final.
+
+
 
 
 
