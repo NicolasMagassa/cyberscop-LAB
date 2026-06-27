@@ -153,6 +153,14 @@ const mockIAData = [
     { id: 5, date: "2025-10-02", title: "Réguler l'IA : Conformité avec l'AI Act européen", description: "Analyse des exigences juridiques et techniques imposées par l'AI Act européen pour les systèmes d'intelligence artificielle classés à haut risque. Documentation technique et audit de robustesse obligatoires." }
 ];
 
+const mockGRCData = [
+    { id: 1, date: "2025-10-15", title: "Analyse des risques EBIOS RM : Méthodologie officielle", description: "La méthode EBIOS Risk Manager est le standard français pour l'évaluation et le traitement des risques de sécurité des systèmes d'information. Cette fiche guide détaille la mise en œuvre des 5 ateliers réglementaires." },
+    { id: 2, date: "2025-10-12", title: "ISO 27001:2022 : Guide de transition et d'implémentation", description: "Les étapes clés pour mettre en conformité votre Système de Management de la Sécurité de l'Information (SMSI) avec la version 2022 de la norme ISO 27001. Focus sur les nouveaux contrôles de sécurité de l'Annexe A." },
+    { id: 3, date: "2025-10-08", title: "Gestion des risques tiers : Questionnaire de sécurité fournisseurs", description: "Modèle standardisé d'évaluation de la sécurité des sous-traitants et fournisseurs SaaS. Comment mesurer le niveau d'exposition au risque de la supply chain numérique." },
+    { id: 4, date: "2025-10-05", title: "Sensibilisation phishing : Indicateurs clés et reporting", description: "Comment concevoir des campagnes réalistes de test d'hameçonnage, calculer le taux de clics critique et mesurer l'évolution de la posture de vigilance des collaborateurs." },
+    { id: 5, date: "2025-10-02", title: "Conformité RGPD : Le registre des traitements et la PIA", description: "Guide méthodologique de la CNIL pour la tenue du registre des activités de traitement et la réalisation d'Analyses d'Impact relatives à la Protection des Données (AIPD / PIA)." }
+];
+
 const mockBriefingData = [
     { id: 1, date: "2025-10-12", title: "Analyse du Ransomware 'NeonLock'", description: "Une nouvelle variante utilisant le chiffrement quantique cible les infrastructures critiques.", category: "MALWARE", views: 1542, theme: "green", icon: "lock" },
     { id: 2, date: "2025-10-10", title: "L'IA Offensive : Algorithmes d'attaque", description: "Les outils de pentesting automatisés par l'IA changent la donne.", category: "IA & SÉCURITÉ", views: 1205, theme: "pink", icon: "brain-circuit" },

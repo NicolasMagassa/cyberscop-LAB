@@ -25,6 +25,9 @@ async function loadArticle() {
         } else if (type === 'ia') {
             backBtn.href = 'ia.html';
             backBtn.innerHTML = '<i data-lucide="arrow-left" class="w-4 h-4 mr-2 inline"></i> RETOUR_IA';
+        } else if (type === 'grc') {
+            backBtn.href = 'grc.html';
+            backBtn.innerHTML = '<i data-lucide="arrow-left" class="w-4 h-4 mr-2 inline"></i> RETOUR_GRC';
         } else {
             backBtn.href = 'index.html';
             backBtn.innerHTML = '<i data-lucide="arrow-left" class="w-4 h-4 mr-2 inline"></i> RETOUR_ACCUEIL';
@@ -50,6 +53,8 @@ async function loadArticle() {
             endpoint = `http://localhost:1337/api/reglementations/${id}`;
         } else if (type === 'ia') {
             endpoint = `http://localhost:1337/api/ias/${id}`;
+        } else if (type === 'grc') {
+            endpoint = `http://localhost:1337/api/grcs/${id}`;
         } else if (type === 'briefing') {
             endpoint = `http://localhost:1337/api/briefings/${id}`;
         }
@@ -83,6 +88,8 @@ async function loadArticle() {
             article = mockReglementationData.find(item => item.id === id);
         } else if (type === 'ia' && typeof mockIAData !== 'undefined') {
             article = mockIAData.find(item => item.id === id);
+        } else if (type === 'grc' && typeof mockGRCData !== 'undefined') {
+            article = mockGRCData.find(item => item.id === id);
         } else if (type === 'briefing' && typeof mockBriefingData !== 'undefined') {
             article = mockBriefingData.find(item => item.id === id);
         }
@@ -176,6 +183,14 @@ function renderArticleContent(container, article, type) {
             <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-${colorClass} font-bold mb-6">
                 <span class="border border-${colorClass} px-2 py-0.5 bg-${colorClass}/5 uppercase rounded-sm">Sécurité de l'IA</span>
                 <span class="text-[10px] text-gray-400">ID: SEC-IA-${String(article.id).padStart(4, '0')}</span>
+            </div>
+        `;
+    } else if (type === 'grc') {
+        colorClass = 'cyber-green';
+        subHeaderHTML = `
+            <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-${colorClass} font-bold mb-6">
+                <span class="border border-${colorClass} px-2 py-0.5 bg-${colorClass}/5 uppercase rounded-sm">Gouvernance, Risques & Conformité</span>
+                <span class="text-[10px] text-gray-400">ID: SEC-GRC-${String(article.id).padStart(4, '0')}</span>
             </div>
         `;
     } else {

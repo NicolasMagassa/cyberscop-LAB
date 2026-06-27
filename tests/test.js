@@ -104,6 +104,10 @@ global.mockIAData = [
     { id: 1, date: "2025-10-15", title: "Sécurisation des LLM : Les failles d'injection de prompts", description: "Les injections de prompt (Prompt Injection) représentent la menace numéro 1 du Top 10 OWASP pour les LLM. Ce rapport analyse comment les filtres d'entrées et les architectures de double-contexte permettent de s'en prémunir." },
     { id: 2, date: "2025-10-12", title: "Audit de sécurité sur HuggingFace : Datasets empoisonnés", description: "Des chercheurs découvrent plusieurs datasets populaires contenant des backdoors d'empoisonnement (data poisoning). L'audit recommande la signature cryptographique des modèles." }
 ];
+global.mockGRCData = [
+    { id: 1, date: "2025-10-15", title: "Analyse des risques EBIOS RM : Méthodologie officielle", description: "La méthode EBIOS Risk Manager est le standard français pour l'évaluation et le traitement des risques de sécurité des systèmes d'information. Cette fiche guide détaille la mise en œuvre des 5 ateliers réglementaires." },
+    { id: 2, date: "2025-10-12", title: "ISO 27001:2022 : Guide de transition et d'implémentation", description: "Les étapes clés pour mettre en conformité votre Système de Management de la Sécurité de l'Information (SMSI) avec la version 2022 de la norme ISO 27001. Focus sur les nouveaux contrôles de sécurité de l'Annexe A." }
+];
 global.briefingThemes = {
     green: { color: 'cyber-green', shadow: 'rgba(0,170,44,0.15)' },
     pink: { color: 'cyber-pink', shadow: 'rgba(214,0,214,0.15)' },
@@ -118,6 +122,7 @@ global.formatDate = app.formatDate;
 const veilleApp = require('../assets/JS/veille.js');
 const reglementationApp = require('../assets/JS/ReglementationDevSecOps.js');
 const iaApp = require('../assets/JS/ia.js');
+const grcApp = require('../assets/JS/grc.js');
 const articleApp = require('../assets/JS/article.js');
 
 
@@ -849,6 +854,40 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             expect(mockBackBtn.href).toBe('ia.html');
             expect(mockContent.innerHTML).toContain('Sécurisation des LLM');
         });
+
+        // Cible : Fonction renderArticleContent dans article.js
+        // Rôle  : Injecter dynamiquement les données d'un article de type grc
+        test('renderArticleContent devrait injecter le contenu d\'un article de type grc', () => {
+            const mockContainer = { innerHTML: '' };
+            const article = { id: 1, date: '2026-06-25', title: 'GRC Titre', description: 'GRC Corps' };
+            articleApp.renderArticleContent(mockContainer, article, 'grc');
+            expect(mockContainer.innerHTML).toContain('GRC Titre');
+            expect(mockContainer.innerHTML).toContain('GRC Corps');
+            expect(mockContainer.innerHTML).toContain('Gouvernance, Risques & Conformité');
+            expect(mockContainer.innerHTML).not.toContain('Vues');
+        });
+
+        // Cible : Fonction loadArticle dans article.js
+        // Rôle  : Charger un article valide de type grc depuis le mock si hors-ligne
+        test('loadArticle devrait charger un article valide de type grc depuis le mock si hors-ligne', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockContent = { innerHTML: '', classList: { remove: jest.fn() } };
+            const mockBackBtn = { href: '', innerHTML: '' };
+
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'article-loader') return mockLoader;
+                if (id === 'article-content') return mockContent;
+                if (id === 'article-back-btn') return mockBackBtn;
+                return mockElement;
+            });
+
+            global.window.location = { search: '?id=1&type=grc' };
+
+            await articleApp.loadArticle();
+
+            expect(mockBackBtn.href).toBe('grc.html');
+            expect(mockContent.innerHTML).toContain('Analyse des risques EBIOS RM');
+        });
     });
 
     // =========================================================================
@@ -926,6 +965,45 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
             expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
             expect(mockListContainer.innerHTML).toContain('Sécurisation des LLM');
+        });
+    });
+
+    // =========================================================================
+    // CIBLE  : Page de GRC (grc.html / grc.js)
+    // RÔLE   : Gérer l'affichage de la liste complète des flux de gouvernance, risques et conformité,
+    //          le tri chronologique et le fallback automatique sur mocks locaux.
+    // =========================================================================
+    describe('GRC Page (grc.js)', () => {
+        // Cible : Fonction generateVerticalGRCArticleHTML dans grc.js
+        // Rôle  : Formater le rendu HTML d'un article individuel dans la liste verticale
+        test('generateVerticalGRCArticleHTML devrait générer le HTML correct pour un article', () => {
+            const article = { id: 42, date: '2026-06-25', title: 'Test GRC Spec', description: 'Une description de test' };
+            const html = grcApp.generateVerticalGRCArticleHTML(article);
+            expect(html).toContain('article.html?type=grc&id=42');
+            expect(html).toContain('Test GRC Spec');
+            expect(html).toContain('Une description de test');
+            expect(html).toContain('SEC-GRC-0042');
+        });
+
+        // Cible : Fonction renderGRCPageArticles dans grc.js
+        // Rôle  : Gérer l'affichage du spinner de chargement, la requête API Strapi
+        //          et l'injection finale de la liste des articles avec fallback
+        test('renderGRCPageArticles devrait afficher le loader puis injecter les articles', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
+            
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'grc-loader') return mockLoader;
+                if (id === 'grc-articles-list') return mockListContainer;
+                return mockElement;
+            });
+
+            // Tenter le rendu
+            await grcApp.renderGRCPageArticles();
+
+            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+            expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(mockListContainer.innerHTML).toContain('Analyse des risques EBIOS RM');
         });
     });
 });

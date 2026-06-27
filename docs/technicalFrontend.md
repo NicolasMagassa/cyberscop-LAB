@@ -761,6 +761,45 @@ git push origin dev
 7. **Danger (si non réalisé)**  
    - > **Alerte Qualité & Résilience :** Sans tests unitaires pour la logique de secours et d'injection DOM, les pannes du CMS backend Strapi peuvent se traduire par des pages blanches ou des crashs de script pour l'utilisateur final.
 
+---
+
+## Étape 16 : Pages de Gouvernance, Risques & Conformité (grc.html, article.html)
+
+1. **Objectif de l'étape**  
+   Intégrer les pages de veille en Gouvernance, Risques & Conformité (`grc.html`) et de lecture d'article (`article.html`), avec récupération dynamique depuis le CMS backend Strapi (endpoint `/api/grcs`), repli automatique (fallback) sur des mocks locaux en cas de panne réseau ou de serveur hors-ligne, et valider le comportement via des tests unitaires Jest.
+
+2. **Prérequis**  
+   - Les pages [grc.html](../grc.html) et [article.html](../article.html) créées ou modifiées.
+   - Les scripts [grc.js](../assets/JS/grc.js) et [article.js](../assets/JS/article.js) implémentant la logique.
+   - Les tests unitaires correspondants écrits dans [tests/test.js](../tests/test.js).
+
+3. **Commande**  
+   Pour exécuter les tests unitaires et de comportement de GRC :
+   ```bash
+   npm test
+   ```
+
+4. **Explication courte**  
+   Les pages GRC et de lecture chargent dynamiquement les articles GRC depuis Strapi (ou le mock local de secours `mockGRCData` si le serveur API est hors-ligne) en utilisant l'API asynchrone `fetch()`. Les tests unitaires valident la bonne structuration des URLs dynamiques de lecture, l'intégration correcte du loader, la gestion du fallback hors-ligne et le rendu final dans le DOM.
+
+5. **Vérification du résultat**  
+   Tous les tests associés doivent passer avec succès :
+   ```text
+   Article Detail Page (article.js)
+     √ renderArticleContent devrait injecter le contenu d'un article de type grc
+     √ loadArticle devrait charger un article valide de type grc depuis le mock si hors-ligne
+   GRC Page (grc.js)
+     √ generateVerticalGRCArticleHTML devrait générer le HTML correct pour un article
+     √ renderGRCPageArticles devrait afficher le loader puis injecter les articles
+   ```
+
+6. **Notes et conseils supplémentaires**  
+   - > **Bonne pratique :** La page utilise une couleur d'accentuation spécifique `cyber-green` et le préfixe d'identifiant `SEC-GRC-` pour différencier visuellement les flux GRC des flux de veille classiques.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Qualité & Résilience :** Sans tests unitaires pour la logique de secours et d'injection DOM, les pannes du CMS backend Strapi peuvent se traduire par des pages blanches ou des crashs de script pour l'utilisateur final.
+
+
 
 
 
