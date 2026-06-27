@@ -161,6 +161,13 @@ const mockGRCData = [
     { id: 5, date: "2025-10-02", title: "Conformité RGPD : Le registre des traitements et la PIA", description: "Guide méthodologique de la CNIL pour la tenue du registre des activités de traitement et la réalisation d'Analyses d'Impact relatives à la Protection des Données (AIPD / PIA)." }
 ];
 
+const mockRecherchesData = [
+    { id: 1, date: "2025-10-15", title: "Analyse formelle des protocoles cryptographiques post-quantiques", description: "Étude et vérification formelle des mécanismes d'encapsulation de clé (KEM) Kyber validés par le NIST. Analyse de la robustesse contre les attaques par canaux auxiliaires." },
+    { id: 2, date: "2025-10-12", title: "Modélisation des menaces sur les architectures micro-services Zero-Trust", description: "Recherche académique sur l'évaluation quantitative des surfaces d'attaque dans les réseaux maillés (Service Mesh). Proposition d'un modèle mathématique de propagation des compromissions." },
+    { id: 3, date: "2025-10-08", title: "Détection des anomalies de flux par apprentissage non-supervisé", description: "Application d'auto-encodeurs profonds à la détection de signaux faibles et d'exfiltration de données dans les réseaux industriels haut débit." },
+    { id: 4, date: "2025-10-05", title: "Vulnérabilités matérielles : Analyse comparative de Spectre et Meltdown", description: "Modélisation fine des attaques temporelles basées sur l'exécution spéculative des processeurs modernes. Évaluation des correctifs logiciels et microcode." }
+];
+
 const mockBriefingData = [
     { id: 1, date: "2025-10-12", title: "Analyse du Ransomware 'NeonLock'", description: "Une nouvelle variante utilisant le chiffrement quantique cible les infrastructures critiques.", category: "MALWARE", views: 1542, theme: "green", icon: "lock" },
     { id: 2, date: "2025-10-10", title: "L'IA Offensive : Algorithmes d'attaque", description: "Les outils de pentesting automatisés par l'IA changent la donne.", category: "IA & SÉCURITÉ", views: 1205, theme: "pink", icon: "brain-circuit" },

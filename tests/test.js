@@ -108,6 +108,10 @@ global.mockGRCData = [
     { id: 1, date: "2025-10-15", title: "Analyse des risques EBIOS RM : Méthodologie officielle", description: "La méthode EBIOS Risk Manager est le standard français pour l'évaluation et le traitement des risques de sécurité des systèmes d'information. Cette fiche guide détaille la mise en œuvre des 5 ateliers réglementaires." },
     { id: 2, date: "2025-10-12", title: "ISO 27001:2022 : Guide de transition et d'implémentation", description: "Les étapes clés pour mettre en conformité votre Système de Management de la Sécurité de l'Information (SMSI) avec la version 2022 de la norme ISO 27001. Focus sur les nouveaux contrôles de sécurité de l'Annexe A." }
 ];
+global.mockRecherchesData = [
+    { id: 1, date: "2025-10-15", title: "Analyse formelle des protocoles cryptographiques post-quantiques", description: "Étude et vérification formelle des mécanismes d'encapsulation de clé (KEM) Kyber validés par le NIST. Analyse de la robustesse contre les attaques par canaux auxiliaires." },
+    { id: 2, date: "2025-10-12", title: "Modélisation des menaces sur les architectures micro-services Zero-Trust", description: "Recherche académique sur l'évaluation quantitative des surfaces d'attaque dans les réseaux maillés (Service Mesh). Proposition d'un modèle mathématique de propagation des compromissions." }
+];
 global.briefingThemes = {
     green: { color: 'cyber-green', shadow: 'rgba(0,170,44,0.15)' },
     pink: { color: 'cyber-pink', shadow: 'rgba(214,0,214,0.15)' },
@@ -123,6 +127,7 @@ const veilleApp = require('../assets/JS/veille.js');
 const reglementationApp = require('../assets/JS/ReglementationDevSecOps.js');
 const iaApp = require('../assets/JS/ia.js');
 const grcApp = require('../assets/JS/grc.js');
+const recherchesApp = require('../assets/JS/recherches.js');
 const articleApp = require('../assets/JS/article.js');
 
 
@@ -888,6 +893,40 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             expect(mockBackBtn.href).toBe('grc.html');
             expect(mockContent.innerHTML).toContain('Analyse des risques EBIOS RM');
         });
+
+        // Cible : Fonction renderArticleContent dans article.js
+        // Rôle  : Injecter dynamiquement les données d'un article de type recherches
+        test('renderArticleContent devrait injecter le contenu d\'un article de type recherches', () => {
+            const mockContainer = { innerHTML: '' };
+            const article = { id: 1, date: '2026-06-25', title: 'Recherches Titre', description: 'Recherches Corps' };
+            articleApp.renderArticleContent(mockContainer, article, 'recherches');
+            expect(mockContainer.innerHTML).toContain('Recherches Titre');
+            expect(mockContainer.innerHTML).toContain('Recherches Corps');
+            expect(mockContainer.innerHTML).toContain('Recherches & Analyses');
+            expect(mockContainer.innerHTML).not.toContain('Vues');
+        });
+
+        // Cible : Fonction loadArticle dans article.js
+        // Rôle  : Charger un article valide de type recherches depuis le mock si hors-ligne
+        test('loadArticle devrait charger un article valide de type recherches depuis le mock si hors-ligne', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockContent = { innerHTML: '', classList: { remove: jest.fn() } };
+            const mockBackBtn = { href: '', innerHTML: '' };
+
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'article-loader') return mockLoader;
+                if (id === 'article-content') return mockContent;
+                if (id === 'article-back-btn') return mockBackBtn;
+                return mockElement;
+            });
+
+            global.window.location = { search: '?id=1&type=recherches' };
+
+            await articleApp.loadArticle();
+
+            expect(mockBackBtn.href).toBe('recherches.html');
+            expect(mockContent.innerHTML).toContain('Analyse formelle des protocoles cryptographiques');
+        });
     });
 
     // =========================================================================
@@ -1004,6 +1043,45 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
             expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
             expect(mockListContainer.innerHTML).toContain('Analyse des risques EBIOS RM');
+        });
+    });
+
+    // =========================================================================
+    // CIBLE  : Page de Recherches & Analyses (recherches.html / recherches.js)
+    // RÔLE   : Gérer l'affichage de la liste complète des flux de recherches et analyses,
+    //          le tri chronologique et le fallback automatique sur mocks locaux.
+    // =========================================================================
+    describe('Recherches & Analyses Page (recherches.js)', () => {
+        // Cible : Fonction generateVerticalRecherchesArticleHTML dans recherches.js
+        // Rôle  : Formater le rendu HTML d'un article individuel dans la liste verticale
+        test('generateVerticalRecherchesArticleHTML devrait générer le HTML correct pour un article', () => {
+            const article = { id: 42, date: '2026-06-25', title: 'Test Recherches Spec', description: 'Une description de test' };
+            const html = recherchesApp.generateVerticalRecherchesArticleHTML(article);
+            expect(html).toContain('article.html?type=recherches&id=42');
+            expect(html).toContain('Test Recherches Spec');
+            expect(html).toContain('Une description de test');
+            expect(html).toContain('SEC-RES-0042');
+        });
+
+        // Cible : Fonction renderRecherchesPageArticles dans recherches.js
+        // Rôle  : Gérer l'affichage du spinner de chargement, la requête API Strapi
+        //          et l'injection finale de la liste des articles avec fallback
+        test('renderRecherchesPageArticles devrait afficher le loader puis injecter les articles', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
+            
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'recherches-loader') return mockLoader;
+                if (id === 'recherches-articles-list') return mockListContainer;
+                return mockElement;
+            });
+
+            // Tenter le rendu
+            await recherchesApp.renderRecherchesPageArticles();
+
+            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+            expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(mockListContainer.innerHTML).toContain('Analyse formelle des protocoles cryptographiques');
         });
     });
 });
