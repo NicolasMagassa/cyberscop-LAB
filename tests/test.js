@@ -100,6 +100,10 @@ global.mockReglementationData = [
     { id: 1, date: "2025-10-15", title: "Directive NIS 2 : Nouvelles exigences cyber", description: "La directive NIS 2 renforce les exigences de sécurité pour les secteurs essentiels et importants au sein de l'UE. Elle introduit des règles strictes sur la gestion des risques et les notifications d'incidents." },
     { id: 2, date: "2025-10-12", title: "Règlement DORA : Résilience opérationnelle", description: "Le règlement DORA (Digital Operational Resilience Act) harmonise la sécurité des systèmes d'information pour le secteur financier européen. Elle impose des tests de pénétration rigoureux et des audits tiers." }
 ];
+global.mockIAData = [
+    { id: 1, date: "2025-10-15", title: "Sécurisation des LLM : Les failles d'injection de prompts", description: "Les injections de prompt (Prompt Injection) représentent la menace numéro 1 du Top 10 OWASP pour les LLM. Ce rapport analyse comment les filtres d'entrées et les architectures de double-contexte permettent de s'en prémunir." },
+    { id: 2, date: "2025-10-12", title: "Audit de sécurité sur HuggingFace : Datasets empoisonnés", description: "Des chercheurs découvrent plusieurs datasets populaires contenant des backdoors d'empoisonnement (data poisoning). L'audit recommande la signature cryptographique des modèles." }
+];
 global.briefingThemes = {
     green: { color: 'cyber-green', shadow: 'rgba(0,170,44,0.15)' },
     pink: { color: 'cyber-pink', shadow: 'rgba(214,0,214,0.15)' },
@@ -113,6 +117,7 @@ global.formatDate = app.formatDate;
 
 const veilleApp = require('../assets/JS/veille.js');
 const reglementationApp = require('../assets/JS/ReglementationDevSecOps.js');
+const iaApp = require('../assets/JS/ia.js');
 const articleApp = require('../assets/JS/article.js');
 
 
@@ -810,6 +815,40 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             expect(mockBackBtn.href).toBe('ReglementationDevSecOps.html');
             expect(mockContent.innerHTML).toContain('Directive NIS 2');
         });
+
+        // Cible : Fonction renderArticleContent dans article.js
+        // Rôle  : Injecter dynamiquement les données d'un article de type ia
+        test('renderArticleContent devrait injecter le contenu d\'un article de type ia', () => {
+            const mockContainer = { innerHTML: '' };
+            const article = { id: 1, date: '2026-06-25', title: 'IA Sec Titre', description: 'IA Sec Corps' };
+            articleApp.renderArticleContent(mockContainer, article, 'ia');
+            expect(mockContainer.innerHTML).toContain('IA Sec Titre');
+            expect(mockContainer.innerHTML).toContain('IA Sec Corps');
+            expect(mockContainer.innerHTML).toContain('Sécurité de l\'IA');
+            expect(mockContainer.innerHTML).not.toContain('Vues');
+        });
+
+        // Cible : Fonction loadArticle dans article.js
+        // Rôle  : Charger un article valide de type ia depuis le mock si hors-ligne
+        test('loadArticle devrait charger un article valide de type ia depuis le mock si hors-ligne', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockContent = { innerHTML: '', classList: { remove: jest.fn() } };
+            const mockBackBtn = { href: '', innerHTML: '' };
+
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'article-loader') return mockLoader;
+                if (id === 'article-content') return mockContent;
+                if (id === 'article-back-btn') return mockBackBtn;
+                return mockElement;
+            });
+
+            global.window.location = { search: '?id=1&type=ia' };
+
+            await articleApp.loadArticle();
+
+            expect(mockBackBtn.href).toBe('ia.html');
+            expect(mockContent.innerHTML).toContain('Sécurisation des LLM');
+        });
     });
 
     // =========================================================================
@@ -848,6 +887,45 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
             expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
             expect(mockListContainer.innerHTML).toContain('Directive NIS 2');
+        });
+    });
+
+    // =========================================================================
+    // CIBLE  : Page de Sécurité de l'IA (ia.html / ia.js)
+    // RÔLE   : Gérer l'affichage de la liste complète des flux de sécurité de l'IA,
+    //          le tri chronologique et le fallback automatique sur mocks locaux.
+    // =========================================================================
+    describe('Sécurité de l\'IA Page (ia.js)', () => {
+        // Cible : Fonction generateVerticalIAArticleHTML dans ia.js
+        // Rôle  : Formater le rendu HTML d'un article individuel dans la liste verticale
+        test('generateVerticalIAArticleHTML devrait générer le HTML correct pour un article', () => {
+            const article = { id: 42, date: '2026-06-25', title: 'Test IA Spec', description: 'Une description de test' };
+            const html = iaApp.generateVerticalIAArticleHTML(article);
+            expect(html).toContain('article.html?type=ia&id=42');
+            expect(html).toContain('Test IA Spec');
+            expect(html).toContain('Une description de test');
+            expect(html).toContain('SEC-IA-0042');
+        });
+
+        // Cible : Fonction renderIAPageArticles dans ia.js
+        // Rôle  : Gérer l'affichage du spinner de chargement, la requête API Strapi
+        //          et l'injection finale de la liste des articles avec fallback
+        test('renderIAPageArticles devrait afficher le loader puis injecter les articles', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
+            
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'ia-loader') return mockLoader;
+                if (id === 'ia-articles-list') return mockListContainer;
+                return mockElement;
+            });
+
+            // Tenter le rendu
+            await iaApp.renderIAPageArticles();
+
+            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+            expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(mockListContainer.innerHTML).toContain('Sécurisation des LLM');
         });
     });
 });

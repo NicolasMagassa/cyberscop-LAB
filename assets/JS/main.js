@@ -145,6 +145,14 @@ const mockReglementationData = [
     { id: 5, date: "2025-10-02", title: "OWASP DevSecOps Guideline 2026", description: "Les nouvelles recommandations de l'OWASP pour l'automatisation de la sécurité dans le cycle de développement logiciel, en mettant l'accent sur les outils de SAST et SCA." }
 ];
 
+const mockIAData = [
+    { id: 1, date: "2025-10-15", title: "Sécurisation des LLM : Les failles d'injection de prompts", description: "Les injections de prompt (Prompt Injection) représentent la menace numéro 1 du Top 10 OWASP pour les LLM. Ce rapport analyse comment les filtres d'entrées et les architectures de double-contexte permettent de s'en prémunir." },
+    { id: 2, date: "2025-10-12", title: "Audit de sécurité sur HuggingFace : Datasets empoisonnés", description: "Des chercheurs découvrent plusieurs datasets populaires contenant des backdoors d'empoisonnement (data poisoning). L'audit recommande la signature cryptographique des modèles." },
+    { id: 3, date: "2025-10-08", title: "Apprentissage fédéré et confidentialité des données de santé", description: "Mise en œuvre d'algorithmes d'apprentissage fédéré (Federated Learning) couplés à la confidentialité différentielle (Differential Privacy) pour entraîner des modèles de diagnostic sans centraliser les PII." },
+    { id: 4, date: "2025-10-05", title: "IA Offensive vs. Défensive : La guerre des algorithmes", description: "Comment les équipes de sécurité offensive simulent des attaques par force brute intelligente et comment les SIEM dopés à l'IA détectent ces micro-anomalies en temps réel." },
+    { id: 5, date: "2025-10-02", title: "Réguler l'IA : Conformité avec l'AI Act européen", description: "Analyse des exigences juridiques et techniques imposées par l'AI Act européen pour les systèmes d'intelligence artificielle classés à haut risque. Documentation technique et audit de robustesse obligatoires." }
+];
+
 const mockBriefingData = [
     { id: 1, date: "2025-10-12", title: "Analyse du Ransomware 'NeonLock'", description: "Une nouvelle variante utilisant le chiffrement quantique cible les infrastructures critiques.", category: "MALWARE", views: 1542, theme: "green", icon: "lock" },
     { id: 2, date: "2025-10-10", title: "L'IA Offensive : Algorithmes d'attaque", description: "Les outils de pentesting automatisés par l'IA changent la donne.", category: "IA & SÉCURITÉ", views: 1205, theme: "pink", icon: "brain-circuit" },
