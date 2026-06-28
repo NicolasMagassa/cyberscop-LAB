@@ -258,7 +258,7 @@ html_content = """<!DOCTYPE html>
                 </div>
 
                 <!-- CONTENEUR VIDE POUR LES ARTICLES DYNAMIQUES -->
-                <div id="briefing-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="briefing-grid" class="grid grid-cols-1 gap-6">
                 </div>
                 
                 <!-- Pagination -->

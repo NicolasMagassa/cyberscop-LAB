@@ -137,6 +137,17 @@ python -m http.server 8000
 
 Puis ouvrez l'adresse `http://localhost:8000` dans votre navigateur.
 
+### Lancer le backend (Strapi)
+
+Pour lancer le serveur de gestion de contenu Strapi (API) en mode développement :
+
+```bash
+cd backend
+npm run develop
+```
+
+Puis accédez à l'interface d'administration sur `http://localhost:1337/admin`.
+
 ## Utilisation
 
 Pour tester ou modifier le site localement :
@@ -188,6 +199,7 @@ Pour plus de détails sur l'intégration et la validation front-back, consultez 
 - [x] **Pages de Sécurité de l'IA :** Création de la page liste `ia.html` (avec lien "Lire =>>") et intégration dans `article.html` (lecture en grand format connectée à l'API Strapi ou fallback mock) et liaison avec le bouton `/IA` global (voir [Étape 15](./docs/technicalFrontend.md#étape-15--pages-de-sécurité-de-lia-iahtml-articlehtml)).
 - [x] **Pages de GRC :** Création de la page liste `grc.html` (avec lien "Lire =>>") et intégration dans `article.html` (lecture en grand format connectée à l'API Strapi ou fallback mock) et liaison avec le bouton `/GRC` global (voir [Étape 16](./docs/technicalFrontend.md#étape-16--pages-de-gouvernance-risques--conformité-grchtml-articlehtml)).
 - [x] **Pages de Recherches & Analyses :** Création de la page liste `recherches.html` (avec lien "Lire =>>") et intégration dans `article.html` (lecture en grand format connectée à l'API Strapi ou fallback mock) et liaison avec le bouton `/RECHERCHES & ANALYSES` global (voir [Étape 17](./docs/technicalFrontend.md#étape-17--pages-de-recherches--analyses-rechercheshtml-articlehtml)).
+- [x] **Pagination Dynamique (Option A) :** Implémentation de la pagination côté Back-End pour toutes les pages de listes (veille, réglementation, IA, GRC, recherches) avec une taille de page fixe de 5 articles maximum, support du fallback mock local et composants visuels cyberpunk personnalisés (voir [Étape 18](./docs/technicalFrontend.md#étape-18--pagination-dynamique-côté-back-end-avec-repli-local-veille-reglementation-ia-grc-recherches)).
 - [x] **Tests E2E avec Playwright :** Configuration et écriture de 6 tests E2E robustes validant le rendu réel, les modales et l'intégration Strapi en conditions réelles (voir [Étape 9](./docs/technicalFrontend.md#étape-9--tests-de-bout-en-bout-e2e-avec-playwright-et-validation-de-la-connexion-strapi)).
 - [x] **Dockerisation & Scan IaC (Software Infrastructure Security) :** Création des configurations d'exécution isolées (Dockerfiles, Nginx sécurisé, Compose) et analyse de sécurité de l'IaC avec Trivy pour bloquer la CI/CD en cas de mauvaise configuration (voir [Étape 10](./docs/technicalFrontend.md#étape-10--analyse-de-la-sécurité-de-linfrastructure-iac-scanning-avec-trivy)).
 - [x] **Génération de SBOM (Software Bill of Materials) :** Inventaire automatisé CycloneDX des dépendances logicielles et système à chaque build avec stockage comme artefact (voir [Étape 11](./docs/technicalFrontend.md#étape-11--génération-automatique-de-sbom-software-bill-of-materials-avec-trivy)).

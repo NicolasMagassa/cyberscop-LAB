@@ -122,6 +122,7 @@ global.briefingThemes = {
 global.flattenStrapiItem = app.flattenStrapiItem;
 global.formatLongDate = app.formatLongDate;
 global.formatDate = app.formatDate;
+global.updatePaginationDOM = app.updatePaginationDOM;
 
 const veilleApp = require('../assets/JS/veille.js');
 const reglementationApp = require('../assets/JS/ReglementationDevSecOps.js');
@@ -1082,6 +1083,128 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
             expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
             expect(mockListContainer.innerHTML).toContain('Analyse formelle des protocoles cryptographiques');
+        });
+    });
+
+    // =========================================================================
+    // CIBLE  : Pagination (main.js / updatePaginationDOM et pages de listes)
+    // RÔLE   : Valider l'injection du composant de pagination et le découpage
+    //          local des articles mockés en cas de repli.
+    // =========================================================================
+    describe('Gestion de la Pagination et des fallbacks locaux', () => {
+        let originalGetElementById;
+        let originalCreateElement;
+        let parentNode, listContainer, mockPageChange;
+
+        beforeAll(() => {
+            originalGetElementById = global.document.getElementById;
+            originalCreateElement = global.document.createElement;
+        });
+
+        afterAll(() => {
+            global.document.getElementById = originalGetElementById;
+            global.document.createElement = originalCreateElement;
+        });
+
+        beforeEach(() => {
+            mockPageChange = jest.fn();
+            parentNode = {
+                appendChild: jest.fn(),
+                removeChild: jest.fn()
+            };
+            listContainer = {
+                id: 'test-articles-list',
+                parentNode: parentNode,
+                innerHTML: ''
+            };
+            
+            // On s'assure d'avoir un mock pour document.createElement
+            global.document.createElement = jest.fn().mockImplementation((tag) => {
+                if (tag === 'div') {
+                    return {
+                        id: '',
+                        className: '',
+                        innerHTML: '',
+                        querySelectorAll: jest.fn().mockReturnValue([])
+                    };
+                }
+                return {};
+            });
+        });
+
+        test('updatePaginationDOM ne devrait rien faire si listContainer ou son parentNode est manquant', () => {
+            app.updatePaginationDOM(null, 1, 3, 'cyber-pink', mockPageChange);
+            app.updatePaginationDOM({ id: 'only-container' }, 1, 3, 'cyber-pink', mockPageChange);
+            expect(parentNode.appendChild).not.toHaveBeenCalled();
+        });
+
+        test('updatePaginationDOM devrait supprimer le conteneur existant si totalPages <= 1', () => {
+            const mockExistingPagination = { remove: jest.fn() };
+            global.document.getElementById = jest.fn().mockReturnValue(mockExistingPagination);
+
+            app.updatePaginationDOM(listContainer, 1, 1, 'cyber-pink', mockPageChange);
+
+            expect(mockExistingPagination.remove).toHaveBeenCalled();
+        });
+
+        test('updatePaginationDOM devrait créer le conteneur de pagination et injecter les boutons sur plusieurs pages', () => {
+            const mockCreatedElement = {
+                id: '',
+                className: '',
+                innerHTML: '',
+                querySelectorAll: jest.fn().mockReturnValue([])
+            };
+            global.document.getElementById = jest.fn().mockReturnValue(null);
+            global.document.createElement.mockReturnValue(mockCreatedElement);
+
+            app.updatePaginationDOM(listContainer, 1, 3, 'cyber-pink', mockPageChange);
+
+            expect(global.document.createElement).toHaveBeenCalledWith('div');
+            expect(mockCreatedElement.id).toBe('test-articles-list-pagination');
+            expect(mockCreatedElement.className).toContain('mt-12');
+            expect(parentNode.appendChild).toHaveBeenCalledWith(mockCreatedElement);
+            
+            expect(mockCreatedElement.innerHTML).toContain('PREV');
+            expect(mockCreatedElement.innerHTML).toContain('NEXT');
+            expect(mockCreatedElement.innerHTML).toContain('bg-cyber-pink');
+        });
+
+        test('Les getters et setters de currentPage dans veille.js fonctionnent correctement', () => {
+            veilleApp.setCurrentPage(3);
+            expect(veilleApp.getCurrentPage()).toBe(3);
+            veilleApp.setCurrentPage(1);
+        });
+
+        test('renderVeillePageArticles applique bien la pagination locale sur les mocks (taille de page = 5)', async () => {
+            const mockLoader = { classList: { add: jest.fn() } };
+            const mockListContainer = { 
+                id: 'veille-articles-list',
+                innerHTML: '', 
+                classList: { remove: jest.fn() },
+                parentNode: parentNode
+            };
+            
+            global.document.getElementById = jest.fn().mockImplementation((id) => {
+                if (id === 'veille-loader') return mockLoader;
+                if (id === 'veille-articles-list') return mockListContainer;
+                return null;
+            });
+
+            // Page 1
+            veilleApp.setCurrentPage(1);
+            await veilleApp.renderVeillePageArticles();
+
+            expect(mockListContainer.innerHTML).toContain('Deepfakes vocaux');
+            expect(mockListContainer.innerHTML).not.toContain('Auto-GPT et Botnets autonomes');
+
+            // Page 2
+            veilleApp.setCurrentPage(2);
+            await veilleApp.renderVeillePageArticles();
+
+            expect(mockListContainer.innerHTML).toContain('Auto-GPT et Botnets autonomes');
+            expect(mockListContainer.innerHTML).not.toContain('Deepfakes vocaux');
+            
+            veilleApp.setCurrentPage(1);
         });
     });
 });

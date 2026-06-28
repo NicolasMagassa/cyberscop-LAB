@@ -819,6 +819,74 @@ if (!hasConsent && !isBannerDismissed) {
     }
 }
 
+/**
+ * Met à jour ou crée le composant de pagination visuel cyberpunk dans le DOM.
+ * 
+ * @param {HTMLElement} listContainer - Le conteneur de la liste d'articles.
+ * @param {number} currentPage - La page active actuelle.
+ * @param {number} totalPages - Le nombre total de pages.
+ * @param {string} colorClass - La classe de couleur d'accentuation (ex: 'cyber-pink', 'cyber-blue').
+ * @param {function} onPageChange - Callback appelé lors d'un changement de page.
+ */
+function updatePaginationDOM(listContainer, currentPage, totalPages, colorClass, onPageChange) {
+    if (!listContainer) return;
+
+    const parent = listContainer.parentNode;
+    if (!parent) return;
+
+    const paginationId = `${listContainer.id || 'mock'}-pagination`;
+    let paginationContainer = document.getElementById(paginationId);
+
+    // Si on a une seule page ou aucune, on supprime le conteneur de pagination s'il existe
+    if (totalPages <= 1) {
+        if (paginationContainer) {
+            paginationContainer.remove();
+        }
+        return;
+    }
+
+    if (!paginationContainer) {
+        paginationContainer = document.createElement('div');
+        paginationContainer.id = paginationId;
+        // On l'ajoute juste après le conteneur de la liste
+        parent.appendChild(paginationContainer);
+    }
+
+    paginationContainer.className = "mt-12 flex justify-center space-x-4 font-mono";
+
+    // Bouton Précédent
+    const prevDisabled = currentPage <= 1;
+    let prevBtn = `<button class="px-4 py-2 border ${prevDisabled ? 'border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed bg-gray-50 dark:bg-gray-800' : `border-${colorClass} text-${colorClass} hover:bg-${colorClass} hover:text-white transition-colors cursor-pointer`}" ${prevDisabled ? 'disabled' : ''} data-page="${currentPage - 1}"><< PREV</button>`;
+
+    // Pages numérotées
+    let pageButtons = '';
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === currentPage) {
+            // Page active
+            pageButtons += `<button class="px-4 py-2 border border-${colorClass} text-white bg-${colorClass} font-bold shadow-md shadow-${colorClass}/20" disabled>${i}</button>`;
+        } else {
+            // Autre page
+            pageButtons += `<button class="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-${colorClass} hover:text-${colorClass} dark:hover:text-${colorClass} hover:bg-white dark:hover:bg-gray-800 transition-colors cursor-pointer" data-page="${i}">${i}</button>`;
+        }
+    }
+
+    // Bouton Suivant
+    const nextDisabled = currentPage >= totalPages;
+    let nextBtn = `<button class="px-4 py-2 border ${nextDisabled ? 'border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed bg-gray-50 dark:bg-gray-800' : `border-${colorClass} text-${colorClass} hover:bg-${colorClass} hover:text-white transition-colors cursor-pointer`}" ${nextDisabled ? 'disabled' : ''} data-page="${currentPage + 1}">NEXT >></button>`;
+
+    paginationContainer.innerHTML = prevBtn + pageButtons + nextBtn;
+
+    // Attacher les écouteurs d'événements
+    paginationContainer.querySelectorAll('button[data-page]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const pageNum = parseInt(e.currentTarget.getAttribute('data-page'));
+            if (pageNum && pageNum >= 1 && pageNum <= totalPages) {
+                onPageChange(pageNum);
+            }
+        });
+    });
+}
+
 updateViewCounts();
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -857,6 +925,7 @@ if (typeof module !== 'undefined' && module.exports) {
         renderVeilleArticles,
         renderBriefingArticles,
         flattenStrapiItem,
+        updatePaginationDOM,
         delay
     };
 }

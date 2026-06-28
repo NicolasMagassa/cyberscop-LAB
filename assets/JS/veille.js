@@ -3,20 +3,19 @@
  * Dépend de main.js pour le chargement des utilitaires globaux et des données simulées.
  */
 
-/**
- * Récupère, trie et injecte le code HTML des articles de veille
- * dans le conteneur principal '#veille-articles-list'.
- *
- * @returns {Promise<void>}
- */
+let currentPage = 1;
+const pageSize = 5;
+
 async function renderVeillePageArticles() {
     const loader = document.getElementById('veille-loader');
     const listContainer = document.getElementById('veille-articles-list');
     if (!listContainer) return;
 
     let articles = [];
+    let totalPages = 1;
+
     try {
-        const response = await fetch('http://localhost:1337/api/veilles');
+        const response = await fetch(`http://localhost:1337/api/veilles?pagination[page]=${currentPage}&pagination[pageSize]=${pageSize}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -30,25 +29,31 @@ async function renderVeillePageArticles() {
             articles = rawData;
         }
 
-        if (articles.length === 0) {
-            articles = typeof mockStrapiData !== 'undefined' ? mockStrapiData : [];
+        if (json.meta && json.meta.pagination) {
+            totalPages = json.meta.pagination.pageCount || 1;
+        }
+
+        if (articles.length === 0 && currentPage === 1) {
+            throw new Error("No data in production database, using mock fallback");
         }
     } catch (error) {
         console.warn("Strapi non démarré ou inaccessible pour la page Veille, repli sur les données mockées :", error);
-        articles = typeof mockStrapiData !== 'undefined' ? mockStrapiData : [];
+        const fullMockData = typeof mockStrapiData !== 'undefined' ? mockStrapiData : [];
+        const sortedMocks = [...fullMockData].sort((a, b) => new Date(b.date) - new Date(a.date));
+        totalPages = Math.ceil(sortedMocks.length / pageSize) || 1;
+        
+        const startIndex = (currentPage - 1) * pageSize;
+        articles = sortedMocks.slice(startIndex, startIndex + pageSize);
     }
 
-    // Trier les articles par date décroissante
-    const sortedArticles = [...articles].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (sortedArticles.length === 0) {
+    if (articles.length === 0) {
         listContainer.innerHTML = `
             <div class="text-center py-10 font-mono text-xs text-gray-500 border border-dashed border-gray-300 dark:border-gray-800 rounded-md">
                 [SYSTEM WARNING: AUCUN ARTICLE DE VEILLE TROUVÉ]
             </div>
         `;
     } else {
-        listContainer.innerHTML = sortedArticles.map(generateVerticalVeilleArticleHTML).join('');
+        listContainer.innerHTML = articles.map(generateVerticalVeilleArticleHTML).join('');
     }
 
     // Cacher le loader et afficher la liste
@@ -58,6 +63,17 @@ async function renderVeillePageArticles() {
     // Réinitialiser les icônes Lucide pour s'assurer que les nouvelles icônes sont rendues
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
+    }
+
+    // Mettre à jour le DOM de la pagination
+    if (typeof updatePaginationDOM === 'function') {
+        updatePaginationDOM(listContainer, currentPage, totalPages, 'cyber-pink', (newPage) => {
+            currentPage = newPage;
+            if (typeof listContainer.scrollIntoView === 'function') {
+                listContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+            renderVeillePageArticles();
+        });
     }
 }
 
@@ -112,6 +128,8 @@ if (typeof document !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         renderVeillePageArticles,
-        generateVerticalVeilleArticleHTML
+        generateVerticalVeilleArticleHTML,
+        getCurrentPage: () => currentPage,
+        setCurrentPage: (val) => { currentPage = val; }
     };
 }

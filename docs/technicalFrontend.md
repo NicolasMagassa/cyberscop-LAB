@@ -838,6 +838,46 @@ git push origin dev
 7. **Danger (si non réalisé)**  
    - > **Alerte Qualité & Résilience :** Sans tests unitaires pour la logique de secours et d'injection DOM, les pannes du CMS backend Strapi peuvent se traduire par des pages blanches ou des crashs de script pour l'utilisateur final.
 
+---
+
+## Étape 18 : Pagination Dynamique Côté Back-End avec Repli Local (veille, reglementation, ia, grc, recherches)
+
+1. **Objectif de l'étape**  
+   Mettre en œuvre la pagination côté serveur sur l'ensemble des pages de listes de flux (veille, réglementation, IA, GRC, recherches) avec une taille de page fixe de 5 articles maximum par page, tout en garantissant un repli local (fallback) paginé côté client en cas d'inaccessibilité de l'instance Strapi, et valider le comportement via des tests unitaires Jest.
+
+2. **Prérequis**  
+   - Les fichiers JavaScript de page modifiés : [veille.js](../assets/JS/veille.js), [ReglementationDevSecOps.js](../assets/JS/ReglementationDevSecOps.js), [ia.js](../assets/JS/ia.js), [grc.js](../assets/JS/grc.js), [recherches.js](../assets/JS/recherches.js).
+   - La fonction partagée `updatePaginationDOM` définie et exportée dans [main.js](../assets/JS/main.js).
+   - Les tests unitaires correspondants intégrés dans [tests/test.js](../tests/test.js).
+
+3. **Commande**  
+   Pour exécuter la suite de tests et vérifier le bon comportement de la pagination et de sa logique de secours :
+   ```bash
+   npm test
+   ```
+
+4. **Explication courte**  
+   Les scripts de listes interrogent désormais l'API Strapi avec les paramètres de pagination standard `?pagination[page]=X&pagination[pageSize]=5`. Si le serveur de production ne répond pas ou est vide, la logique locale découpe le mock correspondant (`sortedMocks.slice(startIndex, startIndex + pageSize)`). Un composant de navigation cyberpunk est ensuite injecté dynamiquement dans le DOM en bas de la liste d'articles via la fonction commune `updatePaginationDOM()`.
+
+5. **Vérification du résultat**  
+   Tous les tests unitaires de pagination doivent passer avec succès :
+   ```text
+   Gestion de la Pagination et des fallbacks locaux
+     √ updatePaginationDOM ne devrait rien faire si listContainer ou son parentNode est manquant
+     √ updatePaginationDOM devrait supprimer le conteneur existant si totalPages <= 1
+     √ updatePaginationDOM devrait créer le conteneur de pagination et injecter les boutons sur plusieurs pages
+     √ Les getters et setters de currentPage dans veille.js fonctionnent correctement
+     √ renderVeillePageArticles applique bien la pagination locale sur les mocks (taille de page = 5)
+   ```
+
+6. **Notes et conseils supplémentaires**  
+   - > **Bonne pratique :** La pagination respecte le code couleur de chaque page (`cyber-pink`, `cyber-blue`, etc.) pour préserver l'harmonie cyberpunk de l'identité de marque du CyberScope Lab.
+   - > **Navigation fluide :** Lors du changement de page, un effet de défilement fluide (`listContainer.scrollIntoView({ behavior: 'smooth' })`) est déclenché pour ramener automatiquement l'utilisateur en haut de la liste.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Performance & Charge :** Sans pagination côté serveur, le volume de données transféré par le réseau croît de manière linéaire avec le nombre d'articles rédigés, ce qui ralentit considérablement le temps de chargement pour les utilisateurs mobiles et surcharge la base de données.
+
+
 
 
 
