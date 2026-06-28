@@ -51,6 +51,8 @@ Voici les principales fonctionnalités de mon site web :
 * **Gestion de compte :** Espace sécurisé dédié permettant aux utilisateurs connectés de gérer leurs informations personnelles avec navigation dynamique par onglets.
 * **Conformité & Sécurité (RGPD) :** Pages juridiques complètes (Mentions Légales, CGU, Politique de Confidentialité, Politique de Cookies) associées à un bandeau de consentement interactif et à un modal de gestion granulaire des cookies (essentiels, fonctionnels, analytiques).
 * **Mode Sombre (Dark Mode) :** Sélecteur de thème dynamique permettant d'alterner instantanément entre l'interface claire (Light) et sombre (Dark/Cyber) avec sauvegarde persistante du choix de l'utilisateur (via `localStorage`).
+* **Flux thématiques de sécurité :** Pages dédiées pour les articles de Veille, Réglementation/DevSecOps, Sécurité de l'IA, GRC, et Recherches & Analyses, chargées dynamiquement depuis Strapi avec une page de lecture détaillée pour chaque article.
+* **Pagination & Navigation Cyberpunk :** Pagination fluide limitée à 5 articles par page sur toutes les listes d'articles, gérée côté serveur avec un repli (fallback) local paginé côté client en cas de panne de l'API. Elle inclut des contrôles visuels cyberpunk et un défilement fluide automatique lors du changement de page.
 
 ---
 
