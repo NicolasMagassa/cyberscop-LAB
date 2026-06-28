@@ -30,7 +30,7 @@ jobs:
           exit-code: '1' # Échoue si une vulnérabilité critique ou haute est détectée
 
       - name: Upload Trivy Root results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-root-results.sarif'
         if: always()
@@ -56,7 +56,7 @@ jobs:
           exit-code: '0' # Non bloquant pour ne pas pénaliser la CI sur les dépendances Strapi tierces
 
       - name: Upload Trivy Backend results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-backend-results.sarif'
         if: always()
@@ -82,7 +82,7 @@ jobs:
           exit-code: '1' # Bloquant en cas de mauvaise configuration d'infra (ex: root dans Dockerfile)
 
       - name: Upload Trivy IaC results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-iac-results.sarif'
         if: always()
