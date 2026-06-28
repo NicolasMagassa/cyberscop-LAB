@@ -142,15 +142,17 @@ const mockReglementationData = [
     { id: 2, date: "2025-10-12", title: "Règlement DORA : Résilience opérationnelle", description: "Le règlement DORA (Digital Operational Resilience Act) harmonise la sécurité des systèmes d'information pour le secteur financier européen. Il impose des tests de pénétration rigoureux et des audits tiers." },
     { id: 3, date: "2025-10-08", title: "Sécurisation du Pipeline CI/CD DevSecOps", description: "Guide pratique pour intégrer l'analyse de secrets (Gitleaks), le scan IaC (Trivy) et la validation de conformité (Conftest) dans vos pipelines de déploiement continu." },
     { id: 4, date: "2025-10-05", title: "RGPD & Minimisation : Bonnes pratiques CNIL", description: "Application concrète du principe de minimisation des données (Art. 5.1.c du RGPD) sur les formulaires de collecte. Gestion des consentements granulaires et politique de purge automatique." },
-    { id: 5, date: "2025-10-02", title: "OWASP DevSecOps Guideline 2026", description: "Les nouvelles recommandations de l'OWASP pour l'automatisation de la sécurité dans le cycle de développement logiciel, en mettant l'accent sur les outils de SAST et SCA." }
+    { id: 5, date: "2025-10-02", title: "OWASP DevSecOps Guideline 2026", description: "Les nouvelles recommandations de l'OWASP pour l'automatisation de la sécurité dans le cycle de développement logiciel, en mettant l'accent sur les outils de SAST et SCA." },
+    { id: 6, date: "2025-09-28", title: "Directive NIS 2 : Guide de survie des OES", description: "Les étapes clés pour cartographier vos systèmes d'information d'importance vitale et préparer la conformité réglementaire." }
 ];
 
 const mockIAData = [
     { id: 1, date: "2025-10-15", title: "Sécurisation des LLM : Les failles d'injection de prompts", description: "Les injections de prompt (Prompt Injection) représentent la menace numéro 1 du Top 10 OWASP pour les LLM. Ce rapport analyse comment les filtres d'entrées et les architectures de double-contexte permettent de s'en prémunir." },
     { id: 2, date: "2025-10-12", title: "Audit de sécurité sur HuggingFace : Datasets empoisonnés", description: "Des chercheurs découvrent plusieurs datasets populaires contenant des backdoors d'empoisonnement (data poisoning). L'audit recommande la signature cryptographique des modèles." },
-    { id: 3, date: "2025-10-08", title: "Apprentissage fédéré et confidentialité des données de santé", description: "Mise en œuvre d'algorithmes d'apprentissage fédéré (Federated Learning) couplés à la confidentialité différentielle (Differential Privacy) pour entraîner des modèles de diagnostic sans centraliser les PII." },
+    { id: 3, date: "2025-10-08", title: "Apprentissage fédéré et confidentialité des données de santé", description: "Mise en œuvre d'algorithmes d'apprentissage fédéré (Federated Learning) couplés à la confidentialité de la différentielle (Differential Privacy) pour entraîner des modèles de diagnostic sans centraliser les PII." },
     { id: 4, date: "2025-10-05", title: "IA Offensive vs. Défensive : La guerre des algorithmes", description: "Comment les équipes de sécurité offensive simulent des attaques par force brute intelligente et comment les SIEM dopés à l'IA détectent ces micro-anomalies en temps réel." },
-    { id: 5, date: "2025-10-02", title: "Réguler l'IA : Conformité avec l'AI Act européen", description: "Analyse des exigences juridiques et techniques imposées par l'AI Act européen pour les systèmes d'intelligence artificielle classés à haut risque. Documentation technique et audit de robustesse obligatoires." }
+    { id: 5, date: "2025-10-02", title: "Réguler l'IA : Conformité avec l'AI Act européen", description: "Analyse des exigences juridiques et techniques imposées par l'AI Act européen pour les systèmes d'intelligence artificielle classés à haut risque. Documentation technique et audit de robustesse obligatoires." },
+    { id: 6, date: "2025-09-28", title: "Introduction aux attaques par empoisonnement d'IA", description: "Comprendre comment des attaquants perturbent la phase d'apprentissage d'un réseau de neurones." }
 ];
 
 const mockGRCData = [
@@ -158,14 +160,17 @@ const mockGRCData = [
     { id: 2, date: "2025-10-12", title: "ISO 27001:2022 : Guide de transition et d'implémentation", description: "Les étapes clés pour mettre en conformité votre Système de Management de la Sécurité de l'Information (SMSI) avec la version 2022 de la norme ISO 27001. Focus sur les nouveaux contrôles de sécurité de l'Annexe A." },
     { id: 3, date: "2025-10-08", title: "Gestion des risques tiers : Questionnaire de sécurité fournisseurs", description: "Modèle standardisé d'évaluation de la sécurité des sous-traitants et fournisseurs SaaS. Comment mesurer le niveau d'exposition au risque de la supply chain numérique." },
     { id: 4, date: "2025-10-05", title: "Sensibilisation phishing : Indicateurs clés et reporting", description: "Comment concevoir des campagnes réalistes de test d'hameçonnage, calculer le taux de clics critique et mesurer l'évolution de la posture de vigilance des collaborateurs." },
-    { id: 5, date: "2025-10-02", title: "Conformité RGPD : Le registre des traitements et la PIA", description: "Guide méthodologique de la CNIL pour la tenue du registre des activités de traitement et la réalisation d'Analyses d'Impact relatives à la Protection des Données (AIPD / PIA)." }
+    { id: 5, date: "2025-10-02", title: "Conformité RGPD : Le registre des traitements et la PIA", description: "Guide méthodologique de la CNIL pour la tenue du registre des activités de traitement et la réalisation d'Analyses d'Impact relatives à la Protection des Données (AIPD / PIA)." },
+    { id: 6, date: "2025-09-28", title: "EBIOS RM vs. ISO 27005 : Quelle méthode choisir ?", description: "Une comparaison détaillée des cadres d'analyse des risques de sécurité de l'information." }
 ];
 
 const mockRecherchesData = [
     { id: 1, date: "2025-10-15", title: "Analyse formelle des protocoles cryptographiques post-quantiques", description: "Étude et vérification formelle des mécanismes d'encapsulation de clé (KEM) Kyber validés par le NIST. Analyse de la robustesse contre les attaques par canaux auxiliaires." },
     { id: 2, date: "2025-10-12", title: "Modélisation des menaces sur les architectures micro-services Zero-Trust", description: "Recherche académique sur l'évaluation quantitative des surfaces d'attaque dans les réseaux maillés (Service Mesh). Proposition d'un modèle mathématique de propagation des compromissions." },
     { id: 3, date: "2025-10-08", title: "Détection des anomalies de flux par apprentissage non-supervisé", description: "Application d'auto-encodeurs profonds à la détection de signaux faibles et d'exfiltration de données dans les réseaux industriels haut débit." },
-    { id: 4, date: "2025-10-05", title: "Vulnérabilités matérielles : Analyse comparative de Spectre et Meltdown", description: "Modélisation fine des attaques temporelles basées sur l'exécution spéculative des processeurs modernes. Évaluation des correctifs logiciels et microcode." }
+    { id: 4, date: "2025-10-05", title: "Vulnérabilités matérielles : Analyse comparative de Spectre et Meltdown", description: "Modélisation fine des attaques temporelles basées sur l'exécution spéculative des processeurs modernes. Évaluation des correctifs logiciels et microcode." },
+    { id: 5, date: "2025-10-01", title: "Sécurité des cryptosystèmes sur courbes elliptiques", description: "Analyse de la résistance des implémentations de signature ECDSA face aux attaques par injection de fautes." },
+    { id: 6, date: "2025-09-28", title: "Analyse de la sécurité des protocoles d'accord de clé", description: "Étude théorique sur la résistance des protocoles Diffie-Hellman contre les écoutes actives et passives." }
 ];
 
 const mockBriefingData = [
