@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "reglementations",
+  "info": {
+    "singularName": "reglementation",
+    "pluralName": "reglementations",
+    "displayName": "Reglementation",
+    "description": "Articles de réglementation et DevSecOps"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

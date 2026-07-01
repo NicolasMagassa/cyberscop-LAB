@@ -478,6 +478,38 @@ export interface ApiBriefingBriefing extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiReglementationReglementation
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'reglementations';
+  info: {
+    description: 'Articles de r\u00E9glementation et DevSecOps';
+    displayName: 'Reglementation';
+    pluralName: 'reglementations';
+    singularName: 'reglementation';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date & Schema.Attribute.Required;
+    description: Schema.Attribute.Text & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::reglementation.reglementation'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiVeilleVeille extends Struct.CollectionTypeSchema {
   collectionName: 'veilles';
   info: {
@@ -1021,6 +1053,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::briefing.briefing': ApiBriefingBriefing;
+      'api::reglementation.reglementation': ApiReglementationReglementation;
       'api::veille.veille': ApiVeilleVeille;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

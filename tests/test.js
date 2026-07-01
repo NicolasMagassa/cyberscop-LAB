@@ -597,6 +597,43 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
     });
 
     // =========================================================================
+    // Cible : Fonction renderRessourcesGuideArticles() dans main.js
+    // Rôle  : Combine, trie par date et injecte les derniers articles GRC, Réglementation et Recherches
+    // =========================================================================
+    describe('renderRessourcesGuideArticles', () => {
+        let mockRessourcesContainer;
+
+        beforeEach(() => {
+            mockRessourcesContainer = { innerHTML: '' };
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'ressources-container') return mockRessourcesContainer;
+                return mockElement;
+            });
+        });
+
+        afterEach(() => {
+            global.document.getElementById.mockImplementation(() => mockElement);
+        });
+
+        test('devrait combiner, trier chronologiquement et injecter les articles récents GRC/Reglementation/Recherches', async () => {
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn().mockRejectedValue(new Error("Network simulation error"));
+
+            try {
+                await app.renderRessourcesGuideArticles();
+
+                expect(global.document.getElementById).toHaveBeenCalledWith('ressources-container');
+                // Doit contenir les éléments de mock des 3 catégories (les plus récents du 15/10/2025)
+                expect(mockRessourcesContainer.innerHTML).toContain('Directive NIS 2'); // de mockReglementationData
+                expect(mockRessourcesContainer.innerHTML).toContain('EBIOS RM'); // de mockGRCData
+                expect(mockRessourcesContainer.innerHTML).toContain('post-quantiques'); // de mockRecherchesData
+            } finally {
+                global.fetch = originalFetch;
+            }
+        });
+    });
+
+    // =========================================================================
     // Cible : Fonction toggleLoginModal() dans main.js
     // Rôle  : Ouvre ou ferme la modale d'authentification utilisateur
     // =========================================================================
@@ -967,6 +1004,9 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         // Rôle  : Gérer l'affichage du spinner de chargement, la requête API Strapi
         //          et l'injection finale de la liste des articles avec fallback
         test('renderReglementationPageArticles devrait afficher le loader puis injecter les articles', async () => {
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn().mockRejectedValue(new Error("Network simulation error"));
+
             const mockLoader = { classList: { add: jest.fn() } };
             const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
             
@@ -976,12 +1016,16 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
                 return mockElement;
             });
 
-            // Tenter le rendu
-            await reglementationApp.renderReglementationPageArticles();
+            try {
+                // Tenter le rendu
+                await reglementationApp.renderReglementationPageArticles();
 
-            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
-            expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(mockListContainer.innerHTML).toContain('Directive NIS 2');
+                expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+                expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
+                expect(mockListContainer.innerHTML).toContain('Directive NIS 2');
+            } finally {
+                global.fetch = originalFetch;
+            }
         });
     });
 
@@ -1192,6 +1236,9 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
 
         test('renderVeillePageArticles applique bien la pagination locale sur les mocks (taille de page = 5)', async () => {
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn().mockRejectedValue(new Error("Simulation d'erreur réseau pour forcer le repli mock"));
+
             const mockLoader = { classList: { add: jest.fn() } };
             const mockListContainer = { 
                 id: 'veille-articles-list',
@@ -1206,21 +1253,25 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
                 return null;
             });
 
-            // Page 1
-            veilleApp.setCurrentPage(1);
-            await veilleApp.renderVeillePageArticles();
+            try {
+                // Page 1
+                veilleApp.setCurrentPage(1);
+                await veilleApp.renderVeillePageArticles();
 
-            expect(mockListContainer.innerHTML).toContain('Deepfakes vocaux');
-            expect(mockListContainer.innerHTML).not.toContain('Auto-GPT et Botnets autonomes');
+                expect(mockListContainer.innerHTML).toContain('Deepfakes vocaux');
+                expect(mockListContainer.innerHTML).not.toContain('Auto-GPT et Botnets autonomes');
 
-            // Page 2
-            veilleApp.setCurrentPage(2);
-            await veilleApp.renderVeillePageArticles();
+                // Page 2
+                veilleApp.setCurrentPage(2);
+                await veilleApp.renderVeillePageArticles();
 
-            expect(mockListContainer.innerHTML).toContain('Auto-GPT et Botnets autonomes');
-            expect(mockListContainer.innerHTML).not.toContain('Deepfakes vocaux');
-            
-            veilleApp.setCurrentPage(1);
+                expect(mockListContainer.innerHTML).toContain('Auto-GPT et Botnets autonomes');
+                expect(mockListContainer.innerHTML).not.toContain('Deepfakes vocaux');
+                
+                veilleApp.setCurrentPage(1);
+            } finally {
+                global.fetch = originalFetch;
+            }
         });
     });
 });

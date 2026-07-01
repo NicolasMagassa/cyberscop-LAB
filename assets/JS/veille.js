@@ -102,11 +102,11 @@ function generateVerticalVeilleArticleHTML(article) {
             </h3>
             
             <p class="text-gray-600 dark:text-gray-400 text-sm font-sans mb-6 leading-relaxed max-w-4xl">
-                ${article.description}
+                ${article.description.length > 180 ? article.description.substring(0, 180) + '...' : article.description}
             </p>
 
             <div class="flex items-center justify-between border-t border-gray-100 dark:border-gray-800/50 pt-4">
-                <a href="article.html?type=veille&id=${article.id}" class="inline-flex items-center text-xs font-mono font-bold text-cyber-pink hover:text-white border border-cyber-pink/20 hover:border-cyber-pink bg-cyber-pink/5 hover:bg-cyber-pink px-4 py-2 rounded transition-all duration-300">
+                <a href="article.html?type=veille&id=${article.documentId || article.id}" class="inline-flex items-center text-xs font-mono font-bold text-cyber-pink hover:text-white border border-cyber-pink/20 hover:border-cyber-pink bg-cyber-pink/5 hover:bg-cyber-pink px-4 py-2 rounded transition-all duration-300">
                     <span>Lire =>></span>
                 </a>
                 <span class="text-[10px] font-mono text-gray-400 flex items-center">

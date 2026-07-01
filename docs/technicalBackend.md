@@ -133,8 +133,106 @@ Une fois les permissions définies, les données sont accessibles publiquement v
 
 - **Flux de Briefings (Cartes principales) :** `GET http://localhost:1337/api/briefings`
 - **Flux de Veille (Panneau latéral) :** `GET http://localhost:1337/api/veilles`
+- **Flux de Réglementation (Widget & Listes) :** `GET http://localhost:1337/api/reglementations`
 
 *Note : Les données locales sont enregistrées dans le fichier de base de données SQLite : `backend/.tmp/data.db`.*
+
+---
+
+## 🛠️ Création Manuelle de Nouveaux Content-Types (API)
+
+Si tu as besoin de créer un nouveau type d'article (par exemple, pour **`grc`**, **`ia`** ou **`recherche`**) sans passer par l'interface d'administration de Strapi, tu peux créer directement 4 petits fichiers dans le code. Strapi les détectera automatiquement au démarrage et créera la table en base de données.
+
+Voici la structure de dossiers à créer sous `backend/src/api/` :
+
+```
+backend/src/api/<nom_api>/
+├── content-types/
+│   └── <nom_api>/
+│       └── schema.json      <-- Définit les champs (titre, date, etc.)
+├── controllers/
+│   └── <nom_api>.js         <-- Gère la réception des requêtes
+├── routes/
+│   └── <nom_api>.js         <-- Définit l'URL d'accès (ex: /api/grcs)
+└── services/
+    └── <nom_api>.js         <-- Gère l'accès à la base de données
+```
+
+Voici le code standard à copier-coller dans chacun de ces fichiers (en remplaçant `<nom_api>` par `grc`, `ia`, ou `recherche`) :
+
+### 1. Le Schéma de données : `content-types/<nom_api>/schema.json`
+Ce fichier JSON explique à Strapi de quels champs est constitué ton article.
+
+```json
+{
+  "kind": "collectionType",
+  "collectionName": "<nom_api>s",
+  "info": {
+    "singularName": "<nom_api>",
+    "pluralName": "<nom_api>s",
+    "displayName": "<Nom_Affiché_En_Majuscule>"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    },
+    "date": {
+      "type": "date",
+      "required": true
+    }
+  }
+}
+```
+*Note : Tu peux remplacer `<Nom_Affiché_En_Majuscule>` par exemple par `GRC` ou `IA` pour l'affichage dans le menu Strapi.*
+
+### 2. Le Controller : `controllers/<nom_api>.js`
+Ce fichier dit à Strapi d'utiliser son comportement par défaut pour traiter les requêtes HTTP.
+
+```javascript
+'use strict';
+
+const { createCoreController } = require('@strapi/strapi').factories;
+
+module.exports = createCoreController('api::<nom_api>.<nom_api>');
+```
+
+### 3. Le Router : `routes/<nom_api>.js`
+Ce fichier crée automatiquement les routes d'API (ex: `GET /api/<nom_api>s` et `GET /api/<nom_api>s/:id`).
+
+```javascript
+'use strict';
+
+const { createCoreRouter } = require('@strapi/strapi').factories;
+
+module.exports = createCoreRouter('api::<nom_api>.<nom_api>');
+```
+
+### 4. Le Service : `services/<nom_api>.js`
+Ce fichier permet à Strapi de faire des requêtes internes en base de données.
+
+```javascript
+'use strict';
+
+const { createCoreService } = require('@strapi/strapi').factories;
+
+module.exports = createCoreService('api::<nom_api>.<nom_api>');
+```
+
+---
+
+### Une fois les fichiers créés :
+1. Démarre ou redémarre ton serveur de développement (`npm run dev` dans le dossier `/backend`).
+2. Rends-toi sur l'administration Strapi : ta nouvelle collection apparaît dans la barre de gauche.
+3. Rends-toi dans **Settings** ⚙️ > **Roles** > **Public**, déroule ta nouvelle collection et coche les cases **`find`** et **`findOne`** pour rendre l'accès public, puis clique sur **Save**.
+4. Écris et publie tes articles !
 
 ---
 

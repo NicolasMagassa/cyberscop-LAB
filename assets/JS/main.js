@@ -232,21 +232,26 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
  */
 function flattenStrapiItem(item) {
     if (!item) return null;
+    let flattened = item;
     if (item.attributes) {
-        return { id: item.id, ...item.attributes };
+        flattened = { id: item.id, ...item.attributes };
     }
-    return item;
+    if (item.documentId) {
+        flattened.documentId = item.documentId;
+    }
+    return flattened;
 }
 
 /**
  * Génère le code HTML correspondant à un article de veille technologique.
  *
- * @param {Object} article - Les données de l'article (id, date, title, description).
+ * @param {Object} article - Les données de l'article (id, date, title, description, documentId).
  * @returns {string} Le fragment de code HTML représentant l'article.
  */
 function generateVeilleArticleHTML(article) {
+    const targetId = article.documentId || article.id;
     return `
-        <a href="article.html?type=veille&id=${article.id}" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
+        <a href="article.html?type=veille&id=${targetId}" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
             <span class="text-xs font-mono font-bold text-cyber-pink min-w-[40px] mt-0.5">${formatDate(article.date)}</span>
             <div class="flex-1">
                 <h4 class="text-xs font-bold text-gray-700 dark:text-gray-200 group-hover:text-cyber-blue transition-colors leading-snug mb-1">
@@ -321,7 +326,7 @@ function generateBriefingArticleHTML(article) {
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-${colorClass} transition-colors font-orbitron">${article.title}</h3>
                 <p class="text-gray-600 dark:text-gray-400 mb-4 font-sans leading-relaxed text-sm">${article.description}</p>
-                <a href="article.html?type=briefing&id=${article.id}" class="inline-flex items-center text-${colorClass} hover:text-cyber-black dark:hover:text-white font-mono text-sm uppercase tracking-wider mt-auto font-bold transition-colors">
+                <a href="article.html?type=briefing&id=${article.documentId || article.id}" class="inline-flex items-center text-${colorClass} hover:text-cyber-black dark:hover:text-white font-mono text-sm uppercase tracking-wider mt-auto font-bold transition-colors">
                     <span>Initialiser lecture</span>
                     <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i>
                 </a>
@@ -366,9 +371,120 @@ async function renderBriefingArticles() {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
+/**
+ * Récupère les articles de Réglementation, GRC et Recherches,
+ * les fusionne, les trie par date décroissante et injecte les 4 plus récents
+ * dans le conteneur '#ressources-container'.
+ *
+ * @returns {Promise<void>}
+ */
+async function renderRessourcesGuideArticles() {
+    const container = document.getElementById('ressources-container');
+    if (!container) return;
+
+    let reglementations = [];
+    let grcs = [];
+    let recherches = [];
+
+    // 1. Récupération des réglementations
+    try {
+        const response = await fetch('http://localhost:1337/api/reglementations?pagination[pageSize]=10');
+        if (response.ok) {
+            const json = await response.json();
+            reglementations = (json.data || []).map(flattenStrapiItem);
+        }
+    } catch (e) {
+        console.warn("Strapi déconnecté, repli sur mockReglementationData pour le widget latéral :", e);
+    }
+    if (reglementations.length === 0 && typeof mockReglementationData !== 'undefined') {
+        reglementations = mockReglementationData;
+    }
+
+    // 2. Récupération GRC
+    try {
+        const response = await fetch('http://localhost:1337/api/grcs?pagination[pageSize]=10');
+        if (response.ok) {
+            const json = await response.json();
+            grcs = (json.data || []).map(flattenStrapiItem);
+        }
+    } catch (e) {
+        console.warn("Strapi déconnecté, repli sur mockGRCData pour le widget latéral :", e);
+    }
+    if (grcs.length === 0 && typeof mockGRCData !== 'undefined') {
+        grcs = mockGRCData;
+    }
+
+    // 3. Récupération Recherches
+    try {
+        const response = await fetch('http://localhost:1337/api/recherches?pagination[pageSize]=10');
+        if (response.ok) {
+            const json = await response.json();
+            recherches = (json.data || []).map(flattenStrapiItem);
+        }
+    } catch (e) {
+        console.warn("Strapi déconnecté, repli sur mockRecherchesData pour le widget latéral :", e);
+    }
+    if (recherches.length === 0 && typeof mockRecherchesData !== 'undefined') {
+        recherches = mockRecherchesData;
+    }
+
+    // 4. Fusion avec ajout de la clé type
+    const allArticles = [
+        ...reglementations.map(item => ({ ...item, type: 'reglementation' })),
+        ...grcs.map(item => ({ ...item, type: 'grc' })),
+        ...recherches.map(item => ({ ...item, type: 'recherches' }))
+    ];
+
+    // 5. Tri par date décroissante
+    allArticles.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // 6. Prendre les 4 premiers
+    const topArticles = allArticles.slice(0, 4);
+
+    if (topArticles.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-6 font-mono text-[10px] text-gray-500 border border-dashed border-gray-300 dark:border-gray-800 rounded-sm">
+                [SYSTEM WARNING: AUCUNE RESSOURCE DISPONIBLE]
+            </div>
+        `;
+        return;
+    }
+
+    // 7. Générer le HTML
+    container.innerHTML = topArticles.map(article => {
+        let label = 'RESSOURCE';
+        let badgeColor = 'text-cyber-blue border-cyber-blue bg-cyber-blue/5';
+        if (article.type === 'reglementation') {
+            label = 'REG';
+            badgeColor = 'text-cyber-blue border-cyber-blue bg-cyber-blue/5 dark:bg-transparent';
+        } else if (article.type === 'grc') {
+            label = 'GRC';
+            badgeColor = 'text-cyber-purple border-cyber-purple bg-cyber-purple/5 dark:bg-transparent';
+        } else if (article.type === 'recherches') {
+            label = 'RCH';
+            badgeColor = 'text-cyber-pink border-cyber-pink bg-cyber-pink/5 dark:bg-transparent';
+        }
+
+        return `
+            <a href="article.html?type=${article.type}&id=${article.documentId || article.id}" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
+                <span class="text-xs font-mono font-bold text-gray-400 dark:text-gray-500 min-w-[40px] mt-0.5">${formatDate(article.date)}</span>
+                <div class="flex-1">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="text-[9px] font-mono border px-1 uppercase ${badgeColor}">${label}</span>
+                    </div>
+                    <h4 class="text-xs font-bold text-gray-700 dark:text-gray-200 group-hover:text-cyber-blue transition-colors leading-snug">
+                        ${article.title}
+                    </h4>
+                </div>
+            </a>
+        `;
+    }).join('');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     renderVeilleArticles();
     renderBriefingArticles();
+    renderRessourcesGuideArticles();
 });
 
 // --- Menu Mobile Toggle ---
@@ -929,6 +1045,7 @@ if (typeof module !== 'undefined' && module.exports) {
         saveSpecificPreferences,
         renderVeilleArticles,
         renderBriefingArticles,
+        renderRessourcesGuideArticles,
         flattenStrapiItem,
         updatePaginationDOM,
         delay

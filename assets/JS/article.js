@@ -12,7 +12,7 @@ async function loadArticle() {
     // Récupérer les paramètres d'URL (type et id)
     const urlParams = new URLSearchParams(window.location.search);
     const type = urlParams.get('type'); // 'veille' ou 'briefing'
-    const id = parseInt(urlParams.get('id'), 10);
+    const id = urlParams.get('id');
 
     // Ajuster le bouton de retour en fonction du type d'article
     if (backBtn) {
@@ -37,7 +37,7 @@ async function loadArticle() {
         }
     }
 
-    if (isNaN(id) || !type) {
+    if (!id || !type) {
         renderError(contentContainer, "PARAMÈTRES DE REQUÊTE INVALIDES OU ABSENTS.");
         if (loader) loader.classList.add('hidden');
         contentContainer.classList.remove('hidden');
@@ -88,17 +88,17 @@ async function loadArticle() {
     // Si non récupéré depuis Strapi, chercher dans les mocks locaux (main.js)
     if (!article) {
         if (type === 'veille' && typeof mockStrapiData !== 'undefined') {
-            article = mockStrapiData.find(item => item.id === id);
+            article = mockStrapiData.find(item => String(item.id) === String(id));
         } else if (type === 'reglementation' && typeof mockReglementationData !== 'undefined') {
-            article = mockReglementationData.find(item => item.id === id);
+            article = mockReglementationData.find(item => String(item.id) === String(id));
         } else if (type === 'ia' && typeof mockIAData !== 'undefined') {
-            article = mockIAData.find(item => item.id === id);
+            article = mockIAData.find(item => String(item.id) === String(id));
         } else if (type === 'grc' && typeof mockGRCData !== 'undefined') {
-            article = mockGRCData.find(item => item.id === id);
+            article = mockGRCData.find(item => String(item.id) === String(id));
         } else if (type === 'recherches' && typeof mockRecherchesData !== 'undefined') {
-            article = mockRecherchesData.find(item => item.id === id);
+            article = mockRecherchesData.find(item => String(item.id) === String(id));
         } else if (type === 'briefing' && typeof mockBriefingData !== 'undefined') {
-            article = mockBriefingData.find(item => item.id === id);
+            article = mockBriefingData.find(item => String(item.id) === String(id));
         }
     }
 
