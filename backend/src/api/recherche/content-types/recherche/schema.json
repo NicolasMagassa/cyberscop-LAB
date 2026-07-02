@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "recherches",
+  "info": {
+    "singularName": "recherche",
+    "pluralName": "recherches",
+    "displayName": "Recherches et Analyses",
+    "description": "Articles de recherches et analyses"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

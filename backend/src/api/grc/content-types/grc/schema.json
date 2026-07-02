@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "grcs",
+  "info": {
+    "singularName": "grc",
+    "pluralName": "grcs",
+    "displayName": "GRC",
+    "description": "Articles de gouvernance, risques et conformité"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

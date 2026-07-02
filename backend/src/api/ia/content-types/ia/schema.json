@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ias",
+  "info": {
+    "singularName": "ia",
+    "pluralName": "ias",
+    "displayName": "IA",
+    "description": "Articles sur la sécurité de l'IA"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

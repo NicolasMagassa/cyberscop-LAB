@@ -478,6 +478,93 @@ export interface ApiBriefingBriefing extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiGrcGrc extends Struct.CollectionTypeSchema {
+  collectionName: 'grcs';
+  info: {
+    description: 'Articles de gouvernance, risques et conformit\u00E9';
+    displayName: 'GRC';
+    pluralName: 'grcs';
+    singularName: 'grc';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date & Schema.Attribute.Required;
+    description: Schema.Attribute.Text & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::grc.grc'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiIaIa extends Struct.CollectionTypeSchema {
+  collectionName: 'ias';
+  info: {
+    description: "Articles sur la s\u00E9curit\u00E9 de l'IA";
+    displayName: 'IA';
+    pluralName: 'ias';
+    singularName: 'ia';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date & Schema.Attribute.Required;
+    description: Schema.Attribute.Text & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::ia.ia'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiRechercheRecherche extends Struct.CollectionTypeSchema {
+  collectionName: 'recherches';
+  info: {
+    description: 'Articles de recherches et analyses';
+    displayName: 'Recherches et Analyses';
+    pluralName: 'recherches';
+    singularName: 'recherche';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date & Schema.Attribute.Required;
+    description: Schema.Attribute.Text & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::recherche.recherche'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiReglementationReglementation
   extends Struct.CollectionTypeSchema {
   collectionName: 'reglementations';
@@ -1053,6 +1140,9 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::briefing.briefing': ApiBriefingBriefing;
+      'api::grc.grc': ApiGrcGrc;
+      'api::ia.ia': ApiIaIa;
+      'api::recherche.recherche': ApiRechercheRecherche;
       'api::reglementation.reglementation': ApiReglementationReglementation;
       'api::veille.veille': ApiVeilleVeille;
       'plugin::content-releases.release': PluginContentReleasesRelease;
