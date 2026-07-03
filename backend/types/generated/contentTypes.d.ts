@@ -465,6 +465,7 @@ export interface ApiBriefingBriefing extends Struct.CollectionTypeSchema {
       'api::briefing.briefing'
     > &
       Schema.Attribute.Private;
+    metaDescription: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     theme: Schema.Attribute.Enumeration<
       ['green', 'pink', 'blue', 'purple', 'red']
@@ -498,6 +499,7 @@ export interface ApiGrcGrc extends Struct.CollectionTypeSchema {
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::grc.grc'> &
       Schema.Attribute.Private;
+    metaDescription: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
@@ -526,6 +528,7 @@ export interface ApiIaIa extends Struct.CollectionTypeSchema {
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::ia.ia'> &
       Schema.Attribute.Private;
+    metaDescription: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
@@ -557,6 +560,7 @@ export interface ApiRechercheRecherche extends Struct.CollectionTypeSchema {
       'api::recherche.recherche'
     > &
       Schema.Attribute.Private;
+    metaDescription: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
@@ -589,6 +593,7 @@ export interface ApiReglementationReglementation
       'api::reglementation.reglementation'
     > &
       Schema.Attribute.Private;
+    metaDescription: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
@@ -620,6 +625,7 @@ export interface ApiVeilleVeille extends Struct.CollectionTypeSchema {
       'api::veille.veille'
     > &
       Schema.Attribute.Private;
+    metaDescription: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;

@@ -233,6 +233,64 @@ module.exports = createCoreService('api::<nom_api>.<nom_api>');
 2. Rends-toi sur l'administration Strapi : ta nouvelle collection apparaît dans la barre de gauche.
 3. Rends-toi dans **Settings** ⚙️ > **Roles** > **Public**, déroule ta nouvelle collection et coche les cases **`find`** et **`findOne`** pour rendre l'accès public, puis clique sur **Save**.
 4. Écris et publie tes articles !
+---
+
+## 🔍 Optimisation SEO : Ajout de la Meta Description
+
+Pour améliorer le référencement naturel (SEO) du site sur Google, une fonctionnalité de **Meta Description** a été développée de bout en bout. Elle permet d'ajouter un texte d'aperçu spécifique pour chaque article via Strapi et de l'injecter dynamiquement dans le code HTML.
+
+### 1. Structure dans le Backend (Schémas)
+Le champ `metaDescription` (de type texte court `string`) a été ajouté à la racine des attributs des 6 collections d'articles existantes dans `backend/src/api/` :
+* [briefing/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/briefing/content-types/briefing/schema.json)
+* [grc/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/grc/content-types/grc/schema.json)
+* [ia/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/ia/content-types/ia/schema.json)
+* [recherche/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/recherche/content-types/recherche/schema.json)
+* [reglementation/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/reglementation/content-types/reglementation/schema.json)
+* [veille/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/veille/content-types/veille/schema.json)
+
+Pour chaque schéma, la clé `metaDescription` a été déclarée sous l'objet `attributes` de la manière suivante :
+```json
+"attributes": {
+  ...
+  "metaDescription": {
+    "type": "string"
+  }
+}
+```
+
+Lorsque Strapi charge ces schémas, il ajoute automatiquement le champ de texte libre nommé **metaDescription** dans le formulaire d'édition de l'interface d'administration.
+
+### 2. Injection dans le Frontend (DOM Dynamique)
+Le site web étant composé de pages HTML statiques qui interrogent l'API, les balises de référencement doivent être modifiées à la volée. 
+
+Dans le fichier [article.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/JS/article.js), au début de la fonction `renderArticleContent`, le code gère l'écriture dynamique du titre et de la description :
+
+```javascript
+// Mise à jour dynamique du titre dans l'onglet (SEO)
+if (article.title) {
+    document.title = `${article.title} | CyberScope Lab`;
+}
+
+// Recherche ou création de la balise <meta name="description"> dans le <head>
+let metaDesc = document.querySelector('meta[name="description"]');
+if (!metaDesc) {
+    metaDesc = document.createElement('meta');
+    metaDesc.setAttribute('name', 'description');
+    document.head.appendChild(metaDesc);
+}
+
+// Définition de la valeur de la meta description :
+// 1. Soit la valeur personnalisée saisie dans Strapi (article.metaDescription)
+// 2. Soit un fallback automatique sur les 160 premiers caractères de la description générale
+const cleanDesc = article.metaDescription || (article.description ? article.description.substring(0, 160) : '');
+metaDesc.setAttribute('content', cleanDesc);
+```
+
+### 3. Comment reproduire ou étendre ce mécanisme ?
+Si vous créez un nouveau modèle d'article à l'avenir :
+1. Ajoutez le bloc `"metaDescription": { "type": "string" }` dans votre fichier de schéma JSON.
+2. Autorisez la route publique dans **Settings > Roles > Public** sur Strapi pour votre nouvelle entité (permissions `find` et `findOne`).
+3. La fonction globale `renderArticleContent` de [article.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/JS/article.js) gérera automatiquement l'injection de la meta description sans avoir à réécrire du code JavaScript frontend.
 
 ---
 

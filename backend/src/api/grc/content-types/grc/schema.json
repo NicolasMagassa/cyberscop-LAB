@@ -22,6 +22,9 @@
     "description": {
       "type": "text",
       "required": true
+    },
+    "metaDescription": {
+      "type": "string"
     }
   }
 }

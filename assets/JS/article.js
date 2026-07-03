@@ -147,6 +147,21 @@ function renderError(container, message) {
  * @returns {void}
  */
 function renderArticleContent(container, article, type) {
+    // Mise à jour dynamique du titre (SEO)
+    if (article.title) {
+        document.title = `${article.title} | CyberScope Lab`;
+    }
+
+    // Mise à jour ou création de la balise meta description (SEO)
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.setAttribute('name', 'description');
+        document.head.appendChild(metaDesc);
+    }
+    const cleanDesc = article.metaDescription || (article.description ? article.description.substring(0, 160) : '');
+    metaDesc.setAttribute('content', cleanDesc);
+
     const formattedDate = typeof formatLongDate === 'function' ? formatLongDate(article.date) : article.date;
     
     // Détermination de la couleur d'accentuation en fonction du thème (pour les briefings) ou par défaut rose (pour la veille)
