@@ -235,62 +235,92 @@ module.exports = createCoreService('api::<nom_api>.<nom_api>');
 4. Écris et publie tes articles !
 ---
 
-## 🔍 Optimisation SEO : Ajout de la Meta Description
+---
 
-Pour améliorer le référencement naturel (SEO) du site sur Google, une fonctionnalité de **Meta Description** a été développée de bout en bout. Elle permet d'ajouter un texte d'aperçu spécifique pour chaque article via Strapi et de l'injecter dynamiquement dans le code HTML.
+## 🔍 Optimisation SEO Complète et Référencement
 
-### 1. Structure dans le Backend (Schémas)
-Le champ `metaDescription` (de type texte court `string`) a été ajouté à la racine des attributs des 6 collections d'articles existantes dans `backend/src/api/` :
-* [briefing/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/briefing/content-types/briefing/schema.json)
-* [grc/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/grc/content-types/grc/schema.json)
-* [ia/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/ia/content-types/ia/schema.json)
-* [recherche/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/recherche/content-types/recherche/schema.json)
-* [reglementation/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/reglementation/content-types/reglementation/schema.json)
-* [veille/schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/veille/content-types/veille/schema.json)
+Pour propulser la visibilité du **CyberScope Lab** sur Google, structurer les partages sur les réseaux sociaux (LinkedIn, X/Twitter, Discord) et assurer la sécurité du parcours d'exploration, un package d'optimisation SEO complet a été déployé. 
 
-Pour chaque schéma, la clé `metaDescription` a été déclarée sous l'objet `attributes` de la manière suivante :
-```json
-"attributes": {
-  ...
-  "metaDescription": {
-    "type": "string"
-  }
-}
-```
+Voici le détail point par point des mécanismes implémentés, l'explication de leur intérêt, et l'impact de leur absence :
 
-Lorsque Strapi charge ces schémas, il ajoute automatiquement le champ de texte libre nommé **metaDescription** dans le formulaire d'édition de l'interface d'administration.
+---
 
-### 2. Injection dans le Frontend (DOM Dynamique)
-Le site web étant composé de pages HTML statiques qui interrogent l'API, les balises de référencement doivent être modifiées à la volée. 
+### 1. Le champ `metaDescription` (Backend Strapi)
+* **Ce qui a été fait** : Ajout d'un attribut `"metaDescription": { "type": "string" }` dans les fichiers [schema.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/veille/content-types/veille/schema.json) des 6 collections d'articles.
+* **Pourquoi** : Permet à l'administrateur de rédiger un résumé court (120-160 caractères) optimisé avec des mots-clés accrocheurs pour chaque publication.
+* **Conséquences si absent** :
+  * **Référencement** : Sans champ dédié, nous serions obligés de tronquer automatiquement le début du texte de l'article. Or, l'introduction d'un article technique n'est pas toujours conçue pour servir d'accroche publicitaire sur Google, ce qui diminue le taux de clic (CTR) des utilisateurs.
 
-Dans le fichier [article.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/JS/article.js), au début de la fonction `renderArticleContent`, le code gère l'écriture dynamique du titre et de la description :
+---
 
-```javascript
-// Mise à jour dynamique du titre dans l'onglet (SEO)
-if (article.title) {
-    document.title = `${article.title} | CyberScope Lab`;
-}
+### 2. La balise Meta Description dynamique (`<meta name="description">`)
+* **Ce qui a été fait** : Mise à jour du script [article.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/JS/article.js) pour injecter ou mettre à jour dynamiquement cette balise dans le `<head>` de la page lors du rendu HTML.
+* **Pourquoi** : Indique aux moteurs de recherche la description à afficher sous le titre de votre site dans la liste des résultats.
+* **Conséquences si absente** :
+  * **Affichage du site** : Google va générer un extrait aléatoire à partir du contenu visible de la page. Les robots peuvent par exemple capturer des textes hors contexte comme le menu de navigation ("Accueil / Contact / RGPD") ou des messages système, rendant l'aperçu du site brouillon et non professionnel.
 
-// Recherche ou création de la balise <meta name="description"> dans le <head>
-let metaDesc = document.querySelector('meta[name="description"]');
-if (!metaDesc) {
-    metaDesc = document.createElement('meta');
-    metaDesc.setAttribute('name', 'description');
-    document.head.appendChild(metaDesc);
-}
+---
 
-// Définition de la valeur de la meta description :
-// 1. Soit la valeur personnalisée saisie dans Strapi (article.metaDescription)
-// 2. Soit un fallback automatique sur les 160 premiers caractères de la description générale
-const cleanDesc = article.metaDescription || (article.description ? article.description.substring(0, 160) : '');
-metaDesc.setAttribute('content', cleanDesc);
-```
+### 3. Le fichier de directives d'exploration ([robots.txt](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/robots.txt))
+* **Ce qui a été fait** : Création du fichier [robots.txt](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/robots.txt) à la racine, autorisant l'indexation publique tout en interdisant expressément l'accès aux dossiers `/backend/`, `/scratch/`, et `/node_modules/`.
+* **Pourquoi** : Guide le comportement des moteurs de recherche pour préserver les ressources du serveur.
+* **Conséquences si absent** :
+  * **Sécurité** : Les robots et outils d'exploration automatisés (scanners de vulnérabilités, scrapers agressifs) vont analyser les fichiers du backend, les scripts de maintenance internes (`/scratch/`) ou les dépendances système, révélant la structure interne du serveur ou surchargeant la bande passante avec des requêtes inutiles.
+  * **Référencement** : Le "budget d'exploration" (le temps maximal alloué par Google pour visiter votre site) est gaspillé sur des dossiers techniques au détriment de l'indexation de vos nouveaux articles de veille.
 
-### 3. Comment reproduire ou étendre ce mécanisme ?
-Si vous créez un nouveau modèle d'article à l'avenir :
-1. Ajoutez le bloc `"metaDescription": { "type": "string" }` dans votre fichier de schéma JSON.
-2. Autorisez la route publique dans **Settings > Roles > Public** sur Strapi pour votre nouvelle entité (permissions `find` et `findOne`).
-3. La fonction globale `renderArticleContent` de [article.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/JS/article.js) gérera automatiquement l'injection de la meta description sans avoir à réécrire du code JavaScript frontend.
+---
+
+### 4. Le Plan du site XML ([sitemap.xml](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/sitemap.xml))
+* **Ce qui a été fait** : Création du fichier [sitemap.xml](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/sitemap.xml) listant toutes les pages statiques fixes (Accueil, Qui suis-je, Contact, CGU, Cookies...).
+* **Pourquoi** : Fournit une carte d'accès directe et structurée à l'ensemble du site pour les robots, accélérant leur travail d'exploration.
+* **Conséquences si absent** :
+  * **Référencement** : Les moteurs de recherche mettraient beaucoup plus de temps à découvrir l'existence de vos pages secondaires ou juridiques, retardant d'autant plus leur indexation dans les résultats de recherche.
+
+---
+
+### 5. Le script d'automatisation ([generate_sitemap.py](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/scratch/generate_sitemap.py))
+* **Ce qui a été fait** : Création d'un script Python dans le dossier de maintenance pour interroger Strapi et injecter automatiquement les liens de vos articles de blog dans le [sitemap.xml](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/sitemap.xml).
+* **Pourquoi** : Évite d'avoir à éditer manuellement le code XML à chaque publication d'article.
+* **Conséquences si absent** :
+  * **Référencement** : Les nouveaux articles dynamiques mis en ligne sur Strapi risquent de ne jamais être signalés à Google s'ils ne sont pas reliés dans le sitemap.
+  * **Bon fonctionnement** : L'édition manuelle du format XML est propice aux erreurs de frappe (balise mal fermée, caractères spéciaux non échappés). Une seule erreur de syntaxe invalide le fichier XML complet auprès de la Google Search Console, bloquant l'exploration.
+
+---
+
+### 6. La balise de lien Canonique (`<link rel="canonical">`)
+* **Ce qui a été fait** : Ajout d'une injection de balise canonique dans [article.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/JS/article.js) pointant vers l'URL officielle unique de l'article (ex: `https://.../article.html?type=veille&id=1`).
+* **Pourquoi** : Indique à Google quelle URL doit être considérée comme la source originale faisant autorité.
+* **Conséquences si absente** :
+  * **Référencement** : Si vous partagez des liens contenant des paramètres de suivi (comme des codes UTM, des tris ou des variables de session), Google considérera chaque variante d'URL comme une page distincte. Cela crée du "contenu dupliqué" (*duplicate content*), ce qui dilue l'autorité SEO de votre page et peut faire pénaliser ou déclasser votre site par les algorithmes de Google.
+
+---
+
+### 7. Les données structurées JSON-LD (Schema.org)
+* **Ce qui a été fait** : Injection dynamique dans le `<head>` d'un script JSON-LD de type `BlogPosting` contenant le titre, le résumé, la date de publication, l'auteur, l'éditeur et le logo du site.
+* **Pourquoi** : Fournit une explication sémantique standardisée aux moteurs de recherche pour comprendre précisément le type de document consulté.
+* **Conséquences si absentes** :
+  * **Référencement & Affichage** : Votre article sera traité comme une simple page de texte. Vous perdez la chance d'afficher des **Rich Snippets** (par exemple, voir la date de publication ou la catégorie s'afficher directement à côté du titre dans la liste des résultats de recherche Google), réduisant la visibilité graphique de votre lien.
+
+---
+
+### 8. Les balises Open Graph (OG) et Twitter Cards
+* **Ce qui a été fait** : Injection dynamique des métadonnées requises par les réseaux sociaux (`og:title`, `og:description`, `og:image`, `og:url`, `og:type` et équivalents Twitter) dans [article.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/JS/article.js).
+* **Pourquoi** : Formate l'affichage de vos liens lorsqu'ils sont partagés en ligne (ex: sur LinkedIn).
+* **Conséquences si absentes** :
+  * **Affichage sur les réseaux** : Lors du partage d'un article, le réseau social affichera au mieux un lien bleu textuel brut et impersonnel, au pire une image aléatoire (souvent déformée) combinée avec le premier texte qu'il trouve sur la page. Vos publications perdront toute attractivité visuelle pour vos contacts professionnels.
+
+---
+
+### 🛠️ Comment exécuter et maintenir ces configurations ?
+* Pour mettre à jour le plan du site suite à la publication d'un article, exécutez le script dans votre console de développement :
+  ```bash
+  python scratch/generate_sitemap.py
+  ```
+* Le script interrogera automatiquement Strapi (et utilisera un ensemble d'articles locaux mockés de secours en cas d'indisponibilité du serveur) pour actualiser le fichier [sitemap.xml](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/sitemap.xml) de manière sécurisée.
+
+---
+
+## 🧪 Validation & Tests d'Intégration (Playwright)
 
 ---
 
