@@ -148,19 +148,97 @@ function renderError(container, message) {
  */
 function renderArticleContent(container, article, type) {
     // Mise à jour dynamique du titre (SEO)
-    if (article.title) {
+    if (article.title && typeof document !== 'undefined') {
         document.title = `${article.title} | CyberScope Lab`;
     }
 
-    // Mise à jour ou création de la balise meta description (SEO)
-    let metaDesc = document.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-        metaDesc = document.createElement('meta');
-        metaDesc.setAttribute('name', 'description');
-        document.head.appendChild(metaDesc);
-    }
     const cleanDesc = article.metaDescription || (article.description ? article.description.substring(0, 160) : '');
-    metaDesc.setAttribute('content', cleanDesc);
+    const articleUrl = `https://nicolasmagassa.github.io/cyberscop-LAB/article.html?type=${type}&id=${article.id}`;
+
+    if (typeof document !== 'undefined') {
+        // Helper pour ajouter/mettre à jour une balise meta
+        const setMetaTag = (propertyOrName, content, isProperty = true) => {
+            const attribute = isProperty ? 'property' : 'name';
+            if (typeof document.querySelector === 'function') {
+                let meta = document.querySelector(`meta[${attribute}="${propertyOrName}"]`);
+                if (!meta && typeof document.createElement === 'function' && document.head) {
+                    meta = document.createElement('meta');
+                    meta.setAttribute(attribute, propertyOrName);
+                    document.head.appendChild(meta);
+                }
+                if (meta) {
+                    meta.setAttribute('content', content);
+                }
+            }
+        };
+
+        // Balises SEO standard
+        setMetaTag('description', cleanDesc, false);
+
+        // Balise Canonique
+        if (typeof document.querySelector === 'function') {
+            let linkCanonical = document.querySelector('link[rel="canonical"]');
+            if (!linkCanonical && typeof document.createElement === 'function' && document.head) {
+                linkCanonical = document.createElement('link');
+                linkCanonical.setAttribute('rel', 'canonical');
+                document.head.appendChild(linkCanonical);
+            }
+            if (linkCanonical) {
+                linkCanonical.setAttribute('href', articleUrl);
+            }
+        }
+
+        // Balises Open Graph (LinkedIn, Discord, etc.)
+        setMetaTag('og:title', article.title);
+        setMetaTag('og:description', cleanDesc);
+        setMetaTag('og:type', 'article');
+        setMetaTag('og:url', articleUrl);
+        setMetaTag('og:site_name', 'CyberScope Lab');
+        setMetaTag('og:image', 'https://nicolasmagassa.github.io/cyberscop-LAB/assets/img/logo-cyber.png');
+
+        // Balises Twitter Cards
+        setMetaTag('twitter:card', 'summary_large_image', false);
+        setMetaTag('twitter:title', article.title, false);
+        setMetaTag('twitter:description', cleanDesc, false);
+        setMetaTag('twitter:image', 'https://nicolasmagassa.github.io/cyberscop-LAB/assets/img/logo-cyber.png', false);
+
+        // Données structurées JSON-LD (Schema.org BlogPosting)
+        const schemaData = {
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": article.title,
+            "description": cleanDesc,
+            "datePublished": article.date,
+            "author": {
+                "@type": "Person",
+                "name": "Nicolas Magassa"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "CyberScope Lab",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://nicolasmagassa.github.io/cyberscop-LAB/assets/img/logo-cyber.png"
+                }
+            },
+            "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": articleUrl
+            }
+        };
+        if (typeof document.getElementById === 'function') {
+            let scriptSchema = document.getElementById('seo-schema-jsonld');
+            if (!scriptSchema && typeof document.createElement === 'function' && document.head) {
+                scriptSchema = document.createElement('script');
+                scriptSchema.id = 'seo-schema-jsonld';
+                scriptSchema.type = 'application/ld+json';
+                document.head.appendChild(scriptSchema);
+            }
+            if (scriptSchema) {
+                scriptSchema.text = JSON.stringify(schemaData);
+            }
+        }
+    }
 
     const formattedDate = typeof formatLongDate === 'function' ? formatLongDate(article.date) : article.date;
     

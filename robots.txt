@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /backend/
+Disallow: /node_modules/
+Disallow: /scratch/
+
+Sitemap: https://nicolasmagassa.github.io/cyberscop-LAB/sitemap.xml
