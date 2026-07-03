@@ -312,11 +312,21 @@ Voici le détail point par point des mécanismes implémentés, l'explication de
 ---
 
 ### 🛠️ Comment exécuter et maintenir ces configurations ?
-* Pour mettre à jour le plan du site suite à la publication d'un article, exécutez le script dans votre console de développement :
-  ```bash
-  python scratch/generate_sitemap.py
-  ```
-* Le script interrogera automatiquement Strapi (et utilisera un ensemble d'articles locaux mockés de secours en cas d'indisponibilité du serveur) pour actualiser le fichier [sitemap.xml](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/sitemap.xml) de manière sécurisée.
+
+> [!IMPORTANT]
+> **Pourquoi exécuter cette commande à chaque publication/suppression d'article ?**
+> Par défaut, Googlebot ne navigue pas en permanence sur votre site pour "deviner" si de nouvelles URLs dynamiques ont été créées via Strapi. Il s'appuie en priorité sur votre fichier `sitemap.xml`. 
+> Si vous publiez un article dans Strapi sans lancer cette commande :
+> 1. **L'article sera lisible sur le site** pour les humains, mais...
+> 2. **L'URL de l'article sera absente du sitemap**, empêchant Google de l'indexer rapidement. L'article peut alors mettre plusieurs semaines avant d'apparaître sur le moteur de recherche Google.
+>
+> Relancer le script après chaque publication permet de notifier Google de la présence immédiate de votre nouveau contenu.
+
+Pour mettre à jour le plan du site suite à la publication ou à la suppression d'un article, exécutez le script dans votre console de développement à la racine du projet :
+```bash
+python scratch/generate_sitemap.py
+```
+*Le script interrogera automatiquement Strapi (et utilisera un ensemble d'articles locaux mockés de secours en cas d'indisponibilité du serveur) pour actualiser le fichier [sitemap.xml](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/sitemap.xml) de manière propre et sécurisée.*
 
 ---
 
