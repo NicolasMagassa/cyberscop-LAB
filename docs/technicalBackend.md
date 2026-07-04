@@ -352,7 +352,7 @@ Pour compléter l'optimisation dynamique des articles, les pages statiques du si
 ---
 
 ### 3. Liaison du Favicon
-* **Ce qui a été fait** : Le lien vers le favicon a été inséré dans le `<head>` de l'ensemble des 15 fichiers HTML avec la ligne : `<link rel="icon" type="image/png" href="assets/images/favicon.png">`.
+* **Ce qui a été fait** : Le lien vers le favicon a été inséré dans le `<head>` de l'ensemble des 15 fichiers HTML avec la ligne : `<link rel="icon" type="image/webp" href="assets/images/favicon.webp">`.
 * **Pourquoi** : Permet aux navigateurs d'afficher l'icône graphique du blog dans les onglets, et à Google d'afficher cette icône à côté de l'URL du site dans les résultats de recherche (notamment sur mobile).
 * **Conséquences si absente** :
   * **Expérience utilisateur & Image de marque** : Sans déclaration de favicon, les navigateurs affichent une icône de page blanche générique. Sur Google Search Console, des erreurs d'exploration seront levées, et Google remplacera l'icône de recherche par une icône grise par défaut, décrédibilisant le professionnalisme du site.

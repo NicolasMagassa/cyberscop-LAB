@@ -194,13 +194,13 @@ function renderArticleContent(container, article, type) {
         setMetaTag('og:type', 'article');
         setMetaTag('og:url', articleUrl);
         setMetaTag('og:site_name', 'CyberScope Lab');
-        setMetaTag('og:image', 'https://nicolasmagassa.github.io/cyberscop-LAB/assets/img/logo-cyber.png');
+        setMetaTag('og:image', 'https://nicolasmagassa.github.io/cyberscop-LAB/assets/img/logo-cyber.webp');
 
         // Balises Twitter Cards
         setMetaTag('twitter:card', 'summary_large_image', false);
         setMetaTag('twitter:title', article.title, false);
         setMetaTag('twitter:description', cleanDesc, false);
-        setMetaTag('twitter:image', 'https://nicolasmagassa.github.io/cyberscop-LAB/assets/img/logo-cyber.png', false);
+        setMetaTag('twitter:image', 'https://nicolasmagassa.github.io/cyberscop-LAB/assets/img/logo-cyber.webp', false);
 
         // Données structurées JSON-LD (Schema.org BlogPosting)
         const schemaData = {
@@ -218,7 +218,7 @@ function renderArticleContent(container, article, type) {
                 "name": "CyberScope Lab",
                 "logo": {
                     "@type": "ImageObject",
-                    "url": "https://nicolasmagassa.github.io/cyberscop-LAB/assets/img/logo-cyber.png"
+                    "url": "https://nicolasmagassa.github.io/cyberscop-LAB/assets/img/logo-cyber.webp"
                 }
             },
             "mainEntityOfPage": {
