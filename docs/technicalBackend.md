@@ -359,11 +359,24 @@ Pour compléter l'optimisation dynamique des articles, les pages statiques du si
 
 ---
 
-## 🧪 Validation & Tests d'Intégration (Playwright)
+## 🖼️ Compression et conversion des images au format WebP
+
+Pour optimiser les performances de chargement et respecter les exigences de performance de Google, les ressources graphiques du site ont fait l'objet d'une refonte technique complète.
+
+### 1. Conversion et optimisation des ressources (WebP)
+* **Ce qui a été fait** : 
+  * **[logo-cyber.webp](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/img/logo-cyber.webp)** : Conversion du format d'origine PNG (1024x1024 px, 679.67 Ko) en WebP compressé (1024x1024 px, **94.99 Ko**, soit **-86.02%**).
+  * **[favicon.webp](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/images/favicon.webp)** : Redimensionnement depuis la taille brute géante de 1024x1024 px (445.6 Ko) vers une taille optimale de **192x192 px** au format WebP (soit **4.84 Ko**, une réduction spectaculaire de **-98.91%**).
+  * **Mise à jour des références** : Remplacement des chemins d'accès `.png` par `.webp` dans l'ensemble des 15 fichiers HTML statiques et dans la configuration dynamique de [article.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/assets/JS/article.js).
+* **Pourquoi** : Le WebP est un format moderne de compression avec et sans perte pour les images Web. Il conserve une transparence parfaite (canal alpha) tout en étant extrêmement plus léger que le PNG traditionnel.
+* **Conséquences si absentes / Dangers** :
+  * **Référencement (SEO)** : Google Lighthouse pénalise les sites avec un score de performance médiocre en mesurant le *Largest Contentful Paint* (LCP). Ne pas optimiser les images fait chuter ce score de performance, rétrogradant le site dans les résultats de recherche.
+  * **Expérience utilisateur (UX) & Rétention** : Le chargement inutile de plus d'1 Mo d'images pour un simple logo et favicon crée une latence d'affichage (page blanche ou logo qui se dessine lentement) particulièrement visible sur mobile ou en connexion instable (3G/4G), ce qui fait augmenter le taux de rebond des visiteurs.
 
 ---
 
 ## 🧪 Validation & Tests d'Intégration (Playwright)
+
 
 Pour garantir la résilience et la bonne communication entre le frontend et le backend Strapi, une suite de tests E2E avec **Playwright** a été configuré à la racine du projet.
 
