@@ -330,6 +330,35 @@ python scratch/generate_sitemap.py
 
 ---
 
+## 🖼️ Optimisation SEO des Pages Statiques et Favicon
+
+Pour compléter l'optimisation dynamique des articles, les pages statiques du site (Accueil, À propos, Contact, etc.) ont été équipées de balises méta de base et d'une gestion propre du favicon.
+
+### 1. Métadonnées SEO complètes (Description, Open Graph et Twitter Cards)
+* **Ce qui a été fait** : Les balises de Description, Open Graph (Facebook/LinkedIn) et Twitter Cards ont été ajoutées et adaptées pour chacune de vos pages statiques (comme [index.html](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/index.html), [qui_suis_je.html](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/qui_suis_je.html), etc.).
+* **Pourquoi** : Fournit une accroche claire sur les résultats de recherche (Google snippet) et formate proprement le visuel, le titre et la description lors d'un partage de lien sur les réseaux sociaux (ex. : LinkedIn, Slack, Discord, X).
+* **Conséquences si absentes** :
+  * **Référencement & Clics (CTR)** : Sans description explicite, Google sélectionne un extrait de texte arbitraire sur la page (souvent les premiers mots du menu comme "Accueil / Contact / CGU"). Sur les réseaux sociaux, le lien apparaîtra sous forme de texte brut sans image d'illustration, réduisant drastiquement le taux de clic et l'attractivité professionnelle du blog.
+
+---
+
+### 2. Protection des pages privées (Sécurité SEO)
+* **Ce qui a été fait** : La balise `<meta name="robots" content="noindex, nofollow">` a été configurée sur [gerer_compte.html](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/gerer_compte.html) et [404.html](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/404.html) pour éviter leur indexation inutile par les moteurs de recherche.
+* **Pourquoi** : Indique formellement aux moteurs de recherche qu'ils ne doivent pas référencer publiquement ces pages dans leurs résultats.
+* **Conséquences si absente** :
+  * **Sécurité & Posture** : La page d'administration privée [gerer_compte.html](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/gerer_compte.html) pourrait être indexée et visible par n'importe quel internaute effectuant des recherches sur Google. Cela expose la page à des tentatives d'accès malveillantes (brute-force) et nuit à la sécurité générale. 
+  * **Qualité du référencement** : L'indexation de pages d'erreur 404 pollue l'index de votre site auprès de Google et gaspille votre "budget d'exploration" (*crawl budget*) sur des URLs invalides au lieu de vos vrais articles.
+
+---
+
+### 3. Liaison du Favicon
+* **Ce qui a été fait** : Le lien vers le favicon a été inséré dans le `<head>` de l'ensemble des 15 fichiers HTML avec la ligne : `<link rel="icon" type="image/png" href="assets/images/favicon.png">`.
+* **Pourquoi** : Permet aux navigateurs d'afficher l'icône graphique du blog dans les onglets, et à Google d'afficher cette icône à côté de l'URL du site dans les résultats de recherche (notamment sur mobile).
+* **Conséquences si absente** :
+  * **Expérience utilisateur & Image de marque** : Sans déclaration de favicon, les navigateurs affichent une icône de page blanche générique. Sur Google Search Console, des erreurs d'exploration seront levées, et Google remplacera l'icône de recherche par une icône grise par défaut, décrédibilisant le professionnalisme du site.
+
+---
+
 ## 🧪 Validation & Tests d'Intégration (Playwright)
 
 ---
