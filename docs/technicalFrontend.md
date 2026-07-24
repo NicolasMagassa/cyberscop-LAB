@@ -877,6 +877,91 @@ git push origin dev
 7. **Danger (si non réalisé)**  
    - > **Alerte Performance & Charge :** Sans pagination côté serveur, le volume de données transféré par le réseau croît de manière linéaire avec le nombre d'articles rédigés, ce qui ralentit considérablement le temps de chargement pour les utilisateurs mobiles et surcharge la base de données.
 
+---
+
+## Étape 19 : Intégration de l'Authentification Réelle avec le Backend Strapi
+
+1. **Objectif de l'étape**  
+   Remplacer l'authentification simulée par un véritable appel API HTTP `fetch()` vers l'instance Strapi locale (endpoint `/api/auth/local`), stocker de manière sécurisée les jetons JWT et les informations de session dans le `localStorage` sous la clé `cyberScopeUser`, et gérer robustement les erreurs d'authentification et les pannes réseau.
+
+2. **Prérequis**  
+   - La fonction `handleLogin` mise à jour dans [main.js](../assets/JS/main.js).
+   - Les tests unitaires correspondants écrits dans [tests/test.js](../tests/test.js).
+   - L'instance locale Strapi démarrée et accessible sur `http://localhost:1337`.
+
+3. **Commande**  
+   Pour exécuter les tests unitaires et de comportement de l'authentification :
+   ```bash
+   npm test
+   ```
+
+4. **Explication courte**  
+   La soumission du formulaire `#login-form` extrait l'identifiant et le mot de passe, puis exécute une requête `POST` asynchrone avec un corps JSON `identifier` et `password` vers `http://localhost:1337/api/auth/local`. En cas de succès (statut 200/OK), le jeton JWT et le nom d'utilisateur renvoyés par Strapi sont persistés dans `localStorage` sous la clé `cyberScopeUser`. En cas d'erreur de connexion ou de mot de passe invalide, le message d'erreur spécifique renvoyé par Strapi (`data.error.message`) ou un message générique de panne réseau est extrait et affiché en rouge dans le conteneur `#auth-message` de la modale.
+
+5. **Vérification du résultat**  
+   Tous les tests associés dans la section `handleLogin` doivent passer avec succès :
+   ```text
+   handleLogin
+     √ devrait empêcher le comportement par défaut de l'événement
+     √ devrait afficher une erreur si l'identifiant ou le mot de passe est vide
+     √ devrait se connecter avec succès via l'API Strapi, enregistrer dans localStorage et fermer la modale après 1500ms
+     √ devrait afficher l'erreur renvoyée par Strapi si l'authentification échoue (statut non-ok)
+     √ devrait afficher un message d'erreur générique si l'appel réseau échoue (rejet de la promesse fetch)
+   ```
+
+6. **Notes et conseils supplémentaires**  
+   - > **Sécurité :** L'identifiant demandé par Strapi peut être soit le pseudonyme de l'utilisateur, soit son adresse e-mail. Le corps de la requête utilise obligatoirement la clé `identifier`.
+   - > **Expérience Utilisateur (UX) :** Un délai visuel de `1500ms` est maintenu après le succès de la connexion pour permettre à l'utilisateur de lire le message vert `"CONNEXION RÉUSSIE. ACCÈS ACCORDÉ."` avant que la modale ne disparaisse.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Sécurité & Intégration :** Sans cette étape, le site reste dans un état de maquette statique non sécurisée, permettant à n'importe quel mot de passe d'accéder à l'espace membre simulé sans aucune vérification d'identité côté serveur.
+
+---
+
+## Étape 20 : Inscription et Désinscription (Suppression de compte) avec le Backend Strapi
+
+1. **Objectif de l'étape**  
+   Implémenter la logique d'inscription des utilisateurs (`handleRegister`) en envoyant une requête `POST` vers l'endpoint Strapi `/api/auth/local/register` et la désinscription sécurisée (`handleUnregister`) en envoyant une requête `DELETE` vers `/api/users/me` avec le jeton d'autorisation JWT de l'utilisateur connecté dans les en-têtes.
+
+2. **Prérequis**  
+   - Les fonctions `handleRegister` et `handleUnregister` implémentées et exportées dans [main.js](../assets/JS/main.js).
+   - Les écouteurs d'événements appropriés configurés (par exemple sur `#btn-delete-account`).
+   - Les tests unitaires correspondants écrits dans [tests/test.js](../tests/test.js).
+   - L'instance locale Strapi en cours d'exécution.
+
+3. **Commande**  
+   Pour exécuter les tests unitaires et comportementaux avec Jest :
+   ```bash
+   npm test
+   ```
+
+4. **Explication courte**  
+   - **Inscription (`handleRegister`)** : Extrait l'identifiant (`username`), l'adresse email (`email`) et le mot de passe (`password`). Elle effectue une requête `POST` vers l'API d'enregistrement locale de Strapi. En cas d'erreur (ex: email déjà utilisé), le message d'erreur est affiché dans `#auth-message`. En cas de succès, elle stocke le jeton JWT et l'utilisateur dans `localStorage` sous la clé `cyberScopeUser`, met à jour l'IHM et ferme la modale.
+   - **Désinscription (`handleUnregister`)** : Récupère le jeton JWT depuis le `localStorage` et envoie une requête `DELETE` avec en-tête `Authorization: Bearer <JWT>` pour détruire définitivement le compte de l'utilisateur connecté sur Strapi. Si la suppression réussit, la session locale est purgée via `handleLogout()`.
+
+5. **Vérification du résultat**  
+   Les tests unitaires spécifiques à l'inscription et désinscription doivent passer avec succès :
+   ```text
+   handleRegister
+     √ devrait empêcher le comportement par défaut de l'événement
+     √ devrait afficher une erreur si l'identifiant, l'email ou le mot de passe est vide
+     √ devrait s'inscrire avec succès via l'API Strapi, enregistrer dans localStorage et fermer la modale après 1500ms
+     √ devrait afficher l'erreur renvoyée par Strapi si l'inscription échoue (statut non-ok)
+   handleUnregister
+     √ devrait envoyer une requête DELETE vers Strapi avec le token JWT valide dans les headers
+     √ devrait nettoyer le localStorage et déconnecter l'utilisateur après une désinscription réussie
+     √ ne devrait pas déconnecter l'utilisateur si l'API renvoie une erreur
+   ```
+
+6. **Notes et conseils supplémentaires**  
+   - > **Sécurité API :** La suppression de compte requiert impérativement un token JWT valide passé en Bearer Token. Le serveur rejette automatiquement toute requête non authentifiée.
+   - > **Nettoyage local :** Après une désinscription réussie, appeler `handleLogout()` garantit la suppression immédiate des informations de session du `localStorage` et force l'IHM à se réinitialiser à l'état déconnecté.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte RGPD & Droits Utilisateurs :** Le droit à l'effacement (droit à l'oubli) est une exigence stricte du RGPD. Sans fonctionnalité de suppression de compte, l'application est en infraction directe avec la législation sur la protection des données personnelles.
+
+
+
 
 
 

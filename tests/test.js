@@ -94,7 +94,9 @@ global.mockBriefingData = [
     { id: 1, date: "2025-10-12", title: "Analyse du Ransomware 'NeonLock'", description: "Une nouvelle variante utilisant le chiffrement quantique cible les infrastructures critiques.", category: "MALWARE", views: 1542, theme: "green", icon: "lock" },
     { id: 2, date: "2025-10-10", title: "L'IA Offensive : Algorithmes d'attaque", description: "Les outils de pentesting automatisés par l'IA changent la donne.", category: "IA & SÉCURITÉ", views: 1205, theme: "pink", icon: "brain-circuit" },
     { id: 3, date: "2025-10-05", title: "La mort du VPN ? Architecture Zero Trust", description: "\"Ne jamais faire confiance, toujours vérifier\".", category: "ZERO TRUST", views: 980, theme: "blue", icon: "shield-alert" },
-    { id: 4, date: "2025-10-01", title: "Smart Home, Smart Hack ?", description: "Votre frigo mine-t-il du crypto ?", category: "IOT", views: 850, theme: "purple", icon: "wifi" }
+    { id: 4, date: "2025-10-01", title: "Smart Home, Smart Hack ?", description: "Votre frigo mine-t-il du crypto ?", category: "IOT", views: 850, theme: "purple", icon: "wifi" },
+    { id: 5, date: "2025-09-28", title: "Sécurisation Active Directory : Les bases", description: "Protégez vos contrôleurs de domaine contre les attaques courantes (Golden Ticket, Kerberoasting).", category: "ANNUAIRE", views: 720, theme: "red", icon: "shield" },
+    { id: 6, date: "2025-09-25", title: "Détection d'Exfiltration DNS", description: "Comment identifier les tunnels DNS malveillants via l'analyse comportementale.", category: "RÉSEAU", views: 610, theme: "green", icon: "activity" }
 ];
 global.mockReglementationData = [
     { id: 1, date: "2025-10-15", title: "Directive NIS 2 : Nouvelles exigences cyber", description: "La directive NIS 2 renforce les exigences de sécurité pour les secteurs essentiels et importants au sein de l'UE. Elle introduit des règles strictes sur la gestion des risques et les notifications d'incidents." },
@@ -270,6 +272,7 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         let mockEvent;
         let mockUsernameInput;
         let mockPasswordInput;
+        let originalFetch;
 
         beforeEach(() => {
             jest.useFakeTimers();
@@ -277,6 +280,7 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             mockUsernameInput = { value: '' };
             mockPasswordInput = { value: '' };
             mockElement.textContent = ''; // Réinitialise l'élément global mockElement pour authMessage
+            originalFetch = global.fetch;
 
             global.document.getElementById.mockImplementation((id) => {
                 if (id === 'username-input') return mockUsernameInput;
@@ -288,11 +292,16 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         afterEach(() => {
             jest.useRealTimers();
             global.document.getElementById.mockImplementation(() => mockElement);
+            global.fetch = originalFetch;
         });
 
         test('devrait empêcher le comportement par défaut de l\'événement', async () => {
             mockUsernameInput.value = '';
             mockPasswordInput.value = '';
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: async () => ({ jwt: 'token', user: { username: 'user' } })
+            });
             const loginPromise = app.handleLogin(mockEvent);
             expect(mockEvent.preventDefault).toHaveBeenCalled();
             await loginPromise;
@@ -309,29 +318,51 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             await loginPromise;
         });
 
-        test('devrait connecter l\'utilisateur après le délai de 500ms et fermer la modale après 1500ms supplémentaires', async () => {
+        test('devrait se connecter avec succès via l\'API Strapi, enregistrer dans localStorage et fermer la modale après 1500ms', async () => {
             mockUsernameInput.value = 'nicolas';
             mockPasswordInput.value = 'monmotdepasse';
 
+            const fakeUser = { username: 'nicolas_strapi', email: 'nicolas@example.com' };
+            const mockResponseData = {
+                jwt: 'strapi-jwt-token-xyz',
+                user: fakeUser
+            };
+
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: async () => mockResponseData
+            });
+
             const loginPromise = app.handleLogin(mockEvent);
 
-            // Avant l'écoulement du timer de 500ms, localStorage ne doit pas avoir été modifié
-            expect(global.localStorage.setItem).not.toHaveBeenCalled();
-
-            // Avancer de 500ms pour déclencher la connexion
-            jest.advanceTimersByTime(500);
+            // Attendre la résolution des premières promesses (le fetch asynchrone)
+            await Promise.resolve();
+            await Promise.resolve();
             await Promise.resolve();
 
-            // Vérifier localStorage
+            // Vérifier que fetch a bien été appelé avec les bons paramètres
+            expect(global.fetch).toHaveBeenCalledWith('http://localhost:1337/api/auth/local', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    identifier: 'nicolas',
+                    password: 'monmotdepasse'
+                })
+            });
+
+            // Vérifier que les données sont enregistrées dans le localStorage
             expect(global.localStorage.setItem).toHaveBeenCalledWith(
                 'cyberScopeUser',
-                JSON.stringify({ username: 'NICOLAS', token: 'fake-jwt-token-123456' })
+                JSON.stringify({ username: 'nicolas_strapi', token: 'strapi-jwt-token-xyz' })
             );
+
             // Vérifier le message de réussite
             expect(mockElement.textContent).toBe('CONNEXION RÉUSSIE. ACCÈS ACCORDÉ.');
             expect(mockClassList.remove).toHaveBeenCalledWith('hidden');
 
-            // Avancer de 1500ms supplémentaires
+            // Avancer de 1500ms pour déclencher la fermeture de la modale et la redirection/UI
             jest.advanceTimersByTime(1500);
             await Promise.resolve();
 
@@ -340,7 +371,257 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
 
             await loginPromise;
         });
+
+        test('devrait afficher l\'erreur renvoyée par Strapi si l\'authentification échoue (statut non-ok)', async () => {
+            mockUsernameInput.value = 'nicolas';
+            mockPasswordInput.value = 'mauvaismotdepasse';
+
+            const mockErrorResponse = {
+                error: {
+                    message: 'Invalid identifier or password'
+                }
+            };
+
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: false,
+                json: async () => mockErrorResponse
+            });
+
+            const loginPromise = app.handleLogin(mockEvent);
+
+            await Promise.resolve();
+            await Promise.resolve();
+            await Promise.resolve();
+
+            // Vérifier l'affichage du message d'erreur
+            expect(mockElement.textContent).toBe('ERREUR: Invalid identifier or password');
+            expect(mockClassList.remove).toHaveBeenCalledWith('hidden');
+            expect(global.localStorage.setItem).not.toHaveBeenCalled();
+
+            await loginPromise;
+        });
+
+        test('devrait afficher un message d\'erreur générique si l\'appel réseau échoue (rejet de la promesse fetch)', async () => {
+            mockUsernameInput.value = 'nicolas';
+            mockPasswordInput.value = 'monmotdepasse';
+
+            global.fetch = jest.fn().mockRejectedValue(new Error('Network offline'));
+
+            const loginPromise = app.handleLogin(mockEvent);
+
+            await Promise.resolve();
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(mockElement.textContent).toBe('ERREUR: Impossible de se connecter au serveur d\'authentification.');
+            expect(mockClassList.remove).toHaveBeenCalledWith('hidden');
+            expect(global.localStorage.setItem).not.toHaveBeenCalled();
+            await loginPromise;
+        });
     });
+
+    // =========================================================================
+    // Cible : Fonction handleRegister() dans main.js
+    // Rôle  : Gère la soumission du formulaire d'inscription via Strapi
+    // =========================================================================
+    describe('handleRegister', () => {
+        let mockEvent;
+        let mockUsernameInput;
+        let mockEmailInput;
+        let mockPasswordInput;
+        let originalFetch;
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+            mockEvent = { preventDefault: jest.fn() };
+            mockUsernameInput = { value: '' };
+            mockEmailInput = { value: '' };
+            mockPasswordInput = { value: '' };
+            mockElement.textContent = ''; // Réinitialise l'élément global mockElement pour authMessage
+            originalFetch = global.fetch;
+
+            global.document.getElementById.mockImplementation((id) => {
+                if (id === 'username-input') return mockUsernameInput;
+                if (id === 'signup-email-input') return mockEmailInput;
+                if (id === 'password-input') return mockPasswordInput;
+                return mockElement;
+            });
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+            global.document.getElementById.mockImplementation(() => mockElement);
+            global.fetch = originalFetch;
+        });
+
+        test('devrait empêcher le comportement par défaut de l\'événement', async () => {
+            mockUsernameInput.value = '';
+            mockEmailInput.value = '';
+            mockPasswordInput.value = '';
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: async () => ({ jwt: 'token', user: { username: 'user' } })
+            });
+            const registerPromise = app.handleRegister(mockEvent);
+            expect(mockEvent.preventDefault).toHaveBeenCalled();
+            await registerPromise;
+        });
+
+        test('devrait afficher une erreur si l\'identifiant, l\'email ou le mot de passe est vide', async () => {
+            mockUsernameInput.value = 'nicolas';
+            mockEmailInput.value = '   ';
+            mockPasswordInput.value = '';
+            
+            const registerPromise = app.handleRegister(mockEvent);
+
+            expect(mockElement.textContent).toBe('ERREUR: Identifiant, email et mot de passe requis.');
+            expect(mockClassList.remove).toHaveBeenCalledWith('hidden');
+            await registerPromise;
+        });
+
+        test('devrait s\'inscrire avec succès via l\'API Strapi, enregistrer dans localStorage et fermer la modale après 1500ms', async () => {
+            mockUsernameInput.value = 'nicolas';
+            mockEmailInput.value = 'nicolas@example.com';
+            mockPasswordInput.value = 'monmotdepasse';
+
+            const fakeUser = { username: 'nicolas_registered', email: 'nicolas@example.com' };
+            const mockResponseData = {
+                jwt: 'strapi-register-jwt-xyz',
+                user: fakeUser
+            };
+
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: async () => mockResponseData
+            });
+
+            const registerPromise = app.handleRegister(mockEvent);
+
+            await Promise.resolve();
+            await Promise.resolve();
+            await Promise.resolve();
+
+            // Vérifier que fetch a bien été appelé avec les bons paramètres
+            expect(global.fetch).toHaveBeenCalledWith('http://localhost:1337/api/auth/local/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: 'nicolas',
+                    email: 'nicolas@example.com',
+                    password: 'monmotdepasse'
+                })
+            });
+
+            // Vérifier que les données sont enregistrées dans le localStorage
+            expect(global.localStorage.setItem).toHaveBeenCalledWith(
+                'cyberScopeUser',
+                JSON.stringify({ username: 'nicolas_registered', token: 'strapi-register-jwt-xyz' })
+            );
+
+            // Vérifier le message de réussite
+            expect(mockElement.textContent).toBe('CONNEXION RÉUSSIE. ACCÈS ACCORDÉ.');
+            expect(mockClassList.remove).toHaveBeenCalledWith('hidden');
+
+            // Avancer de 1500ms
+            jest.advanceTimersByTime(1500);
+            await Promise.resolve();
+
+            expect(mockClassList.add).toHaveBeenCalledWith('hidden');
+
+            await registerPromise;
+        });
+
+        test('devrait afficher l\'erreur renvoyée par Strapi si l\'inscription échoue (statut non-ok)', async () => {
+            mockUsernameInput.value = 'nicolas';
+            mockEmailInput.value = 'deja_pris@example.com';
+            mockPasswordInput.value = 'monmotdepasse';
+
+            const mockErrorResponse = {
+                error: {
+                    message: 'Email or Username are already taken'
+                }
+            };
+
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: false,
+                json: async () => mockErrorResponse
+            });
+
+            const registerPromise = app.handleRegister(mockEvent);
+
+            await Promise.resolve();
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(mockElement.textContent).toBe('ERREUR: Email or Username are already taken');
+            expect(mockClassList.remove).toHaveBeenCalledWith('hidden');
+            expect(global.localStorage.setItem).not.toHaveBeenCalled();
+
+            await registerPromise;
+        });
+    });
+
+    // =========================================================================
+    // Cible : Fonction handleUnregister() dans main.js
+    // Rôle  : Gère la désinscription de l'utilisateur (suppression définitive du compte)
+    // =========================================================================
+    describe('handleUnregister', () => {
+        let originalFetch;
+
+        beforeEach(() => {
+            originalFetch = global.fetch;
+            global.localStorage.getItem.mockReturnValue(JSON.stringify({
+                username: 'nicolas_strapi',
+                token: 'mock-jwt-token-999'
+            }));
+        });
+
+        afterEach(() => {
+            global.fetch = originalFetch;
+            global.localStorage.getItem.mockReset();
+            global.localStorage.removeItem.mockReset();
+        });
+
+        test('devrait envoyer une requête DELETE vers Strapi avec le token JWT valide dans les headers', async () => {
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: true
+            });
+
+            await app.handleUnregister();
+
+            expect(global.fetch).toHaveBeenCalledWith('http://localhost:1337/api/users/me', {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer mock-jwt-token-999'
+                }
+            });
+        });
+
+        test('devrait nettoyer le localStorage et déconnecter l\'utilisateur après une désinscription réussie', async () => {
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: true
+            });
+
+            await app.handleUnregister();
+
+            // Devrait appeler removeItem pour nettoyer la session
+            expect(global.localStorage.removeItem).toHaveBeenCalledWith('cyberScopeUser');
+        });
+
+        test('ne devrait pas déconnecter l\'utilisateur si l\'API renvoie une erreur', async () => {
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: false
+            });
+
+            await app.handleUnregister();
+
+            // Ne devrait pas nettoyer la session en cas d'échec
+            expect(global.localStorage.removeItem).not.toHaveBeenCalled();
+        });
+    });
+
 
     // =========================================================================
     // Cible : Fonction handleLogout() dans main.js
@@ -560,11 +841,17 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
 
         test('devrait trier et injecter le HTML des articles de veille dans le conteneur', async () => {
-            await app.renderVeilleArticles();
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn().mockRejectedValue(new Error("Network simulation error"));
+            try {
+                await app.renderVeilleArticles();
 
-            expect(global.document.getElementById).toHaveBeenCalledWith('veille-container');
-            expect(mockContainer.innerHTML).toContain('14/10');
-            expect(mockContainer.innerHTML).toContain('Deepfakes vocaux');
+                expect(global.document.getElementById).toHaveBeenCalledWith('veille-container');
+                expect(mockContainer.innerHTML).toContain('15/10');
+                expect(mockContainer.innerHTML).toContain('Sécurisation des LLM');
+            } finally {
+                global.fetch = originalFetch;
+            }
         });
     });
 
@@ -588,11 +875,17 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
 
         test('devrait trier et injecter le HTML des articles briefing dans le conteneur', async () => {
-            await app.renderBriefingArticles();
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn().mockRejectedValue(new Error("Network simulation error"));
+            try {
+                await app.renderBriefingArticles();
 
-            expect(global.document.getElementById).toHaveBeenCalledWith('briefing-grid');
-            expect(mockGrid.innerHTML).toContain('NeonLock');
-            expect(mockGrid.innerHTML).toContain('L\'IA Offensive');
+                 expect(global.document.getElementById).toHaveBeenCalledWith('briefing-grid');
+                 expect(mockGrid.innerHTML).toContain('Deepfakes vocaux');
+                 expect(mockGrid.innerHTML).toContain('Jailbreak GPT-5');
+            } finally {
+                global.fetch = originalFetch;
+            }
         });
     });
 
@@ -742,21 +1035,27 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         // Rôle  : Gérer l'affichage du spinner de chargement, la requête API Strapi
         //          et l'injection finale de la liste des articles
         test('renderVeillePageArticles devrait afficher le loader puis injecter les articles', async () => {
-            const mockLoader = { classList: { add: jest.fn() } };
-            const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
-            
-            global.document.getElementById.mockImplementation((id) => {
-                if (id === 'veille-loader') return mockLoader;
-                if (id === 'veille-articles-list') return mockListContainer;
-                return mockElement;
-            });
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn().mockRejectedValue(new Error("Network simulation error"));
+            try {
+                const mockLoader = { classList: { add: jest.fn() } };
+                const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
+                
+                global.document.getElementById.mockImplementation((id) => {
+                    if (id === 'veille-loader') return mockLoader;
+                    if (id === 'veille-articles-list') return mockListContainer;
+                    return mockElement;
+                });
 
-            // Tenter de faire le rendu (utilisera les mocks)
-            await veilleApp.renderVeillePageArticles();
+                // Tenter de faire le rendu (utilisera les mocks)
+                await veilleApp.renderVeillePageArticles();
 
-            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
-            expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(mockListContainer.innerHTML).toContain('Deepfakes vocaux');
+                 expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+                 expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
+                 expect(mockListContainer.innerHTML).toContain('Deepfakes vocaux');
+            } finally {
+                global.fetch = originalFetch;
+            }
         });
     });
 
@@ -1050,21 +1349,27 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         // Rôle  : Gérer l'affichage du spinner de chargement, la requête API Strapi
         //          et l'injection finale de la liste des articles avec fallback
         test('renderIAPageArticles devrait afficher le loader puis injecter les articles', async () => {
-            const mockLoader = { classList: { add: jest.fn() } };
-            const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
-            
-            global.document.getElementById.mockImplementation((id) => {
-                if (id === 'ia-loader') return mockLoader;
-                if (id === 'ia-articles-list') return mockListContainer;
-                return mockElement;
-            });
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn().mockRejectedValue(new Error("Network simulation error"));
+            try {
+                const mockLoader = { classList: { add: jest.fn() } };
+                const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
+                
+                global.document.getElementById.mockImplementation((id) => {
+                    if (id === 'ia-loader') return mockLoader;
+                    if (id === 'ia-articles-list') return mockListContainer;
+                    return mockElement;
+                });
 
-            // Tenter le rendu
-            await iaApp.renderIAPageArticles();
+                // Tenter le rendu
+                await iaApp.renderIAPageArticles();
 
-            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
-            expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(mockListContainer.innerHTML).toContain('Sécurisation des LLM');
+                expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+                expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
+                expect(mockListContainer.innerHTML).toContain('Sécurisation des LLM');
+            } finally {
+                global.fetch = originalFetch;
+            }
         });
     });
 
@@ -1089,21 +1394,27 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         // Rôle  : Gérer l'affichage du spinner de chargement, la requête API Strapi
         //          et l'injection finale de la liste des articles avec fallback
         test('renderGRCPageArticles devrait afficher le loader puis injecter les articles', async () => {
-            const mockLoader = { classList: { add: jest.fn() } };
-            const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
-            
-            global.document.getElementById.mockImplementation((id) => {
-                if (id === 'grc-loader') return mockLoader;
-                if (id === 'grc-articles-list') return mockListContainer;
-                return mockElement;
-            });
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn().mockRejectedValue(new Error("Network simulation error"));
+            try {
+                const mockLoader = { classList: { add: jest.fn() } };
+                const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
+                
+                global.document.getElementById.mockImplementation((id) => {
+                    if (id === 'grc-loader') return mockLoader;
+                    if (id === 'grc-articles-list') return mockListContainer;
+                    return mockElement;
+                });
 
-            // Tenter le rendu
-            await grcApp.renderGRCPageArticles();
+                // Tenter le rendu
+                await grcApp.renderGRCPageArticles();
 
-            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
-            expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(mockListContainer.innerHTML).toContain('Analyse des risques EBIOS RM');
+                expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+                expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
+                expect(mockListContainer.innerHTML).toContain('Analyse des risques EBIOS RM');
+            } finally {
+                global.fetch = originalFetch;
+            }
         });
     });
 
@@ -1128,21 +1439,27 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         // Rôle  : Gérer l'affichage du spinner de chargement, la requête API Strapi
         //          et l'injection finale de la liste des articles avec fallback
         test('renderRecherchesPageArticles devrait afficher le loader puis injecter les articles', async () => {
-            const mockLoader = { classList: { add: jest.fn() } };
-            const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
-            
-            global.document.getElementById.mockImplementation((id) => {
-                if (id === 'recherches-loader') return mockLoader;
-                if (id === 'recherches-articles-list') return mockListContainer;
-                return mockElement;
-            });
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn().mockRejectedValue(new Error("Network simulation error"));
+            try {
+                const mockLoader = { classList: { add: jest.fn() } };
+                const mockListContainer = { innerHTML: '', classList: { remove: jest.fn() } };
+                
+                global.document.getElementById.mockImplementation((id) => {
+                    if (id === 'recherches-loader') return mockLoader;
+                    if (id === 'recherches-articles-list') return mockListContainer;
+                    return mockElement;
+                });
 
-            // Tenter le rendu
-            await recherchesApp.renderRecherchesPageArticles();
+                // Tenter le rendu
+                await recherchesApp.renderRecherchesPageArticles();
 
-            expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
-            expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
-            expect(mockListContainer.innerHTML).toContain('Analyse formelle des protocoles cryptographiques');
+                expect(mockLoader.classList.add).toHaveBeenCalledWith('hidden');
+                expect(mockListContainer.classList.remove).toHaveBeenCalledWith('hidden');
+                expect(mockListContainer.innerHTML).toContain('Analyse formelle des protocoles cryptographiques');
+            } finally {
+                global.fetch = originalFetch;
+            }
         });
     });
 
@@ -1259,13 +1576,13 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
                 await veilleApp.renderVeillePageArticles();
 
                 expect(mockListContainer.innerHTML).toContain('Deepfakes vocaux');
-                expect(mockListContainer.innerHTML).not.toContain('Auto-GPT et Botnets autonomes');
+                expect(mockListContainer.innerHTML).not.toContain('Auto-GPT');
 
                 // Page 2
                 veilleApp.setCurrentPage(2);
                 await veilleApp.renderVeillePageArticles();
 
-                expect(mockListContainer.innerHTML).toContain('Auto-GPT et Botnets autonomes');
+                expect(mockListContainer.innerHTML).toContain('Auto-GPT');
                 expect(mockListContainer.innerHTML).not.toContain('Deepfakes vocaux');
                 
                 veilleApp.setCurrentPage(1);

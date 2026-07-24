@@ -37,7 +37,7 @@ async function renderVeillePageArticles() {
             throw new Error("No data in production database, using mock fallback");
         }
     } catch (error) {
-        console.warn("Strapi non démarré ou inaccessible pour la page Veille, repli sur les données mockées :", error);
+        console.warn("Strapi non démarré ou inaccessible pour la page Veille (Veille), repli sur les données mockées :", error);
         const fullMockData = typeof mockStrapiData !== 'undefined' ? mockStrapiData : [];
         const sortedMocks = [...fullMockData].sort((a, b) => new Date(b.date) - new Date(a.date));
         totalPages = Math.ceil(sortedMocks.length / pageSize) || 1;

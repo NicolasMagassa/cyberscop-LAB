@@ -177,7 +177,9 @@ const mockBriefingData = [
     { id: 1, date: "2025-10-12", title: "Analyse du Ransomware 'NeonLock'", description: "Une nouvelle variante utilisant le chiffrement quantique cible les infrastructures critiques.", category: "MALWARE", views: 1542, theme: "green", icon: "lock" },
     { id: 2, date: "2025-10-10", title: "L'IA Offensive : Algorithmes d'attaque", description: "Les outils de pentesting automatisés par l'IA changent la donne.", category: "IA & SÉCURITÉ", views: 1205, theme: "pink", icon: "brain-circuit" },
     { id: 3, date: "2025-10-05", title: "La mort du VPN ? Architecture Zero Trust", description: "\"Ne jamais faire confiance, toujours vérifier\".", category: "ZERO TRUST", views: 980, theme: "blue", icon: "shield-alert" },
-    { id: 4, date: "2025-10-01", title: "Smart Home, Smart Hack ?", description: "Votre frigo mine-t-il du crypto ?", category: "IOT", views: 850, theme: "purple", icon: "wifi" }
+    { id: 4, date: "2025-10-01", title: "Smart Home, Smart Hack ?", description: "Votre frigo mine-t-il du crypto ?", category: "IOT", views: 850, theme: "purple", icon: "wifi" },
+    { id: 5, date: "2025-09-28", title: "Sécurisation Active Directory : Les bases", description: "Protégez vos contrôleurs de domaine contre les attaques courantes (Golden Ticket, Kerberoasting).", category: "ANNUAIRE", views: 720, theme: "red", icon: "shield" },
+    { id: 6, date: "2025-09-25", title: "Détection d'Exfiltration DNS", description: "Comment identifier les tunnels DNS malveillants via l'analyse comportementale.", category: "RÉSEAU", views: 610, theme: "green", icon: "activity" }
 ];
 
 const briefingThemes = {
@@ -243,7 +245,7 @@ function flattenStrapiItem(item) {
 }
 
 /**
- * Génère le code HTML correspondant à un article de veille technologique.
+ * Génère le code HTML correspondant à un article de veille technologique pour le panneau latéral (dédié à la sécurité de l'IA).
  *
  * @param {Object} article - Les données de l'article (id, date, title, description, documentId).
  * @returns {string} Le fragment de code HTML représentant l'article.
@@ -251,10 +253,10 @@ function flattenStrapiItem(item) {
 function generateVeilleArticleHTML(article) {
     const targetId = article.documentId || article.id;
     return `
-        <a href="article.html?type=veille&id=${targetId}" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
-            <span class="text-xs font-mono font-bold text-cyber-pink min-w-[40px] mt-0.5">${formatDate(article.date)}</span>
+        <a href="article.html?type=ia&id=${targetId}" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
+            <span class="text-xs font-mono font-bold text-cyber-purple min-w-[40px] mt-0.5">${formatDate(article.date)}</span>
             <div class="flex-1">
-                <h4 class="text-xs font-bold text-gray-700 dark:text-gray-200 group-hover:text-cyber-blue transition-colors leading-snug mb-1">
+                <h4 class="text-xs font-bold text-gray-700 dark:text-gray-200 group-hover:text-cyber-purple transition-colors leading-snug mb-1">
                     ${article.title}
                 </h4>
                 <p class="text-[10px] text-gray-400 line-clamp-1">${article.description}</p>
@@ -264,8 +266,8 @@ function generateVeilleArticleHTML(article) {
 }
 
 /**
- * Récupère, trie et injecte le code HTML des articles de veille technologique
- * dans le conteneur principal '#veille-container'.
+ * Récupère, trie et injecte le code HTML des articles de sécurité de l'IA
+ * dans le conteneur principal '#veille-container' (panneau latéral IA).
  *
  * @returns {Promise<void>}
  */
@@ -275,7 +277,7 @@ async function renderVeilleArticles() {
     
     let articles = [];
     try {
-        const response = await fetch('http://localhost:1337/api/veilles');
+        const response = await fetch('http://localhost:1337/api/ias');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -284,11 +286,11 @@ async function renderVeilleArticles() {
         articles = rawData.map(flattenStrapiItem);
         
         if (articles.length === 0) {
-            articles = mockStrapiData;
+            articles = mockIAData;
         }
     } catch (error) {
-        console.warn("Strapi non démarré ou erreur réseau, repli sur les données mockées :", error);
-        articles = mockStrapiData;
+        console.warn("Strapi non démarré ou erreur réseau, repli sur les données mockées (IA) :", error);
+        articles = mockIAData;
     }
 
     const sortedArticles = [...articles]
@@ -304,29 +306,23 @@ async function renderVeilleArticles() {
  * @returns {string} Le fragment de code HTML représentant l'article.
  */
 function generateBriefingArticleHTML(article) {
-    const theme = briefingThemes[article.theme] || briefingThemes['blue'];
-    const colorClass = theme.color;
-    const shadowColor = theme.shadow;
+    const targetId = article.documentId || article.id;
+    const colorClass = 'cyber-pink';
+    const shadowColor = 'rgba(214,0,214,0.15)';
     return `
-        <article class="bg-white dark:bg-cyber-panel border border-gray-200 dark:border-gray-800 hover:border-${colorClass} dark:hover:border-${colorClass} transition-all duration-300 hover:shadow-lg group relative overflow-hidden rounded-md flex flex-col h-full shadow-sm theme-transition" style="--hover-shadow: ${shadowColor}">
+        <article class="bg-white dark:bg-cyber-panel border border-gray-200 dark:border-gray-800 hover:border-${colorClass} dark:hover:border-${colorClass} transition-all duration-300 hover:shadow-lg group relative overflow-hidden rounded-md flex flex-col h-full shadow-sm theme-transition min-h-[160px]" style="--hover-shadow: ${shadowColor}">
             <style>.group:hover { box-shadow: 0 0 15px var(--hover-shadow); }</style>
             <div class="absolute top-0 right-0 p-2 opacity-30 dark:opacity-20">
-                <i data-lucide="${article.icon}" class="text-gray-400 dark:text-gray-600 group-hover:text-${colorClass} transition-colors w-8 h-8"></i>
+                <i data-lucide="rss" class="text-gray-400 dark:text-gray-600 group-hover:text-${colorClass} transition-colors w-8 h-8"></i>
             </div>
-            <div class="p-6 flex-grow relative z-10">
-                <div class="flex items-center justify-between text-xs font-mono text-${colorClass} font-bold mb-3">
-                    <div class="flex space-x-2">
-                        <span class="border border-${colorClass} px-1 bg-${colorClass}/5 dark:bg-transparent uppercase">${article.category}</span>
-                        <span class="text-gray-500 dark:text-gray-400">${formatLongDate(article.date)}</span>
-                    </div>
-                    <span class="flex items-center text-gray-500 dark:text-gray-400">
-                        <i data-lucide="eye" class="w-3 h-3 mr-1"></i>
-                        <span>${article.views.toLocaleString()}</span>
-                    </span>
+            <div class="p-6 flex-grow relative z-10 flex flex-col justify-between">
+                <div class="flex items-center text-xs font-mono text-${colorClass} font-bold mb-3">
+                    <span class="text-gray-500 dark:text-gray-400">${formatLongDate(article.date)}</span>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-${colorClass} transition-colors font-orbitron">${article.title}</h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-4 font-sans leading-relaxed text-sm">${article.description}</p>
-                <a href="article.html?type=briefing&id=${article.documentId || article.id}" class="inline-flex items-center text-${colorClass} hover:text-cyber-black dark:hover:text-white font-mono text-sm uppercase tracking-wider mt-auto font-bold transition-colors">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-${colorClass} transition-colors font-orbitron mb-4">
+                    ${article.title}
+                </h3>
+                <a href="article.html?type=veille&id=${targetId}" class="inline-flex items-center text-${colorClass} hover:text-cyber-black dark:hover:text-white font-mono text-sm uppercase tracking-wider mt-auto font-bold transition-colors">
                     <span>Initialiser lecture</span>
                     <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i>
                 </a>
@@ -348,7 +344,7 @@ async function renderBriefingArticles() {
 
     let articles = [];
     try {
-        const response = await fetch('http://localhost:1337/api/briefings');
+        const response = await fetch('http://localhost:1337/api/veilles');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -357,11 +353,11 @@ async function renderBriefingArticles() {
         articles = rawData.map(flattenStrapiItem);
 
         if (articles.length === 0) {
-            articles = mockBriefingData;
+            articles = mockStrapiData;
         }
     } catch (error) {
         console.warn("Strapi non démarré ou erreur réseau, repli sur les données mockées :", error);
-        articles = mockBriefingData;
+        articles = mockStrapiData;
     }
 
     const sortedArticles = [...articles]
@@ -649,12 +645,40 @@ async function handleLogin(event) {
         return;
     }
 
-    await delay(500);
-    const userData = loginUser(username);
-    showLoginSuccess();
+    try {
+        const response = await fetch('http://localhost:1337/api/auth/local', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                identifier: username,
+                password: password
+            })
+        });
 
-    await delay(1500);
-    completeLoginSession(userData.username);
+        const data = await response.json();
+
+        if (!response.ok) {
+            const errorMsg = data?.error?.message || 'Identifiants incorrects.';
+            showLoginError(`ERREUR: ${errorMsg}`);
+            return;
+        }
+
+        const userData = {
+            username: data.user.username,
+            token: data.jwt
+        };
+
+        localStorage.setItem('cyberScopeUser', JSON.stringify(userData));
+        showLoginSuccess();
+
+        await delay(1500);
+        completeLoginSession(userData.username);
+    } catch (error) {
+        console.error('Erreur lors de la connexion:', error);
+        showLoginError('ERREUR: Impossible de se connecter au serveur d\'authentification.');
+    }
 }
 
 /**
@@ -665,6 +689,97 @@ async function handleLogin(event) {
 function handleLogout() {
     localStorage.removeItem('cyberScopeUser');
     setUIStateLoggedOut();
+}
+
+/**
+ * Gère la soumission du formulaire d'inscription utilisateur (Strapi).
+ * Valide les champs obligatoires, effectue un appel API asynchrone et met à jour l'interface.
+ *
+ * @param {Event} event - L'événement de soumission du formulaire.
+ * @returns {Promise<void>} Une promesse résolue une fois l'inscription finalisée.
+ */
+async function handleRegister(event) {
+    event.preventDefault();
+    const username = document.getElementById('username-input')?.value;
+    const email = document.getElementById('signup-email-input')?.value;
+    const password = document.getElementById('password-input')?.value;
+
+    if (authMessage) authMessage.classList.add('hidden');
+
+    if (!isValidCredentials(username, password) || !email || email.trim() === "") {
+        showLoginError('ERREUR: Identifiant, email et mot de passe requis.');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:1337/api/auth/local/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                email: email,
+                password: password
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            const errorMsg = data?.error?.message || 'Erreur lors de l\'inscription.';
+            showLoginError(`ERREUR: ${errorMsg}`);
+            return;
+        }
+
+        const userData = {
+            username: data.user.username,
+            token: data.jwt
+        };
+
+        localStorage.setItem('cyberScopeUser', JSON.stringify(userData));
+        showLoginSuccess();
+
+        await delay(1500);
+        completeLoginSession(userData.username);
+    } catch (error) {
+        console.error('Erreur lors de l\'inscription:', error);
+        showLoginError('ERREUR: Impossible de se connecter au serveur d\'authentification.');
+    }
+}
+
+/**
+ * Gère la désinscription (suppression définitive de compte) auprès de Strapi.
+ *
+ * @returns {Promise<void>} Une promesse résolue une fois le compte supprimé.
+ */
+async function handleUnregister() {
+    const storedUser = localStorage.getItem('cyberScopeUser');
+    if (!storedUser) {
+        console.error('Aucun utilisateur connecté pour la désinscription.');
+        return;
+    }
+
+    const user = JSON.parse(storedUser);
+    const token = user.token;
+
+    try {
+        const response = await fetch('http://localhost:1337/api/users/me', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            console.error('Erreur lors de la suppression du compte côté Strapi');
+            return;
+        }
+
+        handleLogout();
+    } catch (error) {
+        console.error('Erreur réseau lors de la désinscription:', error);
+    }
 }
 
 /**
@@ -1011,6 +1126,11 @@ function updatePaginationDOM(listContainer, currentPage, totalPages, colorClass,
 updateViewCounts();
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
+    
+    const btnDeleteAccount = document.getElementById('btn-delete-account');
+    if (btnDeleteAccount) {
+        btnDeleteAccount.addEventListener('click', handleUnregister);
+    }
 });
 
 // Exporter les fonctions pour les tests unitaires sous Node/Jest
@@ -1025,6 +1145,8 @@ if (typeof module !== 'undefined' && module.exports) {
         checkAuthStatus,
         handleLogin,
         handleLogout,
+        handleRegister,
+        handleUnregister,
         setUIStateLoggedIn,
         setUIStateLoggedOut,
         handleSignupAttempt,

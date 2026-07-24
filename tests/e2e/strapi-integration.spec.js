@@ -5,6 +5,7 @@ test.describe('Intégration Strapi & Fallback', () => {
   test('Mode Hors-ligne : devrait afficher les données simulées (mockées) si Strapi est inaccessible', async ({ page }) => {
     // Intercepter et bloquer tous les appels vers Strapi
     await page.route('**/api/veilles', route => route.abort('failed'));
+    await page.route('**/api/ias', route => route.abort('failed'));
     await page.route('**/api/briefings', route => route.abort('failed'));
 
     // Naviguer vers la page d'accueil
@@ -14,18 +15,18 @@ test.describe('Intégration Strapi & Fallback', () => {
     const briefingGrid = page.locator('#briefing-grid');
     await expect(briefingGrid).toBeVisible();
 
-    // Vérifier la présence d'un titre de briefing mocké connu
-    const neonLockBriefing = briefingGrid.locator('h3', { hasText: "Analyse du Ransomware 'NeonLock'" });
-    await expect(neonLockBriefing).toBeVisible();
-
-    // Vérifier la présence d'un article de veille mocké connu dans le panel latéral
-    const veilleContainer = page.locator('#veille-container');
-    const firstVeilleTitle = veilleContainer.locator('h4', { hasText: "Deepfakes vocaux : Les CEO ciblés" });
+    // Vérifier la présence d'un titre de veille mocké connu dans le flux principal
+    const firstVeilleTitle = briefingGrid.locator('h3', { hasText: "Deepfakes vocaux : Les CEO ciblés" });
     await expect(firstVeilleTitle).toBeVisible();
+
+    // Vérifier la présence d'un article de veille IA mocké connu dans le panel latéral
+    const veilleContainer = page.locator('#veille-container');
+    const firstIAMenaceTitle = veilleContainer.locator('h4', { hasText: "Sécurisation des LLM : Les failles d'injection de prompts" });
+    await expect(firstIAMenaceTitle).toBeVisible();
   });
 
   test('Mode Connecté (API Simulée) : devrait afficher les données reçues de l\'API Strapi', async ({ page }) => {
-    // Mock de la réponse pour les veilles
+    // Mock de la réponse pour les veilles (grille principale)
     await page.route('**/api/veilles', async route => {
       await route.fulfill({
         status: 200,
@@ -43,22 +44,18 @@ test.describe('Intégration Strapi & Fallback', () => {
       });
     });
 
-    // Mock de la réponse pour les briefings
-    await page.route('**/api/briefings', async route => {
+    // Mock de la réponse pour les ias (panel latéral)
+    await page.route('**/api/ias', async route => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
           data: [
             {
-              id: 20,
+              id: 15,
               date: "2026-06-24",
-              title: "Briefing Spécial Playwright",
-              description: "Validation de la connexion avec le CMS Strapi réussie.",
-              category: "TESTING",
-              views: 9999,
-              theme: "green",
-              icon: "shield-check"
+              title: "Alerte IA E2E",
+              description: "Menace IA"
             }
           ]
         })
@@ -68,19 +65,15 @@ test.describe('Intégration Strapi & Fallback', () => {
     // Charger la page d'accueil
     await page.goto('/');
 
-    // Vérifier que le briefing mocké de l'API est rendu sur la grille
+    // Vérifier que la veille mockée de l'API est rendue sur la grille
     const briefingGrid = page.locator('#briefing-grid');
-    const customBriefing = briefingGrid.locator('h3', { hasText: 'Briefing Spécial Playwright' });
-    await expect(customBriefing).toBeVisible();
-
-    // Vérifier la catégorie du briefing injecté (convertie en majuscules dans le template)
-    const briefingCategory = briefingGrid.locator('span', { hasText: 'TESTING' });
-    await expect(briefingCategory).toBeVisible();
-
-    // Vérifier que l'article de veille mocké de l'API est rendu dans le conteneur de veille
-    const veilleContainer = page.locator('#veille-container');
-    const customVeille = veilleContainer.locator('h4', { hasText: 'Alerte Sécurité E2E - Veille Réseau' });
+    const customVeille = briefingGrid.locator('h3', { hasText: 'Alerte Sécurité E2E - Veille Réseau' });
     await expect(customVeille).toBeVisible();
+
+    // Vérifier que l'article de veille IA mocké de l'API est rendu dans le conteneur de veille IA
+    const veilleContainer = page.locator('#veille-container');
+    const customIA = veilleContainer.locator('h4', { hasText: 'Alerte IA E2E' });
+    await expect(customIA).toBeVisible();
   });
 
   test('Mode Réel (Unmocked) : devrait se connecter au serveur Strapi local', async ({ request }) => {
