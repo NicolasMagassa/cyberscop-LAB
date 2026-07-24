@@ -115,6 +115,7 @@ if (typeof lucide !== 'undefined') {
 
 // --- DOM Elements ---
 const loginModal = document.getElementById('login-modal');
+const loginForm = document.getElementById('login-form');
 const loginBtnTrigger = document.getElementById('btn-login-trigger');
 const userDropdown = document.getElementById('user-dropdown');
 const userDisplayName = document.getElementById('user-display-name');
@@ -126,6 +127,9 @@ const preferencesModal = document.getElementById('preferences-modal');
 const mobileBtnLogin = document.getElementById('mobile-btn-login');
 const mobileUserMenu = document.getElementById('mobile-user-menu');
 const mobileUsernameDisplay = document.getElementById('mobile-username-display');
+
+let isSignupMode = false;
+
 
 // --- SIMULATION STRAPI (BACKEND) ---
 const mockStrapiData = [
@@ -504,6 +508,58 @@ function toggleMenu() {
 function closeLoginModal() {
     loginModal.classList.add('hidden');
     document.body.style.overflow = 'auto';
+    toggleSignupMode(false);
+}
+
+/**
+ * Bascule la modale de connexion entre le mode Connexion et le mode Inscription.
+ *
+ * @param {boolean} signup - True pour afficher le mode Inscription, false pour le mode Connexion.
+ * @returns {void}
+ */
+function toggleSignupMode(signup) {
+    isSignupMode = signup;
+    
+    const modalTitle = loginModal?.querySelector('.font-orbitron');
+    const submitBtn = loginForm?.querySelector('button[type="submit"]');
+    const signupBtn = document.querySelector('button[onclick="handleSignupAttempt()"]');
+    const forgotBtn = document.querySelector('button[onclick="handlePasswordResetAttempt()"]');
+    
+    if (isSignupMode) {
+        if (modalTitle) modalTitle.textContent = 'INSCRIPTION DE NOUVEL AGENT';
+        if (submitBtn) submitBtn.textContent = "S'INSCRIRE";
+        if (signupBtn) signupBtn.textContent = 'Déjà inscrit ? Se connecter';
+        if (forgotBtn) forgotBtn.classList.add('hidden');
+        
+        // Add Email Field
+        let emailContainer = document.getElementById('signup-email-container');
+        if (!emailContainer) {
+            emailContainer = document.createElement('div');
+            emailContainer.id = 'signup-email-container';
+            emailContainer.className = 'mb-4';
+            emailContainer.innerHTML = `
+                <label class="block text-xs text-gray-700 mb-1 uppercase font-bold">Adresse E-mail</label>
+                <input id="signup-email-input" type="email" class="w-full bg-gray-50 border border-gray-300 text-gray-900 p-3 focus:border-cyber-blue focus:outline-none focus:ring-1 focus:ring-cyber-blue rounded-md font-body" placeholder="agent@cyberscop.lab" required>
+            `;
+            
+            const usernameInput = document.getElementById('username-input');
+            const usernameContainer = usernameInput?.closest('div');
+            if (usernameContainer) {
+                usernameContainer.insertAdjacentElement('afterend', emailContainer);
+            }
+        }
+    } else {
+        if (modalTitle) modalTitle.textContent = 'CONNEXION SÉCURISÉE';
+        if (submitBtn) submitBtn.textContent = 'SE CONNECTER';
+        if (signupBtn) signupBtn.textContent = "S'inscrire";
+        if (forgotBtn) forgotBtn.classList.remove('hidden');
+        
+        // Remove Email Field
+        const emailContainer = document.getElementById('signup-email-container');
+        if (emailContainer) {
+            emailContainer.remove();
+        }
+    }
 }
 
 /**
@@ -635,6 +691,9 @@ function completeLoginSession(username) {
  */
 async function handleLogin(event) {
     event.preventDefault();
+    if (isSignupMode) {
+        return handleRegister(event);
+    }
     const username = document.getElementById('username-input')?.value;
     const password = document.getElementById('password-input')?.value;
     
@@ -820,11 +879,8 @@ function setUIStateLoggedOut() {
 }
 
 function handleSignupAttempt() {
-    if(authMessage) {
-        authMessage.classList.remove('hidden', 'text-cyber-green', 'text-cyber-red', 'text-cyber-pink');
-        authMessage.classList.add('text-cyber-blue');
-        authMessage.textContent = 'MODULE INSCRIPTION: Protocole activé. Veuillez entrer vos informations et cliquer sur "Se connecter".';
-    }
+    if (authMessage) authMessage.classList.add('hidden');
+    toggleSignupMode(!isSignupMode);
 }
 
 function handlePasswordResetAttempt() {

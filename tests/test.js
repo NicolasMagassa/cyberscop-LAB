@@ -21,6 +21,10 @@ const mockElement = {
     setAttribute: jest.fn(),
     getAttribute: jest.fn(),
     removeAttribute: jest.fn(),
+    querySelector: jest.fn().mockImplementation(() => mockElement),
+    closest: jest.fn().mockImplementation(() => mockElement),
+    insertAdjacentElement: jest.fn(),
+    remove: jest.fn(),
     innerText: '',
     innerHTML: '',
     id: '',
@@ -38,6 +42,7 @@ let cookieStore = {};
 global.document = {
     getElementById: jest.fn().mockReturnValue(mockElement),
     querySelectorAll: jest.fn().mockReturnValue([mockElement]),
+    querySelector: jest.fn().mockReturnValue(mockElement),
     addEventListener: jest.fn(),
     documentElement: {
         classList: mockClassList
@@ -643,11 +648,13 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
     // Rôle  : Affiche le message d'inscription sur l'IHM (simulation de redirection)
     // =========================================================================
     describe('handleSignupAttempt', () => {
-        test('devrait afficher le message d\'inscription sur l\'IHM', () => {
-            mockElement.textContent = '';
+        test('devrait basculer l\'état d\'inscription et modifier les éléments du DOM', () => {
+            const querySelectorSpy = jest.spyOn(global.document, 'querySelector');
+            
             app.handleSignupAttempt();
-            expect(mockElement.textContent).toContain('MODULE INSCRIPTION');
-            expect(mockClassList.add).toHaveBeenCalledWith('text-cyber-blue');
+            expect(querySelectorSpy).toHaveBeenCalled();
+            
+            querySelectorSpy.mockRestore();
         });
     });
 

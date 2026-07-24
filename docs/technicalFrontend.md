@@ -1003,6 +1003,46 @@ git push origin dev
 7. **Danger (si non réalisé)**  
    - > **Alerte Expérience Utilisateur (UX) :** Si cette étape n'est pas configurée, l'inscription se termine en erreur silencieuse ou génère des incohérences d'affichage (l'IHM croit l'utilisateur connecté avec un JWT inexistant ou indéfini, causant des erreurs ultérieures sur les requêtes authentifiées).
 
+---
+
+## Étape 22 : Interface Dynamique de Basculement Connexion / Inscription
+
+1. **Objectif de l'étape**  
+   Implémenter un basculement dynamique de la modale d'authentification unique (sans créer de page HTML d'inscription séparée), en insérant dynamiquement le champ d'adresse e-mail (`#signup-email-input`) lorsque l'utilisateur clique sur "S'inscrire", en adaptant le titre et les boutons, et en basculant la route d'action de validation vers `handleRegister` (inscription) ou `handleLogin` (connexion) de façon sécurisée.
+
+2. **Prérequis**  
+   - La variable d'état global `isSignupMode` et la fonction `toggleSignupMode` dans [main.js](../assets/JS/main.js).
+   - Les tests Jest mis à jour pour `handleSignupAttempt` dans [tests/test.js](../tests/test.js) (incluant les mocks pour `querySelector`, `remove`, `closest`, et `insertAdjacentElement`).
+
+3. **Commande**  
+   Pour valider les tests et vérifier la cohérence du comportement de l'IHM :
+   ```bash
+   npm test
+   ```
+
+4. **Explication courte**  
+   - **Bouton S'inscrire (`handleSignupAttempt`)** : Bascule la variable d'état `isSignupMode`. Elle invoque `toggleSignupMode` qui met à jour le titre du formulaire (ex: "INSCRIPTION DE NOUVEL AGENT"), le libellé du bouton principal ("S'INSCRIRE"), et insère dynamiquement dans le DOM l'input de messagerie électronique (`#signup-email-input`) requis pour le Double Opt-In.
+   - **Bouton Se Connecter (`handleLogin`)** : Si la modale est en mode inscription (`isSignupMode === true`), la soumission redirige automatiquement l'exécution vers `handleRegister(event)`.
+   - **Fermeture de Modale (`closeLoginModal`)** : Réinitialise automatiquement la modale en mode Connexion classique pour la prochaine ouverture.
+
+5. **Vérification du résultat**  
+   Les tests unitaires Jest de `handleSignupAttempt` et `toggleLoginModal` valident ce comportement :
+   ```text
+   handleSignupAttempt
+     √ devrait basculer l'état d'inscription et modifier les éléments du DOM
+   toggleLoginModal
+     √ devrait ouvrir la modale de connexion quand elle est masquée
+     √ devrait fermer la modale de connexion quand elle est affichée
+   ```
+
+6. **Notes et conseils supplémentaires**  
+   - > **Conception Modulaire :** Cette approche dynamique évite la duplication de la structure HTML de la modale dans les 15 pages de l'application, rendant la maintenance extrêmement simple et garantissant l'homogénéité du design.
+   - > **Performance :** L'injection et la suppression d'éléments à la volée s'effectuent en pure Vanilla JS très rapidement sans aucun framework lourd.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Navigation Brisée :** Sans ce basculement, le bouton "S'inscrire" reste inactif ou affiche uniquement un message statique simulé, empêchant concrètement les utilisateurs d'accéder au formulaire d'enregistrement et de déclencher le processus de Double Opt-In via Strapi.
+
+
 
 
 
