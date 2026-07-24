@@ -479,14 +479,13 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             await registerPromise;
         });
 
-        test('devrait s\'inscrire avec succès via l\'API Strapi, enregistrer dans localStorage et fermer la modale après 1500ms', async () => {
+        test('devrait s\'inscrire avec succès via l\'API Strapi, afficher le message d\'attente de confirmation, vider les champs et fermer la modale après 1500ms sans enregistrer dans localStorage', async () => {
             mockUsernameInput.value = 'nicolas';
             mockEmailInput.value = 'nicolas@example.com';
             mockPasswordInput.value = 'monmotdepasse';
 
             const fakeUser = { username: 'nicolas_registered', email: 'nicolas@example.com' };
             const mockResponseData = {
-                jwt: 'strapi-register-jwt-xyz',
                 user: fakeUser
             };
 
@@ -514,19 +513,21 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
                 })
             });
 
-            // Vérifier que les données sont enregistrées dans le localStorage
-            expect(global.localStorage.setItem).toHaveBeenCalledWith(
-                'cyberScopeUser',
-                JSON.stringify({ username: 'nicolas_registered', token: 'strapi-register-jwt-xyz' })
-            );
+            // Vérifier que les données ne sont PAS enregistrées dans le localStorage
+            expect(global.localStorage.setItem).not.toHaveBeenCalled();
 
-            // Vérifier le message de réussite
-            expect(mockElement.textContent).toBe('CONNEXION RÉUSSIE. ACCÈS ACCORDÉ.');
+            // Vérifier le message de réussite et d'envoi d'email
+            expect(mockElement.textContent).toBe('INSCRIPTION RÉUSSIE ! Un e-mail de confirmation vous a été envoyé. Veuillez valider votre compte avant de vous connecter.');
             expect(mockClassList.remove).toHaveBeenCalledWith('hidden');
 
             // Avancer de 1500ms
             jest.advanceTimersByTime(1500);
             await Promise.resolve();
+
+            // Vérifier que les champs ont été vidés
+            expect(mockUsernameInput.value).toBe('');
+            expect(mockEmailInput.value).toBe('');
+            expect(mockPasswordInput.value).toBe('');
 
             expect(mockClassList.add).toHaveBeenCalledWith('hidden');
 

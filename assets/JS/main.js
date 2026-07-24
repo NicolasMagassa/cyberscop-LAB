@@ -700,9 +700,13 @@ function handleLogout() {
  */
 async function handleRegister(event) {
     event.preventDefault();
-    const username = document.getElementById('username-input')?.value;
-    const email = document.getElementById('signup-email-input')?.value;
-    const password = document.getElementById('password-input')?.value;
+    const usernameInput = document.getElementById('username-input');
+    const emailInput = document.getElementById('signup-email-input');
+    const passwordInput = document.getElementById('password-input');
+
+    const username = usernameInput?.value;
+    const email = emailInput?.value;
+    const password = passwordInput?.value;
 
     if (authMessage) authMessage.classList.add('hidden');
 
@@ -732,16 +736,20 @@ async function handleRegister(event) {
             return;
         }
 
-        const userData = {
-            username: data.user.username,
-            token: data.jwt
-        };
-
-        localStorage.setItem('cyberScopeUser', JSON.stringify(userData));
-        showLoginSuccess();
+        if (authMessage) {
+            authMessage.classList.remove('text-red-600', 'text-cyber-red', 'text-cyber-blue', 'text-cyber-pink');
+            authMessage.classList.add('text-cyber-green');
+            authMessage.textContent = 'INSCRIPTION RÉUSSIE ! Un e-mail de confirmation vous a été envoyé. Veuillez valider votre compte avant de vous connecter.';
+            authMessage.classList.remove('hidden');
+        }
 
         await delay(1500);
-        completeLoginSession(userData.username);
+
+        if (usernameInput) usernameInput.value = '';
+        if (emailInput) emailInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+
+        toggleLoginModal();
     } catch (error) {
         console.error('Erreur lors de l\'inscription:', error);
         showLoginError('ERREUR: Impossible de se connecter au serveur d\'authentification.');

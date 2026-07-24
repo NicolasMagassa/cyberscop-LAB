@@ -960,6 +960,50 @@ git push origin dev
 7. **Danger (si non réalisé)**  
    - > **Alerte RGPD & Droits Utilisateurs :** Le droit à l'effacement (droit à l'oubli) est une exigence stricte du RGPD. Sans fonctionnalité de suppression de compte, l'application est en infraction directe avec la législation sur la protection des données personnelles.
 
+---
+
+## Étape 21 : Double Opt-In (Confirmation d'Email) et Intégration Brevo
+
+1. **Objectif de l'étape**  
+   Mettre en conformité le processus d'inscription utilisateur (`handleRegister`) avec l'activation de la confirmation d'e-mail par double opt-in dans Strapi, lier l'envoi d'e-mails au fournisseur de messagerie Brevo, et mettre à jour la suite de tests unitaires Jest pour s'assurer que la session n'est pas ouverte immédiatement.
+
+2. **Prérequis**  
+   - Le plugin `strapi-provider-email-brevo` installé dans [package.json](../backend/package.json).
+   - Les clés d'environnement `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` et `BREVO_SENDER_NAME` ajoutées dans [backend/.env](../backend/.env).
+   - Le fichier de configuration [plugins.js](../backend/config/plugins.js) configuré pour utiliser le provider Brevo.
+   - Les tests Jest mis à jour dans [tests/test.js](../tests/test.js).
+
+3. **Commande**  
+   Pour valider le nouveau flux d'inscription et s'assurer de l'absence de régression :
+   ```bash
+   npm test
+   ```
+
+4. **Explication courte**  
+   Avec l'activation de l'option de confirmation par e-mail dans Strapi, la route `/api/auth/local/register` ne renvoie plus directement de clé `jwt` lors de l'enregistrement initial. La fonction `handleRegister` a été modifiée pour :
+   - Interdire la connexion automatique et la persistance dans `localStorage` après soumission du formulaire.
+   - Afficher un message d'information vert : `"INSCRIPTION RÉUSSIE ! Un e-mail de confirmation vous a été envoyé. Veuillez valider votre compte avant de vous connecter."`
+   - Vider l'ensemble des champs du formulaire et fermer la modale après `1500 ms`.
+   - Les tests Jest valident ce nouveau comportement en mockant la réponse de l'API sans JWT, et en s'assurant que `localStorage.setItem` n'est pas appelé et que les inputs du formulaire sont bien nettoyés.
+
+5. **Vérification du résultat**  
+   Les tests unitaires Jest de `handleRegister` doivent tous réussir :
+   ```text
+   handleRegister
+     √ devrait empêcher le comportement par défaut de l'événement
+     √ devrait afficher une erreur si l'identifiant, l'email ou le mot de passe est vide
+     √ devrait s'inscrire avec succès via l'API Strapi, afficher le message d'attente de confirmation, vider les champs et fermer la modale après 1500ms sans enregistrer dans localStorage
+     √ devrait afficher l'erreur renvoyée par Strapi si l'inscription échoue (statut non-ok)
+   ```
+
+6. **Notes et conseils supplémentaires**  
+   - > **Double Opt-In :** L'utilisateur doit nécessairement ouvrir sa boîte de réception et cliquer sur le lien envoyé par Brevo pour que son compte passe à l'état actif dans Strapi. Toute tentative de connexion via l'IHM avant cette validation se soldera par une erreur d'authentification.
+   - > **Nettoyage IHM :** Vider les champs d'inscription à la fermeture de la modale évite la persistance en mémoire de données sensibles (comme le mot de passe en clair).
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Expérience Utilisateur (UX) :** Si cette étape n'est pas configurée, l'inscription se termine en erreur silencieuse ou génère des incohérences d'affichage (l'IHM croit l'utilisateur connecté avec un JWT inexistant ou indéfini, causant des erreurs ultérieures sur les requêtes authentifiées).
+
+
 
 
 
