@@ -392,6 +392,192 @@ Depuis la **racine du projet** :
 
 ---
 
+## ✉️ Correction du Provider d'Email Brevo & Persistance
+
+### 1. Le problème (Bug de format de l'expéditeur)
+Lors de l'envoi de l'e-mail de confirmation d'inscription, l'API REST de Brevo rejetait silencieusement la requête. En inspectant le payload envoyé, le nom de l'expéditeur (`sender.name`) était envoyé au format brut Nodemailer (ex: `"CyberScope LAB <cyberscop.lab@gmail.com>"`), contenant des chevrons et l'adresse e-mail. L'API de Brevo exige un nom d'affichage propre sans chevrons.
+
+Ce bug provenait du provider `strapi-provider-email-brevo` : le développeur avait créé la variable nettoyée `senderName` mais l'avait oubliée en l'affectant avec `from || settings.defaultSenderName` dans l'objet final.
+
+### 2. Solution & Trimming
+* **Correction** : Le fichier `backend/node_modules/strapi-provider-email-brevo/index.js` a été modifié pour utiliser la variable locale correctement nettoyée `senderName` dans l'objet `msg.sender.name`.
+* **Trimming** : Un nettoyage supplémentaire à l'aide de `.trim()` a été ajouté pour enlever d'éventuels espaces blancs résiduels issus de l'extraction Regex (comme l'espace de fin entre le nom et le chevron `<`).
+* **Persistance (`patch-package`)** : Afin d'éviter que cette modification ne soit écrasée lors du prochain `npm install`, le module `patch-package` a été installé dans `backend` et configuré en script de `postinstall`. Le patch est stocké dans le fichier [strapi-provider-email-brevo+1.0.4.patch](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/patches/strapi-provider-email-brevo+1.0.4.patch).
+
+### 3. Tests Unitaires & TDD
+Un test unitaire Jest dédié a été créé à la racine dans [brevo-provider.test.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/tests/brevo-provider.test.js) pour garantir :
+* Le bon nettoyage de la chaine de l'expéditeur (extraction propre du nom et de l'e-mail).
+* Le bon repli (fallback) sur les configurations par défaut si l'option `from` n'est pas passée.
+
+Pour exécuter le test de ce provider :
+```bash
+npm test tests/brevo-provider.test.js
+```
+
+### 🔍 Protocole de Diagnostic de l'Authentification et de l'Envoi d'E-mails (Front-End ➔ API ➔ BDD ➔ Config ➔ Brevo ➔ Patch ➔ Validation) lors de l'inscription
+
+Ce protocole suit l'ordre logique d'un diagnostic : **Front-End → API → Base de données → Configuration → Fournisseur d'e-mails → Correctif → Validation finale** qui a servi à identifier et corriger le problème d'absence de réception d'e-mails lors de l'inscription.
+
+#### Étape 1 — Vérification du serveur Strapi
+Avant toute chose :
+* Vérifier que Strapi est lancé (`npm run develop`).
+* Vérifier que le serveur répond sur : http://localhost:1337
+* Vérifier qu'aucune erreur n'apparaît au démarrage.
+
+#### Étape 2 — Vérification des permissions Strapi
+Dans l'interface d'administration : **Settings** ➔ **Users & Permissions Plugin** ➔ **Roles** ➔ **Public**
+Vérifier que les permissions nécessaires sont cochées :
+* `register`
+* `login`
+* `forgotPassword`
+* `resetPassword`
+* `emailConfirmation` (si utilisé)
+
+#### Étape 3 — Vérification des paramètres d'authentification
+Dans : **Settings** ➔ **Users & Permissions** ➔ **Advanced Settings**
+Vérifier :
+* **Enable email confirmation** (Activé)
+* **Allow registration** (Activé)
+* **Default role** (Rôle par défaut configuré)
+
+#### Étape 4 — Vérification du Front-End
+Le formulaire doit envoyer une requête `POST` vers `/api/auth/local/register` avec le format JSON suivant :
+```json
+{
+  "username": "...",
+  "email": "...",
+  "password": "..."
+}
+```
+Vérifier :
+* `username` présent
+* `email` valide
+* `password` présent
+* JSON correctement formé
+* En-tête de requête : `Content-Type: application/json`
+
+#### Étape 5 — Vérification de la réponse Strapi
+* Si l'inscription fonctionne : Strapi doit répondre `200 OK` ou `201`.
+* En cas d'erreur : Lire précisément le message retourné dans `error.message` pour ne jamais masquer les erreurs.
+
+#### Étape 6 — Vérification de la base SQLite
+Ouvrir le fichier `.tmp/data.db` (par exemple avec l'extension VS Code *SQLite Viewer*).
+Vérifier dans la table `up_users` que le nouvel utilisateur existe et contrôler les champs :
+* `confirmed`
+* `blocked`
+* `email`
+* `username`
+* `provider`
+
+> [!NOTE]
+> Si l'utilisateur est bien créé dans la table `up_users` mais que le mail n'arrive pas, **le problème n'est PAS le Front-End**.
+
+#### Étape 7 — Vérification du fichier .env
+Contrôler la configuration des variables d'environnement dans le fichier `backend/.env` :
+* `BREVO_API_KEY`
+* `BREVO_SENDER_EMAIL`
+* `BREVO_SENDER_NAME`
+* *Exemple :*
+  ```env
+  BREVO_API_KEY=xkeysib-...
+  BREVO_SENDER_EMAIL=cyberscop.lab@gmail.com
+  BREVO_SENDER_NAME=CyberScope LAB
+  ```
+
+#### Étape 8 — Vérification du provider Strapi
+Dans le fichier [config/plugins.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/config/plugins.js), vérifier l'activation du provider :
+* `provider`
+* `providerOptions`
+* `settings`
+Le provider doit être configuré pour utiliser la dépendance `strapi-provider-email-brevo`.
+
+#### Étape 9 — Vérification Brevo
+Dans l'interface de Brevo, s'assurer que :
+* La clé API (`API Key`) utilisée est valide.
+* L'expéditeur (`Sender`) configuré est bien vérifié et actif.
+* Le service d'envoi d'e-mails transactionnels est activé.
+
+#### Étape 10 — Vérification des Logs Brevo
+Dans Brevo, naviguer dans : **Transactional** ➔ **Logs**
+Vérifier le statut de l'e-mail :
+* *Envoyé* / *En attente* / *Rejeté*
+Lire le message exact. Par exemple, l'erreur *"Sender is not valid"* est très différente de *"Invalid API Key"*.
+
+#### Étape 11 — Test direct de l'API Brevo
+Créer un petit script Node.js minimal requêtant directement l'endpoint `https://api.brevo.com/v3/smtp/email` avec la clé API pour envoyer un e-mail de test.
+* **Si ce script fonctionne** ➔ L'API Brevo est pleinement fonctionnelle, le problème vient donc de Strapi ou de son module provider.
+
+#### Étape 12 — Vérification du provider Strapi
+Ouvrir le fichier `node_modules/strapi-provider-email-brevo/index.js`.
+Avant la ligne réalisant l'appel `axios.post(...)`, ajouter temporairement un log :
+```javascript
+console.log(JSON.stringify(msg, null, 2));
+```
+Observer précisément la structure des champs `sender`, `to`, `subject` et `htmlContent`.
+
+#### Étape 13 — Vérification du champ sender
+Le JSON doit contenir exactement :
+```json
+{
+  "sender": {
+    "name": "CyberScope LAB",
+    "email": "cyberscop.lab@gmail.com"
+  }
+}
+```
+* **Attention :** Ne jamais envoyer `"name": "CyberScope LAB <cyberscop.lab@gmail.com>"`. Brevo refuse ce format avec chevrons dans le nom d'affichage de l'expéditeur.
+
+#### Étape 14 — Vérification du bug connu du provider
+Le provider officiel `strapi-provider-email-brevo` en version `1.0.4` contient un bug natif.
+Il utilise `name: from || settings.defaultSenderName` au lieu d'utiliser la variable locale nettoyée `senderName`.
+Le correctif consiste à patcher :
+```diff
+- name: from || settings.defaultSenderName,
++ name: senderName,
+```
+
+#### Étape 15 — Rendre le correctif permanent
+Ne jamais modifier directement les fichiers de `node_modules` de manière volatile.
+* Installez `patch-package` : `npm install patch-package --save-dev` dans `backend`.
+* Ajoutez la commande postinstall dans le fichier [package.json](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/package.json) : `"postinstall": "patch-package"`.
+* Créez le patch : `npx patch-package strapi-provider-email-brevo`.
+* Vérifier que le dossier `backend/patches/` contient le fichier de correctif `strapi-provider-email-brevo+1.0.4.patch`.
+
+#### Étape 16 — Vérification après réinstallation
+* Supprimer le dossier `node_modules` dans `backend`.
+* Lancer `npm install`.
+* Vérifier l'application automatique du patch :
+  ```text
+  Applying patches...
+  strapi-provider-email-brevo@1.0.4 ✔
+  ```
+* Relancer le serveur avec `npm run develop` et retester une inscription. Le mail doit arriver normalement.
+
+#### Étape 17 — Vérification du flux complet
+Une fois l'inscription fonctionnelle, tester l'ensemble du flux d'authentification :
+* Réception du lien de confirmation d'e-mail.
+* Clic sur le lien de confirmation (mise à jour de la BDD).
+* Connexion au compte.
+* Déconnexion.
+* Demande de mot de passe oublié (envoi d'e-mail).
+* Clic sur le lien de réinitialisation.
+* Modification du mot de passe.
+* Reconnexion avec le nouveau mot de passe.
+
+### Résultat attendu
+À la fin de cette procédure :
+* **✅ Front-End validé**
+* **✅ API Strapi validée**
+* **✅ Base SQLite validée**
+* **✅ Provider Brevo validé**
+* **✅ API Brevo validée**
+* **✅ Envoi des e-mails validé**
+* **✅ Correctif du provider rendu permanent**
+* **✅ Réinstallation testée**
+* **✅ Flux d'authentification complet opérationnel**
+
+---
+
 ## 🚀 Commandes utiles
 
 - **Backend (depuis `/backend`)** :
