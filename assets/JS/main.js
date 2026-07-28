@@ -129,6 +129,7 @@ const mobileUserMenu = document.getElementById('mobile-user-menu');
 const mobileUsernameDisplay = document.getElementById('mobile-username-display');
 
 let isSignupMode = false;
+let isForgotPasswordMode = false;
 
 
 // --- SIMULATION STRAPI (BACKEND) ---
@@ -509,6 +510,7 @@ function closeLoginModal() {
     loginModal.classList.add('hidden');
     document.body.style.overflow = 'auto';
     toggleSignupMode(false);
+    toggleForgotPasswordMode(false);
 }
 
 /**
@@ -519,6 +521,7 @@ function closeLoginModal() {
  */
 function toggleSignupMode(signup) {
     isSignupMode = signup;
+    isForgotPasswordMode = false;
     
     const modalTitle = loginModal?.querySelector('.font-orbitron');
     const submitBtn = loginForm?.querySelector('button[type="submit"]');
@@ -557,6 +560,81 @@ function toggleSignupMode(signup) {
         // Remove Email Field
         const emailContainer = document.getElementById('signup-email-container');
         if (emailContainer) {
+            emailContainer.remove();
+        }
+    }
+}
+
+/**
+ * Bascule la modale de connexion vers ou depuis le mode de récupération de mot de passe.
+ *
+ * @param {boolean} forgot - True pour activer le mode Mot de passe oublié, false sinon.
+ * @returns {void}
+ */
+function toggleForgotPasswordMode(forgot) {
+    isForgotPasswordMode = forgot;
+    if (authMessage) authMessage.classList.add('hidden');
+    
+    const modalTitle = loginModal?.querySelector('.font-orbitron');
+    const modalDescription = loginModal?.querySelector('.text-sm.text-gray-500');
+    const submitBtn = loginForm?.querySelector('button[type="submit"]');
+    const signupBtn = document.querySelector('button[onclick="handleSignupAttempt()"]');
+    const forgotBtn = document.querySelector('button[onclick="handlePasswordResetAttempt()"]');
+    
+    const usernameInput = document.getElementById('username-input');
+    const usernameContainer = usernameInput?.closest('div');
+    const passwordInput = document.getElementById('password-input');
+    const passwordContainer = passwordInput?.closest('div');
+    
+    if (isForgotPasswordMode) {
+        if (modalTitle) modalTitle.textContent = 'RÉINITIALISER LE MOT DE PASSE';
+        if (modalDescription) modalDescription.textContent = 'Saisissez votre adresse e-mail pour recevoir un lien de réinitialisation.';
+        if (submitBtn) submitBtn.textContent = 'ENVOYER LE LIEN';
+        if (signupBtn) signupBtn.classList.add('hidden');
+        if (forgotBtn) {
+            forgotBtn.textContent = 'Retour à la connexion';
+            forgotBtn.classList.remove('border-cyber-pink', 'text-cyber-pink', 'hover:bg-cyber-pink');
+            forgotBtn.classList.add('border-cyber-blue', 'text-cyber-blue', 'hover:bg-cyber-blue');
+        }
+        
+        if (usernameContainer) usernameContainer.classList.add('hidden');
+        if (passwordContainer) passwordContainer.classList.add('hidden');
+        
+        // Add/Show Email Field
+        let emailContainer = document.getElementById('signup-email-container');
+        if (!emailContainer) {
+            emailContainer = document.createElement('div');
+            emailContainer.id = 'signup-email-container';
+            emailContainer.className = 'mb-4';
+            emailContainer.innerHTML = `
+                <label class="block text-xs text-gray-700 mb-1 uppercase font-bold">Adresse E-mail</label>
+                <input id="signup-email-input" type="email" class="w-full bg-gray-50 border border-gray-300 text-gray-900 p-3 focus:border-cyber-blue focus:outline-none focus:ring-1 focus:ring-cyber-blue rounded-md font-body" placeholder="agent@cyberscop.lab" required>
+            `;
+            if (usernameContainer) {
+                usernameContainer.insertAdjacentElement('afterend', emailContainer);
+            }
+        } else {
+            emailContainer.classList.remove('hidden');
+        }
+        
+        const emailInput = document.getElementById('signup-email-input');
+        if (emailInput) emailInput.required = true;
+    } else {
+        if (modalTitle) modalTitle.textContent = 'CONNEXION SÉCURISÉE';
+        if (modalDescription) modalDescription.textContent = 'Veuillez entrer vos identifiants pour accéder à votre espace sécurisé.';
+        if (submitBtn) submitBtn.textContent = 'SE CONNECTER';
+        if (signupBtn) signupBtn.classList.remove('hidden');
+        if (forgotBtn) {
+            forgotBtn.textContent = 'Mot de passe oublié ?';
+            forgotBtn.classList.remove('border-cyber-blue', 'text-cyber-blue', 'hover:bg-cyber-blue');
+            forgotBtn.classList.add('border-cyber-pink', 'text-cyber-pink', 'hover:bg-cyber-pink');
+        }
+        
+        if (usernameContainer) usernameContainer.classList.remove('hidden');
+        if (passwordContainer) passwordContainer.classList.remove('hidden');
+        
+        const emailContainer = document.getElementById('signup-email-container');
+        if (emailContainer && !isSignupMode) {
             emailContainer.remove();
         }
     }
@@ -694,6 +772,9 @@ async function handleLogin(event) {
     if (isSignupMode) {
         return handleRegister(event);
     }
+    if (isForgotPasswordMode) {
+        return handleForgotPasswordSubmit(event);
+    }
     const username = document.getElementById('username-input')?.value;
     const password = document.getElementById('password-input')?.value;
     
@@ -816,6 +897,71 @@ async function handleRegister(event) {
 }
 
 /**
+ * Gère la soumission du formulaire de demande de mot de passe oublié (Strapi).
+ * Valide l'e-mail, appelle l'API et affiche un message générique.
+ *
+ * @param {Event} event - L'événement de soumission du formulaire.
+ * @returns {Promise<void>} Une promesse résolue une fois l'appel API terminé.
+ */
+async function handleForgotPasswordSubmit(event) {
+    event.preventDefault();
+    const emailInput = document.getElementById('signup-email-input');
+    const email = emailInput?.value?.trim();
+
+    if (authMessage) authMessage.classList.add('hidden');
+
+    if (!email || email === "") {
+        showLoginError('ERREUR: Adresse e-mail requise.');
+        return;
+    }
+
+    const submitBtn = loginForm?.querySelector('button[type="submit"]');
+    const originalSubmitText = submitBtn ? submitBtn.textContent : 'ENVOYER LE LIEN';
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Envoi en cours...';
+    }
+    if (emailInput) emailInput.disabled = true;
+
+    try {
+        const response = await fetch('http://localhost:1337/api/auth/forgot-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email })
+        });
+
+        // Lecture sécurisée du corps de réponse
+        await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        if (authMessage) {
+            authMessage.classList.remove('text-red-600', 'text-cyber-red', 'text-cyber-blue', 'text-cyber-pink');
+            authMessage.classList.add('text-cyber-green');
+            authMessage.textContent = 'Si un compte correspond à cette adresse, un lien de réinitialisation vient d’être envoyé.';
+            authMessage.classList.remove('hidden');
+        }
+
+        if (emailInput) emailInput.value = '';
+
+    } catch (error) {
+        console.error('Erreur lors de la demande de réinitialisation:', error);
+        showLoginError('Impossible d’envoyer la demande pour le moment. Veuillez réessayer plus tard.');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalSubmitText;
+        }
+        if (emailInput) emailInput.disabled = false;
+    }
+}
+
+/**
  * Gère la désinscription (suppression définitive de compte) auprès de Strapi.
  *
  * @returns {Promise<void>} Une promesse résolue une fois le compte supprimé.
@@ -884,11 +1030,7 @@ function handleSignupAttempt() {
 }
 
 function handlePasswordResetAttempt() {
-    if(authMessage) {
-        authMessage.classList.remove('hidden', 'text-cyber-green', 'text-cyber-red', 'text-cyber-blue');
-        authMessage.classList.add('text-cyber-pink');
-        authMessage.textContent = 'RÉCUPÉRATION: Un lien sécurisé a été envoyé sur votre terminal de messagerie (simulation).';
-    }
+    toggleForgotPasswordMode(!isForgotPasswordMode);
 }
 
 checkAuthStatus();

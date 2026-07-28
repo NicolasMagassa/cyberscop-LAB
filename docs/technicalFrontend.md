@@ -1011,7 +1011,7 @@ git push origin dev
    Implémenter un basculement dynamique de la modale d'authentification unique (sans créer de page HTML d'inscription séparée), en insérant dynamiquement le champ d'adresse e-mail (`#signup-email-input`) lorsque l'utilisateur clique sur "S'inscrire", en adaptant le titre et les boutons, et en basculant la route d'action de validation vers `handleRegister` (inscription) ou `handleLogin` (connexion) de façon sécurisée.
 
 2. **Prérequis**  
-   - La variable d'état global `isSignupMode` et la fonction `toggleSignupMode` dans [main.js](../assets/JS/main.js).
+   - La variable d'état global `isSignupMode` and la fonction `toggleSignupMode` dans [main.js](../assets/JS/main.js).
    - Les tests Jest mis à jour pour `handleSignupAttempt` dans [tests/test.js](../tests/test.js) (incluant les mocks pour `querySelector`, `remove`, `closest`, et `insertAdjacentElement`).
 
 3. **Commande**  
@@ -1041,6 +1041,86 @@ git push origin dev
 
 7. **Danger (si non réalisé)**  
    - > **Alerte Navigation Brisée :** Sans ce basculement, le bouton "S'inscrire" reste inactif ou affiche uniquement un message statique simulé, empêchant concrètement les utilisateurs d'accéder au formulaire d'enregistrement et de déclencher le processus de Double Opt-In via Strapi.
+
+---
+
+## Étape 23 : Flux Complet de Réinitialisation de Mot de Passe (« Mot de passe oublié »)
+
+1. **Objectif de l'étape**  
+   Intégrer le flux complet de réinitialisation de mot de passe :
+   - Côté client, ajouter la transition dynamique de la modale en mode mot de passe oublié (`isForgotPasswordMode`), et la soumission vers `/api/auth/forgot-password` de Strapi pour envoyer l'e-mail de réinitialisation.
+   - Créer la page dédiée `reset-password.html` et sa logique `assets/JS/reset-password.js` pour extraire le paramètre `code` de l'URL, vérifier sa présence, valider les mots de passe et soumettre la mise à jour à l'endpoint `/api/auth/reset-password` de Strapi.
+   - Configurer le template d'e-mail et l'expéditeur de manière professionnelle.
+
+2. **Prérequis**  
+   - Les variables d'état et fonctions `isForgotPasswordMode`, `toggleForgotPasswordMode` et `handleForgotPasswordSubmit` dans [main.js](../assets/JS/main.js).
+   - Les fichiers [reset-password.html](../reset-password.html) et [reset-password.js](../assets/JS/reset-password.js).
+   - Les tests Jest unitaires dans [tests/reset-password.test.js](../tests/reset-password.test.js).
+
+3. **Commande**  
+   Pour exécuter la suite de tests complète :
+   ```bash
+   npm test
+   ```
+
+4. **Explication courte**  
+   - **Demande de réinitialisation** : La modale bascule en mode mot de passe oublié sans rechargement, désactivant les champs et envoyant la requête `POST` vers `forgot-password` de Strapi, qui envoie un e-mail via le relais SMTP Brevo.
+   - **Changement effectif** : La page `reset-password.html` intercepte le code unique de réinitialisation dans l'URL. Si valide, l'utilisateur saisit son nouveau mot de passe, qui est soumis en `POST` à Strapi. Le token est ensuite détruit en base pour être à usage unique.
+
+   **Endpoints utilisés** :
+   - `POST /api/auth/forgot-password`  
+     → Génère un jeton de réinitialisation et déclenche l'envoi d'un e-mail transactionnel via Brevo.
+   - `POST /api/auth/reset-password`  
+     → Vérifie le jeton reçu, met à jour le mot de passe de l'utilisateur puis invalide définitivement ce jeton.
+
+5. **Vérification du résultat**  
+   Tous les 10 tests de la suite dédiée passent avec succès :
+   ```text
+   Reset Password Frontend Logic
+     √ devrait extraire le code de réinitialisation de l'URL
+     √ devrait désactiver le formulaire et afficher un message si le code est absent
+     √ devrait désactiver le formulaire et afficher un message si le code est vide
+     √ devrait enregistrer un écouteur d'événement submit si le code est présent
+     √ devrait bloquer la soumission et afficher une erreur si les mots de passe sont vides
+     √ devrait bloquer la soumission et afficher une erreur si les mots de passe sont différents
+     √ devrait appeler Strapi avec les bonnes informations et gérer le succès
+     √ devrait désactiver le bouton de soumission et afficher "Réinitialisation en cours…" pendant l'envoi
+     √ devrait gérer l'erreur retournée par Strapi si l'authentification échoue (statut non-ok)
+     √ devrait gérer l'erreur de panne réseau
+   ```
+
+   **Validation fonctionnelle réalisée**  
+   Voici le résumé du test d'intégration complet effectué sur le projet :
+   * ✓ Demande de réinitialisation depuis le frontend
+   * ✓ Envoi de l'e-mail transactionnel par Brevo
+   * ✓ Réception correcte de l'e-mail
+   * ✓ Fonctionnement du bouton « Réinitialiser mon mot de passe »
+   * ✓ Ouverture correcte de `reset-password.html`
+   * ✓ Validation des mots de passe
+   * ✓ Appel réussi de l'endpoint `POST /api/auth/reset-password`
+   * ✓ Réinitialisation effective du mot de passe
+   * ✓ Invalidation automatique du jeton après utilisation
+   * ✓ Refus de la réutilisation du même jeton
+   * ✓ Ancien mot de passe refusé
+   * ✓ Nouveau mot de passe accepté
+   * ✓ Utilisateur toujours confirmé
+   * ✓ Utilisateur toujours non bloqué
+
+6. **Notes et conseils supplémentaires**  
+   - > **Sécurité du Jeton :** Pour des raisons évidentes de sécurité, le jeton (code) de réinitialisation ne doit jamais être affiché dans les logs ou la console ni stocké dans le stockage persistant du navigateur (localStorage).
+   - > **Bouton HTML sécurisé :** L'adresse URL en clair est omise dans l'e-mail final au profit d'un bouton cliquable standard pour conserver une apparence professionnelle.
+   - > **Cycle de vie du jeton de réinitialisation :** Le jeton de réinitialisation :
+     * est généré automatiquement par Strapi ;
+     * est stocké temporairement dans le champ `reset_password_token` de l'utilisateur ;
+     * est envoyé uniquement par e-mail ;
+     * est utilisé une seule fois ;
+     * est supprimé automatiquement après une réinitialisation réussie ;
+     * renvoie une erreur HTTP 400 – `Incorrect code provided` si une tentative de réutilisation est effectuée.
+
+7. **Danger (si non réalisé)**  
+   - > **Alerte Perte d'Accès :** Sans cette fonctionnalité, un utilisateur ayant perdu son mot de passe ne disposera d'aucun moyen autonome de récupérer son compte, ce qui bloquera définitivement son accès au site.
+
+
 
 
 

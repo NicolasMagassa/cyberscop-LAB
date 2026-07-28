@@ -663,11 +663,12 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
     // Rôle  : Affiche le message de récupération de mot de passe (simulation)
     // =========================================================================
     describe('handlePasswordResetAttempt', () => {
-        test('devrait afficher le message de récupération de mot de passe', () => {
+        test('devrait basculer l\'état de la modale en mode récupération de mot de passe', () => {
+            const querySpy = jest.spyOn(global.document, 'querySelector').mockReturnValue(mockElement);
             mockElement.textContent = '';
             app.handlePasswordResetAttempt();
-            expect(mockElement.textContent).toContain('RÉCUPÉRATION');
-            expect(mockClassList.add).toHaveBeenCalledWith('text-cyber-pink');
+            expect(mockElement.textContent).toBe('Retour à la connexion');
+            querySpy.mockRestore();
         });
     });
 
