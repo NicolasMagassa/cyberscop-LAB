@@ -1,7 +1,13 @@
 /**
- * Fichier de tests pour assets/JS/mon-espace.js
+ * @file tests/mon-espace.test.js
+ * @description Suite de tests unitaires pour le script assets/JS/mon-espace.js.
+ * Valide l'affichage du profil, les validations client, le changement de mot de passe,
+ * le renouvellement sécurisé de JWT et le cycle de déconnexion.
  */
 
+/**
+ * Suite principale testant la logique applicative de mon-espace.js
+ */
 describe('Mon Espace Frontend Logic', () => {
     let mockElement;
     let mockWelcomeName;
@@ -26,6 +32,10 @@ describe('Mon Espace Frontend Logic', () => {
     let originalDocument;
     let mockEvent;
 
+    /**
+     * Configuration initiale avant chaque test.
+     * Mocke les variables globales window, document, fetch et localStorage.
+     */
     beforeEach(() => {
         jest.clearAllMocks();
 
@@ -101,13 +111,23 @@ describe('Mon Espace Frontend Logic', () => {
         delete require.cache[require.resolve('../assets/JS/mon-espace.js')];
     });
 
+    /**
+     * Nettoyage après chaque test.
+     * Restaure les variables globales originales.
+     */
     afterEach(() => {
         global.fetch = originalFetch;
         global.window = originalWindow;
         global.document = originalDocument;
     });
 
+    /**
+     * Groupe de tests pour la fonction initMonEspace
+     */
     describe('initMonEspace', () => {
+        /**
+         * @test Redirection si session absente
+         */
         test('devrait rediriger vers index.html?auth=required si la session est absente de localStorage', async () => {
             global.localStorage.getItem.mockReturnValueOnce(null);
             const monEspace = require('../assets/JS/mon-espace.js');
@@ -118,6 +138,9 @@ describe('Mon Espace Frontend Logic', () => {
             expect(global.window.location.replace).toHaveBeenCalledWith("index.html?auth=required");
         });
 
+        /**
+         * @test Redirection si session corrompue
+         */
         test('devrait rediriger vers index.html?auth=required si le JSON stocké est corrompu', async () => {
             global.localStorage.getItem.mockReturnValueOnce("json-invalide-corrompu");
             const monEspace = require('../assets/JS/mon-espace.js');
@@ -128,6 +151,9 @@ describe('Mon Espace Frontend Logic', () => {
             expect(global.window.location.replace).toHaveBeenCalledWith("index.html?auth=required");
         });
 
+        /**
+         * @test Affichage des informations de profil
+         */
         test('devrait appeler /api/users/me avec le Bearer token si la session est présente', async () => {
             const fakeSession = { username: 'testuser', token: 'token-jwt-secret-999' };
             global.localStorage.getItem.mockReturnValueOnce(JSON.stringify(fakeSession));
@@ -160,6 +186,9 @@ describe('Mon Espace Frontend Logic', () => {
             expect(mockDetailsContainer.classList.remove).toHaveBeenCalledWith('hidden');
         });
 
+        /**
+         * @test Gestion de l'expiration du token JWT
+         */
         test('devrait rediriger vers index.html?auth=expired sur une réponse 401 ou 403 (session expirée)', async () => {
             const fakeSession = { username: 'testuser', token: 'token-expiré' };
             global.localStorage.getItem.mockReturnValueOnce(JSON.stringify(fakeSession));
@@ -176,6 +205,9 @@ describe('Mon Espace Frontend Logic', () => {
             expect(global.window.location.replace).toHaveBeenCalledWith("index.html?auth=expired");
         });
 
+        /**
+         * @test Résilience en cas d'erreur réseau
+         */
         test('devrait conserver la session locale en cas d\'erreur réseau (panne réseau)', async () => {
             const fakeSession = { username: 'testuser', token: 'token-valide-mais-panne' };
             global.localStorage.getItem.mockReturnValueOnce(JSON.stringify(fakeSession));
@@ -195,7 +227,13 @@ describe('Mon Espace Frontend Logic', () => {
         });
     });
 
+    /**
+     * Groupe de tests pour la modification de mot de passe (handleChangePasswordSubmit)
+     */
     describe('handleChangePasswordSubmit', () => {
+        /**
+         * @test Blocage si champs vides
+         */
         test('devrait bloquer la soumission et afficher une erreur si un des champs est vide', async () => {
             mockCurrentPasswordInput.value = '';
             mockNewPasswordInput.value = 'newpass';
@@ -209,6 +247,9 @@ describe('Mon Espace Frontend Logic', () => {
             expect(global.fetch).not.toHaveBeenCalled();
         });
 
+        /**
+         * @test Blocage si nouveau mot de passe identique à l'ancien
+         */
         test('devrait bloquer la soumission si le nouveau mot de passe est identique à l\'actuel', async () => {
             mockCurrentPasswordInput.value = 'samepass';
             mockNewPasswordInput.value = 'samepass';
@@ -222,6 +263,9 @@ describe('Mon Espace Frontend Logic', () => {
             expect(global.fetch).not.toHaveBeenCalled();
         });
 
+        /**
+         * @test Blocage si non concordance de confirmation
+         */
         test('devrait bloquer la soumission si la confirmation ne correspond pas', async () => {
             mockCurrentPasswordInput.value = 'oldpass';
             mockNewPasswordInput.value = 'newpass123';
@@ -235,6 +279,9 @@ describe('Mon Espace Frontend Logic', () => {
             expect(global.fetch).not.toHaveBeenCalled();
         });
 
+        /**
+         * @test Blocage si mot de passe trop court
+         */
         test('devrait bloquer la soumission si la longueur est inférieure à 6 caractères', async () => {
             mockCurrentPasswordInput.value = 'oldpass';
             mockNewPasswordInput.value = '12345';
@@ -248,6 +295,9 @@ describe('Mon Espace Frontend Logic', () => {
             expect(global.fetch).not.toHaveBeenCalled();
         });
 
+        /**
+         * @test Prévention des doubles soumissions
+         */
         test('devrait désactiver les contrôles pour empêcher la double soumission pendant le traitement', async () => {
             mockCurrentPasswordInput.value = 'oldpass';
             mockNewPasswordInput.value = 'newpass';
@@ -290,6 +340,9 @@ describe('Mon Espace Frontend Logic', () => {
             await submitPromise;
         });
 
+        /**
+         * @test Modification réussie et renouvellement/validation du JWT
+         */
         test('devrait soumettre, enregistrer le nouveau JWT, vider les champs et valider le nouveau JWT', async () => {
             mockCurrentPasswordInput.value = 'oldpass';
             mockNewPasswordInput.value = 'newpass';
@@ -349,6 +402,9 @@ describe('Mon Espace Frontend Logic', () => {
             expect(mockSuccessDiv.classList.remove).toHaveBeenCalledWith('hidden');
         });
 
+        /**
+         * @test Echec de validation du nouveau JWT
+         */
         test('devrait déconnecter l\'utilisateur et rediriger si la validation du nouveau JWT échoue', async () => {
             mockCurrentPasswordInput.value = 'oldpass';
             mockNewPasswordInput.value = 'newpass';
@@ -376,7 +432,13 @@ describe('Mon Espace Frontend Logic', () => {
         });
     });
 
+    /**
+     * Groupe de tests pour la fonction handleEspaceLogout
+     */
     describe('handleEspaceLogout', () => {
+        /**
+         * @test Déconnexion réussie
+         */
         test('devrait appeler handleLogout et rediriger vers index.html', () => {
             const monEspace = require('../assets/JS/mon-espace.js');
             monEspace.handleEspaceLogout();

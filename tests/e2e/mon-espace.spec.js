@@ -1,7 +1,21 @@
+/**
+ * @file tests/e2e/mon-espace.spec.js
+ * @description Suite de tests d'intégration E2E avec Playwright pour l'espace utilisateur.
+ * Vérifie la redirection automatique des accès anonymes, l'authentification simulée,
+ * l'affichage du profil, la modification du mot de passe avec renouvellement du JWT,
+ * et le flux de déconnexion.
+ */
+
 const { test, expect } = require('@playwright/test');
 
+/**
+ * Suite principale E2E pour l'Espace Personnel Sécurisé
+ */
 test.describe('Espace Utilisateur Sécurisé (Mon Espace)', () => {
 
+    /**
+     * @test Redirection automatique des utilisateurs anonymes
+     */
     test('Redirection automatique : l\'accès anonyme à mon-espace.html redirige vers index.html?auth=required', async ({ page }) => {
         // Tenter d'accéder directement à la page protégée
         await page.goto('/mon-espace.html');
@@ -19,6 +33,9 @@ test.describe('Espace Utilisateur Sécurisé (Mon Espace)', () => {
         await expect(authMessage).toHaveText('CONNEXION REQUISE POUR ACCÉDER À CET ESPACE.');
     });
 
+    /**
+     * @test Rendu des informations utilisateur et modification de mot de passe réussie
+     */
     test('Affichage des détails du compte et modification de mot de passe réussie', async ({ page }) => {
         // Préparer une session simulée
         const initialUser = {
@@ -127,6 +144,9 @@ test.describe('Espace Utilisateur Sécurisé (Mon Espace)', () => {
         expect(updatedUser.token).toBe('mock-new-jwt-token');
     });
 
+    /**
+     * @test Déconnexion de l'utilisateur
+     */
     test('Déconnexion utilisateur depuis mon-espace.html', async ({ page }) => {
         const fakeUser = {
             id: 42,

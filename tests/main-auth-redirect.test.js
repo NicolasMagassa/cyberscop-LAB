@@ -1,7 +1,13 @@
 /**
- * Fichier de tests pour la logique de redirection d'authentification sur page load de main.js
+ * @file tests/main-auth-redirect.test.js
+ * @description Suite de tests pour la logique de redirection d'authentification sur page load.
+ * Valide l'analyse des paramètres d'URL (auth=required, auth=expired), le nettoyage 
+ * de la barre d'adresse via replaceState et la redirection de gerer_compte.html.
  */
 
+/**
+ * Suite principale de redirection pour main.js
+ */
 describe('Redirection Authentification Page Load (main.js)', () => {
     let mockElement;
     let mockLoginModal;
@@ -11,6 +17,9 @@ describe('Redirection Authentification Page Load (main.js)', () => {
     let originalDocument;
     let domContentLoadedCallback;
 
+    /**
+     * Initialisation et configuration des mocks DOM, localStorage, sessionStorage et window.
+     */
     beforeEach(() => {
         jest.clearAllMocks();
         domContentLoadedCallback = null;
@@ -95,12 +104,18 @@ describe('Redirection Authentification Page Load (main.js)', () => {
         jest.resetModules();
     });
 
+    /**
+     * Restauration des variables globales originales après chaque test.
+     */
     afterEach(() => {
         global.fetch = originalFetch;
         global.window = originalWindow;
         global.document = originalDocument;
     });
 
+    /**
+     * @test Comportement sans paramètre d'authentification
+     */
     test('ne devrait rien faire si aucun paramètre auth n\'est présent dans l\'URL', () => {
         global.window.location.search = '';
         const app = require('../assets/JS/main.js');
@@ -114,6 +129,9 @@ describe('Redirection Authentification Page Load (main.js)', () => {
         expect(mockLoginModal.classList.remove).not.toHaveBeenCalled();
     });
 
+    /**
+     * @test Détection de auth=required
+     */
     test('devrait ouvrir la modale et afficher le message correct pour auth=required', () => {
         global.window.location.search = '?auth=required';
         const app = require('../assets/JS/main.js');
@@ -134,6 +152,9 @@ describe('Redirection Authentification Page Load (main.js)', () => {
         expect(mockLoginModal.classList.remove).toHaveBeenCalledWith('hidden');
     });
 
+    /**
+     * @test Détection de auth=expired
+     */
     test('devrait ouvrir la modale et afficher le message correct pour auth=expired', () => {
         global.window.location.search = '?auth=expired';
         const app = require('../assets/JS/main.js');
@@ -154,6 +175,9 @@ describe('Redirection Authentification Page Load (main.js)', () => {
         expect(mockLoginModal.classList.remove).toHaveBeenCalledWith('hidden');
     });
 
+    /**
+     * @test Conservation des autres paramètres de l'URL lors du nettoyage
+     */
     test('devrait nettoyer le paramètre auth tout en préservant les autres paramètres de l\'URL', () => {
         global.window.location.search = '?page=2&auth=required&theme=dark';
         const app = require('../assets/JS/main.js');
@@ -166,6 +190,9 @@ describe('Redirection Authentification Page Load (main.js)', () => {
         expect(global.window.history.replaceState).toHaveBeenCalledWith({}, expect.any(String), expect.stringContaining('/index.html?page=2&theme=dark'));
     });
 
+    /**
+     * @test Vérification du fichier gerer_compte.html de redirection
+     */
     test('devrait vérifier que gerer_compte.html contient la redirection replace sans boucle', () => {
         const fs = require('fs');
         const path = require('path');
@@ -180,6 +207,9 @@ describe('Redirection Authentification Page Load (main.js)', () => {
         expect(fileContent).toContain('href="mon-espace.html"');
     });
 
+    /**
+     * @test Non-exposition de secrets (mots de passe, JWT) dans les logs
+     */
     test('ne doit jamais journaliser de mot de passe ou de JWT dans la console', () => {
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
