@@ -1337,6 +1337,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnDeleteAccount) {
         btnDeleteAccount.addEventListener('click', handleUnregister);
     }
+
+    // Gestion de la redirection avec ouverture de la modale si connexion requise ou session expirée
+    const search = (window.location && window.location.search) ? window.location.search : '';
+    const urlParams = new URLSearchParams(search);
+    const authParam = urlParams.get('auth');
+    if (authParam) {
+        // Supprime le paramètre de l'URL pour éviter qu'il revienne au rafraîchissement
+        if (window.history && window.history.replaceState && window.location) {
+            const newSearch = window.location.search.replace(/[?&]auth=[^&]+/, '').replace(/^&/, '?');
+            const cleanSearch = newSearch === '?' || newSearch === '' ? '' : newSearch;
+            window.history.replaceState({}, document.title, window.location.pathname + cleanSearch);
+        }
+
+        // Ouvre la modale de connexion
+        if (typeof toggleLoginModal === 'function') {
+            if (loginModal && loginModal.classList.contains('hidden')) {
+                toggleLoginModal();
+            }
+        }
+        
+        // Affiche le message approprié
+        if (authMessage) {
+            authMessage.classList.remove('hidden', 'text-cyber-green');
+            authMessage.classList.add('text-red-600');
+            if (authParam === 'required') {
+                authMessage.textContent = 'CONNEXION REQUISE POUR ACCÉDER À CET ESPACE.';
+            } else if (authParam === 'expired') {
+                authMessage.textContent = 'VOTRE SESSION A EXPIRÉ. VEUILLEZ VOUS RECONNECTER.';
+            }
+        }
+    }
 });
 
 // Exporter les fonctions pour les tests unitaires sous Node/Jest

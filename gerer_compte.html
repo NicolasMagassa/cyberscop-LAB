@@ -7,6 +7,9 @@
     
     <!-- Robots / Sécurité SEO -->
     <meta name="robots" content="noindex, nofollow">
+    <script>
+        window.location.replace("mon-espace.html");
+    </script>
 
     <!-- Favicon -->
     <link rel="icon" type="image/webp" href="assets/images/favicon.webp">
@@ -121,7 +124,20 @@
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         <h1 class="text-4xl font-orbitron font-bold text-cyber-green mb-8">Gerer compte</h1>
         <div class="bg-white dark:bg-cyber-panel border border-gray-200 dark:border-gray-800 rounded-md p-8 shadow-sm">
-            <p class="text-gray-600 dark:text-gray-400 font-mono text-lg">En attente de contenu...</p>
+            <noscript>
+                <div class="text-red-500 font-mono text-sm uppercase mb-4">
+                    [SYSTEM ERROR: JAVASCRIPT REQUIS]
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 font-mono text-base mb-4">
+                    JavaScript est désactivé sur votre navigateur. Pour accéder à votre espace, veuillez activer JavaScript ou cliquer sur le lien ci-dessous :
+                </p>
+                <a href="mon-espace.html" class="inline-block px-4 py-2 border border-cyber-green text-cyber-green hover:bg-cyber-green hover:text-white transition-colors rounded-sm font-bold text-sm font-mono">
+                    > Accéder à mon espace
+                </a>
+            </noscript>
+            <script>
+                document.write('<p class="text-gray-600 dark:text-gray-400 font-mono text-lg">Redirection en cours vers votre espace...</p>');
+            </script>
         </div>
     </main>
     

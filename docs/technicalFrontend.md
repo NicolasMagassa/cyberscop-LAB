@@ -1120,6 +1120,89 @@ git push origin dev
 7. **Danger (si non réalisé)**  
    - > **Alerte Perte d'Accès :** Sans cette fonctionnalité, un utilisateur ayant perdu son mot de passe ne disposera d'aucun moyen autonome de récupérer son compte, ce qui bloquera définitivement son accès au site.
 
+## Étape 24 : Espace Personnel Sécurisé (« Gérer mon espace »)
+
+1. **Objectif de l'étape**  
+   Créer une page de profil sécurisée `mon-espace.html` et sa logique associée `assets/JS/mon-espace.js` pour les utilisateurs connectés. Gérer l'affichage dynamique de leurs données de compte, la validation du jeton JWT auprès de Strapi lors des appels API protégés, la modification sécurisée de leur mot de passe via l'endpoint natif de Strapi, et le cycle de déconnexion.
+
+2. **Prérequis**  
+   - Les fichiers [mon-espace.html](../mon-espace.html) et [mon-espace.js](../assets/JS/mon-espace.js) créés et intégrés.
+   - Le remplacement des liens vers `gerer_compte.html` par `mon-espace.html` effectué dans les 14 fichiers HTML actifs du site, et le 15ème fichier HTML (`gerer_compte.html`) lui-même modifié pour agir comme page de redirection automatique instantanée (via `location.replace`).
+   - La logique d'écouteurs de paramètres `?auth=required` et `?auth=expired` ajoutée dans [main.js](../assets/JS/main.js) pour ouvrir automatiquement la modale avec un message clair, suivie d'un nettoyage de l'URL via `history.replaceState()`.
+   - Les tests unitaires correspondants écrits dans [tests/mon-espace.test.js](../tests/mon-espace.test.js) et [tests/main-auth-redirect.test.js](../tests/main-auth-redirect.test.js).
+   - Les tests d'intégration réels écrits dans [tests/e2e/mon-espace.spec.js](../tests/e2e/mon-espace.spec.js).
+
+3. **Commandes**  
+   Pour exécuter les tests unitaires et comportementaux avec Jest :
+   ```bash
+   npm test
+   ```
+   Pour exécuter les tests de bout en bout avec Playwright :
+   ```bash
+   npx playwright test
+   ```
+
+4. **Explication courte**  
+   - **Vérification de session immédiate** : Un script synchrone en ligne (inline) dans le `<head>` de `mon-espace.html` intercepte l'accès anonyme et redirige vers `index.html?auth=required` avant tout affichage du DOM, évitant l'effet de clignotement.
+   - **Validation continue et affichage** : Au chargement de la page, `initMonEspace` interroge `GET /api/users/me` avec le token JWT stocké dans `cyberScopeUser`. En cas de succès, elle injecte les attributs dans les éléments DOM en lecture seule (et formate la date d'enregistrement en français). En cas de statut 401 ou 403 (session expirée), elle purge la session locale et redirige vers `index.html?auth=expired`.
+   - **Bouton Réessayer** : Si le serveur de base de données ou de sécurité est indisponible (panne réseau), l'IHM affiche un message d'erreur d'inaccessibilité sans détruire la session de l'utilisateur, offrant un bouton "Réessayer".
+   - **Modification sécurisée du mot de passe** : Le formulaire utilise les attributs `autocomplete` recommandés pour la sécurité. Lors de la soumission, après des validations locales (champs vides, même mot de passe, longueur minimale), il envoie les données en POST vers `/api/auth/change-password`. En cas de succès, Strapi renvoie un nouveau JWT. Ce nouveau jeton est validé immédiatement par un appel à `/api/users/me` avant de remplacer l'ancien jeton dans le `localStorage` et de confirmer le succès final.
+   - **Déconnexion** : Le bouton Se déconnecter vide la clé `cyberScopeUser` du stockage local et redirige vers l'accueil.
+
+   **Endpoints utilisés** :
+   - `GET /api/users/me`  
+     → Vérifie la validité du JWT de l'utilisateur connecté et récupère les informations de son compte (nom d'utilisateur, e-mail, statut de confirmation, etc.).
+   - `POST /api/auth/change-password`  
+     → Vérifie le mot de passe actuel, applique le nouveau mot de passe et renvoie un nouveau JWT que l'application valide avant de remplacer l'ancien.
+
+5. **Vérification du résultat**  
+   Tous les tests dédiés à cette fonctionnalité (13 tests unitaires de profil dans `mon-espace.test.js` + 6 tests de redirection dans `main-auth-redirect.test.js`, soit 19 nouveaux tests unitaires Jest, et 3 nouveaux tests d'intégration E2E Playwright dans `mon-espace.spec.js`) passent avec succès. Ces tests dédiés s'intègrent dans les validations globales du projet (104 tests Jest et 9 tests Playwright E2E au total).
+   
+   **Tests unitaires Jest (19 nouveaux tests dédiés)** :
+   ```text
+   Mon Espace Logic & Redirect
+     initMonEspace (mon-espace.test.js)
+       √ devrait rediriger vers index.html?auth=required si la session est absente de localStorage
+       √ devrait rediriger vers index.html?auth=required si le JSON stocké est corrompu
+       √ devrait appeler /api/users/me avec le Bearer token si la session est présente
+       √ devrait rediriger vers index.html?auth=expired sur une réponse 401 ou 403 (session expirée)
+       √ devrait conserver la session locale en cas d'erreur réseau (panne réseau)
+     handleChangePasswordSubmit (mon-espace.test.js)
+       √ devrait bloquer la soumission et afficher une erreur si un des champs est vide
+       √ devrait bloquer la soumission si le nouveau mot de passe est identique à l'actuel
+       √ devrait bloquer la soumission si la confirmation ne correspond pas
+       √ devrait bloquer la soumission si la longueur est inférieure à 6 caractères
+       √ devrait désactiver les contrôles pour empêcher la double soumission pendant le traitement
+       √ devrait soumettre, enregistrer le nouveau JWT, vider les champs et valider le nouveau JWT
+       √ devrait déconnecter l'utilisateur et rediriger si la validation du nouveau JWT échoue
+     handleEspaceLogout (mon-espace.test.js)
+       √ devrait appeler handleLogout et rediriger vers index.html
+     Redirection & Paramètres (main-auth-redirect.test.js)
+       √ ne devrait rien faire si aucun paramètre auth n'est présent dans l'URL
+       √ devrait ouvrir la modale et afficher le message correct pour auth=required
+       √ devrait ouvrir la modale et afficher le message correct pour auth=expired
+       √ devrait nettoyer le paramètre auth tout en préservant les autres paramètres de l'URL
+       √ devrait vérifier que gerer_compte.html contient la redirection replace sans boucle
+       √ ne doit jamais journaliser de mot de passe ou de JWT dans la console
+   ```
+
+   **Tests E2E Playwright (3 nouveaux tests dédiés)** :
+   ```text
+   Espace Utilisateur Sécurisé (Mon Espace)
+     √ Redirection automatique : l'accès anonyme à mon-espace.html redirige vers index.html?auth=required
+     √ Affichage des détails du compte et modification de mot de passe réussie
+     √ Déconnexion utilisateur depuis mon-espace.html
+   ```
+
+6. **Notes et conseils supplémentaires**  
+   - > **Sécurité des secrets :** Aucun mot de passe en clair ou jeton JWT n'est journalisé dans la console ni affiché dans les messages d'erreur. Les champs de saisie sont vidés immédiatement après confirmation du succès.
+   - > **Prévention du FOUC :** La redirection dans l'en-tête HTML évite le chargement des scripts plus lourds (Tailwind, Lucide, etc.) et le rendu visuel de la page privée pour un utilisateur non connecté.
+
+7. **Sécurité et protection des accès**  
+   - > **Frontière de sécurité réelle :** La redirection en JavaScript côté front-end (notamment le script inline dans le `<head>`) sert uniquement de confort utilisateur en évitant le FOUC (clignotement de données privées) pour les accès anonymes. Elle ne constitue en aucun cas une frontière de sécurité robuste.
+   - > **Validation et contrôle backend :** La sécurité effective de l'espace personnel repose exclusivement sur la validation cryptographique continue du jeton JWT par Strapi via l'endpoint `/api/users/me` et sur les politiques de contrôle d'accès (RBAC) configurées côté backend pour chaque endpoint protégé. De plus, le renouvellement immédiat et la re-vérification du JWT lors d'un changement de mot de passe sont critiques pour prévenir l'invalidation intempestive de la session applicative.
+
+
 
 
 
