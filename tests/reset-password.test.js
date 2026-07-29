@@ -1,7 +1,13 @@
 /**
- * Fichier de tests pour reset-password.js
+ * @file tests/reset-password.test.js
+ * @description Suite de tests unitaires pour reset-password.js.
+ * Couvre l'extraction du jeton de réinitialisation, les validations de champs,
+ * les appels d'API Strapi correspondants et les mécanismes de panne réseau.
  */
 
+/**
+ * Suite principale testant la logique frontend de réinitialisation de mot de passe
+ */
 describe('Reset Password Frontend Logic', () => {
     let mockElement;
     let mockAddEventListener;
@@ -9,6 +15,10 @@ describe('Reset Password Frontend Logic', () => {
     let originalWindow;
     let originalDocument;
 
+    /**
+     * Initialisation et configuration globale avant chaque test.
+     * Mocke window, document, fetch, localStorage, sessionStorage.
+     */
     beforeEach(() => {
         jest.clearAllMocks();
 
@@ -64,17 +74,26 @@ describe('Reset Password Frontend Logic', () => {
         delete require.cache[require.resolve('../assets/JS/reset-password.js')];
     });
 
+    /**
+     * Restauration des variables globales originales.
+     */
     afterEach(() => {
         global.fetch = originalFetch;
         global.window = originalWindow;
         global.document = originalDocument;
     });
 
+    /**
+     * @test Extraction du code dans l'URL
+     */
     test('devrait extraire le code de réinitialisation de l\'URL', () => {
         const resetPassword = require('../assets/JS/reset-password.js');
         expect(resetPassword.getResetCode()).toBe('valid-test-token-123');
     });
 
+    /**
+     * @test Comportement sans code dans l'URL
+     */
     test('devrait désactiver le formulaire et afficher un message si le code est absent', () => {
         global.window.location.search = '';
         const resetPassword = require('../assets/JS/reset-password.js');
@@ -86,6 +105,9 @@ describe('Reset Password Frontend Logic', () => {
         expect(mockElement.disabled).toBe(true);
     });
 
+    /**
+     * @test Comportement avec code vide dans l'URL
+     */
     test('devrait désactiver le formulaire et afficher un message si le code est vide', () => {
         global.window.location.search = '?code=';
         const resetPassword = require('../assets/JS/reset-password.js');
@@ -96,6 +118,9 @@ describe('Reset Password Frontend Logic', () => {
         expect(mockElement.disabled).toBe(true);
     });
 
+    /**
+     * @test Écouteur submit
+     */
     test('devrait enregistrer un écouteur d\'événement submit si le code est présent', () => {
         const resetPassword = require('../assets/JS/reset-password.js');
         
@@ -105,6 +130,9 @@ describe('Reset Password Frontend Logic', () => {
         expect(mockAddEventListener).toHaveBeenCalledWith('submit', expect.any(Function));
     });
 
+    /**
+     * @test Blocage si champs de mot de passe vides
+     */
     test('devrait bloquer la soumission et afficher une erreur si les mots de passe sont vides', async () => {
         const resetPassword = require('../assets/JS/reset-password.js');
         
@@ -118,6 +146,9 @@ describe('Reset Password Frontend Logic', () => {
         expect(mockClassListContainsError()).toBe(true);
     });
 
+    /**
+     * @test Blocage si non concordance des mots de passe
+     */
     test('devrait bloquer la soumission et afficher une erreur si les mots de passe sont différents', async () => {
         const resetPassword = require('../assets/JS/reset-password.js');
         
@@ -140,6 +171,9 @@ describe('Reset Password Frontend Logic', () => {
         expect(messageContainer.textContent).toBe("ERREUR: Les mots de passe ne correspondent pas.");
     });
 
+    /**
+     * @test Appel d'API réussi et réinitialisation de mot de passe confirmée
+     */
     test('devrait appeler Strapi avec les bonnes informations et gérer le succès', async () => {
         const resetPassword = require('../assets/JS/reset-password.js');
         
@@ -193,6 +227,9 @@ describe('Reset Password Frontend Logic', () => {
         expect(global.sessionStorage.setItem).not.toHaveBeenCalled();
     });
 
+    /**
+     * @test Désactivation des champs pendant la soumission
+     */
     test('devrait désactiver le bouton de soumission et afficher "Réinitialisation en cours…" pendant l\'envoi', async () => {
         const resetPassword = require('../assets/JS/reset-password.js');
         
@@ -234,6 +271,9 @@ describe('Reset Password Frontend Logic', () => {
         await submitPromise;
     });
 
+    /**
+     * @test Gestion des erreurs retournées par l'API Strapi (JWT incorrect/expiré)
+     */
     test('devrait gérer l\'erreur retournée par Strapi si l\'authentification échoue (statut non-ok)', async () => {
         const resetPassword = require('../assets/JS/reset-password.js');
         
@@ -264,6 +304,9 @@ describe('Reset Password Frontend Logic', () => {
         expect(submitBtn.textContent).toBe('Soumettre');
     });
 
+    /**
+     * @test Gestion de l'inaccessibilité réseau (panne de serveur)
+     */
     test('devrait gérer l\'erreur de panne réseau', async () => {
         const resetPassword = require('../assets/JS/reset-password.js');
         
@@ -290,7 +333,10 @@ describe('Reset Password Frontend Logic', () => {
         expect(submitBtn.disabled).toBe(false); // Re-enabled
     });
 
-    // Helper function
+    /**
+     * Helper pour vérifier l'ajout d'une classe d'erreur
+     * @returns {boolean} True si la classe d'erreur text-cyber-red a été ajoutée
+     */
     function mockClassListContainsError() {
         return mockElement.classList.add.mock.calls.some(call => call.includes('text-cyber-red'));
     }

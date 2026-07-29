@@ -1,7 +1,19 @@
+/**
+ * @file tests/e2e/strapi-integration.spec.js
+ * @description Tests d'intégration E2E testant la liaison entre le site frontend
+ * et le backend Strapi (mocké pour les pannes réseau et les réponses, et réel).
+ */
+
 const { test, expect } = require('@playwright/test');
 
+/**
+ * Suite principale testant l'intégration et la résilience face à Strapi
+ */
 test.describe('Intégration Strapi & Fallback', () => {
 
+  /**
+   * @test Résilience (mode hors-ligne) avec repli sur les données mockées locales
+   */
   test('Mode Hors-ligne : devrait afficher les données simulées (mockées) si Strapi est inaccessible', async ({ page }) => {
     // Intercepter et bloquer tous les appels vers Strapi
     await page.route('**/api/veilles', route => route.abort('failed'));
@@ -25,6 +37,9 @@ test.describe('Intégration Strapi & Fallback', () => {
     await expect(firstIAMenaceTitle).toBeVisible();
   });
 
+  /**
+   * @test Rendu des données renvoyées par l'API Strapi (mode en-ligne simulé)
+   */
   test('Mode Connecté (API Simulée) : devrait afficher les données reçues de l\'API Strapi', async ({ page }) => {
     // Mock de la réponse pour les veilles (grille principale)
     await page.route('**/api/veilles', async route => {
@@ -76,6 +91,9 @@ test.describe('Intégration Strapi & Fallback', () => {
     await expect(customIA).toBeVisible();
   });
 
+  /**
+   * @test Intégration réelle (non mockée) avec le serveur Strapi local
+   */
   test('Mode Réel (Unmocked) : devrait se connecter au serveur Strapi local', async ({ request }) => {
     // Tente de requêter le serveur Strapi local (qui doit tourner en tâche de fond sur le port 1337)
     // Ce test valide que la connexion réseau entre le frontend (ou le runner) et le backend Strapi fonctionne.

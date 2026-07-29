@@ -1,11 +1,27 @@
+/**
+ * @file tests/e2e/smoke.spec.js
+ * @description Tests de fumée (Smoke Tests) basiques E2E pour CyberScope Lab.
+ * Valide que la page d'accueil se charge correctement, contient le titre attendu
+ * et affiche les principaux conteneurs visuels.
+ */
+
 const { test, expect } = require('@playwright/test');
 
+/**
+ * Suite principale de Smoke Tests pour la validation de surface de l'application
+ */
 test.describe('Smoke Tests - CyberScope Lab', () => {
+  /**
+   * Navigue vers la racine avant chaque test.
+   */
   test.beforeEach(async ({ page }) => {
     // Navigue vers la page d'accueil servie par notre serveur local
     await page.goto('/');
   });
 
+  /**
+   * @test Chargement de la page d'accueil
+   */
   test('devrait charger la page d\'accueil avec le bon titre', async ({ page }) => {
     // Vérifie le titre de la page
     await expect(page).toHaveTitle(/CyberScope Lab | Blog Cybersécurité/);
@@ -15,6 +31,9 @@ test.describe('Smoke Tests - CyberScope Lab', () => {
     await expect(mainHeader).toContainText('CyberScope Lab');
   });
 
+  /**
+   * @test Rendu des conteneurs principaux de la grille et du panel
+   */
   test('devrait afficher les conteneurs principaux de veille et de briefing', async ({ page }) => {
     // Vérifie la présence de la grille de briefing
     const briefingGrid = page.locator('#briefing-grid');
@@ -25,12 +44,15 @@ test.describe('Smoke Tests - CyberScope Lab', () => {
     await expect(veilleContainer).toBeVisible();
   });
 
+  /**
+   * @test Ouverture de la modale d'authentification
+   */
   test('devrait ouvrir la modale de connexion au clic sur le bouton LOGIN', async ({ page }) => {
     // Vérifie que la modale est cachée au départ
     const loginModal = page.locator('#login-modal');
     await expect(loginModal).toBeHidden();
 
-    // Trouve et clique sur le bouton LOGIN_
+    // Trouve et clique sur le bouton LOGIN
     const loginBtn = page.locator('#btn-login-trigger');
     await expect(loginBtn).toBeVisible();
     await loginBtn.click();

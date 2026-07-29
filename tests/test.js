@@ -1,9 +1,8 @@
 /**
- * Fichier de tests pour le projet Cyberscop Lab.
- * Prêt à l'emploi avec Jest.
- * 
- * Contient des tests unitaires (TDD) pour les fonctions pures 
- * et des tests d'interface automatisés utilisant des simulations (mocks) du DOM et du stockage.
+ * @file tests/test.js
+ * @description Suite de tests unitaires et comportementaux principale pour le projet CyberScope Lab.
+ * Teste les fonctions de formatage, les cookies, la modale d'authentification, 
+ * l'inscription, la désinscription, le chargement d'articles et la pagination.
  */
 
 // --- CONFIGURATION DU MOCK POUR L'ENVIRONNEMENT BROWSER/DOM ---
@@ -156,6 +155,9 @@ const articleApp = require('../assets/JS/article.js');
 
 
 // --- 1. TESTS UNITAIRES (TDD) ---
+/**
+ * Suite de tests unitaires validant les fonctions pures de formatage et de cookies.
+ */
 describe('Tests Unitaires - Fonctions de formatage et de cookies', () => {
 
     beforeEach(() => {
@@ -216,6 +218,9 @@ describe('Tests Unitaires - Fonctions de formatage et de cookies', () => {
 
 
 // --- 2. TESTS COMPORTEMENTAUX / AUTOMATISÉS ---
+/**
+ * Suite de tests comportementaux validant l'interactivité de l'IHM et l'intégration API.
+ */
 describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
 
     beforeEach(() => {
