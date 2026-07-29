@@ -576,6 +576,47 @@ Une fois l'inscription fonctionnelle, tester l'ensemble du flux d'authentificati
 * **✅ Réinstallation testée**
 * **✅ Flux d'authentification complet opérationnel**
 
+
+---
+
+## 📧 API de Contact & Messagerie (`/api/contact`)
+
+Le backend implémente une route personnalisée publique dédiée à la réception des messages du formulaire de contact.
+
+### ⚙️ Conception Technique & Fichiers
+- **Route** : [backend/src/api/contact/routes/contact.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/contact/routes/contact.js)  
+  Définit le point d'accès `POST /api/contact` sans authentification requise (`auth: false`).
+- **Contrôleur** : [backend/src/api/contact/controllers/contact.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/api/contact/controllers/contact.js)  
+  Valide le corps de la requête, applique les barrières antispam et procède à l'expédition de l'e-mail.
+
+### 🛡️ Mesures de Sécurité Implémentées
+1. **Contrôle de taille (Payload <= 10 Ko)** :
+   Le contrôleur intercepte la taille de la requête (via l'en-tête `Content-Length` et la chaîne JSON brute) et renvoie un code `400 Bad Request` si la taille excède 10 Ko, empêchant l'épuisement de la mémoire du serveur par des soumissions massives.
+2. **Filtrage Honeypot antispam** :
+   Un champ `website` (invisible pour les humains) est inclus dans le payload. Si ce champ est rempli, le serveur simule instantanément une réussite complète (`200 OK` avec le même corps JSON de succès) mais court-circuite l'envoi de courriel et journalise anonymement l'incident.
+3. **Assainissement et nettoyage des injections** :
+   - Les retours à la ligne (`\r`, `\n`) sont strictement interdits dans les champs `name`, `email` et `subject` pour neutraliser toute tentative d'injection d'en-têtes SMTP (Header Injection / CRLF Injection).
+   - Les caractères spéciaux dans le sujet du courriel sont nettoyés via une liste blanche stricte de sujets admissibles (`collaboration`, `recrutement`, `question`, `autre`).
+   - Le corps du message est converti au format texte brut avec un échappement de sécurité des caractères HTML pour éviter les injections de scripts (XSS).
+4. **Rate Limiting (IP)** :
+   - Limite d'IP fixée à un maximum de **5 requêtes par heure** (toutes requêtes confondues, spam honeypot inclus).
+   - Géré en mémoire via une structure de dictionnaire JavaScript (`rateLimiterStore`), avec un nettoyage automatique des entrées expirées toutes les heures.
+   - **Limitation connue :** Cette solution in-memory est adaptée aux architectures mono-instance. Pour des déploiements multi-instances / conteneurisés (ex: Docker, Kubernetes behind a load balancer), l'interface logicielle `RateLimiterStore` a été conçue comme une abstraction facilitant son remplacement par un service partagé (ex: Redis).
+   - Les adresses IP des clients sont traitées uniquement en mémoire vive pour le filtrage et ne sont jamais journalisées dans les fichiers de logs.
+5. **CORS par environnement** :
+   - En **Production** (`NODE_ENV === 'production'`), seules les requêtes provenant de l'origine définie par la variable d'environnement `FRONTEND_URL` (par défaut `https://nicolasmagassa.github.io`) sont acceptées.
+   - En **Développement** / **Test**, la liste des origines s'étend aux hôtes locaux nécessaires au développement et à l'exécution de Playwright (`http://localhost:8000`, `http://localhost:8080`, `http://127.0.0.1:8080`).
+
+### 📦 Données et Intégration RGPD
+- **Pas de stockage en Base de Données** : Aucun modèle de contenu (*Content-Type*) `Contact` n'est créé dans Strapi. Les messages sont transmis directement à l'adresse de contact configurée et ne sont pas stockés dans la base SQLite locale.
+- **Politique de messagerie** : Les e-mails transitent via le serveur SMTP transactionnel de Brevo. La durée maximale de conservation des messages au sein de la boîte de réception du destinataire est fixée à **2 ans** après le dernier échange, après quoi ils sont purgés manuellement ou automatiquement par les règles de la boîte de messagerie.
+
+### 🌐 Variables d'Environnement Requises (dans `backend/.env`)
+- `BREVO_API_KEY` : Clé API transactionnelle de Brevo.
+- `BREVO_SENDER_EMAIL` : Adresse d'expédition autorisée sur Brevo (ex: `Cyberscop.Lab@gmail.com`).
+- `BREVO_SENDER_NAME` : Nom d'affichage de l'expéditeur (ex: `CyberScope LAB`).
+- `CONTACT_DESTINATION_EMAIL` : Adresse email de réception des messages (ex: `Cyberscop.Lab@gmail.com`).
+
 ---
 
 ## 🚀 Commandes utiles

@@ -1197,25 +1197,81 @@ git push origin dev
 6. **Notes et conseils supplémentaires**  
    - > **Sécurité des secrets :** Aucun mot de passe en clair ou jeton JWT n'est journalisé dans la console ni affiché dans les messages d'erreur. Les champs de saisie sont vidés immédiatement après confirmation du succès.
    - > **Prévention du FOUC :** La redirection dans l'en-tête HTML évite le chargement des scripts plus lourds (Tailwind, Lucide, etc.) et le rendu visuel de la page privée pour un utilisateur non connecté.
-
 7. **Sécurité et protection des accès**  
    - > **Frontière de sécurité réelle :** La redirection en JavaScript côté front-end (notamment le script inline dans le `<head>`) sert uniquement de confort utilisateur en évitant le FOUC (clignotement de données privées) pour les accès anonymes. Elle ne constitue en aucun cas une frontière de sécurité robuste.
    - > **Validation et contrôle backend :** La sécurité effective de l’espace personnel repose sur la validation cryptographique du jeton JWT par Strapi lors de chaque appel à un endpoint protégé, notamment `/api/users/me`. et sur les politiques de contrôle d'accès (RBAC) configurées côté backend pour chaque endpoint protégé. De plus, le renouvellement immédiat et la re-vérification du JWT lors d'un changement de mot de passe sont critiques pour prévenir l'invalidation intempestive de la session applicative.
 
+---
 
+## Étape 25 : Intégration et Sécurisation du Formulaire de Contact
 
+1. **Objectif de l'étape**  
+   Rendre le formulaire de contact `contact.html` fonctionnel en le reliant à un service backend dédié sans stockage de base de données, sécuriser la soumission contre le spam, valider les formats de données, implémenter un rate-limiter in-memory et une configuration CORS par environnement.
 
+2. **Prérequis**  
+   - Les fichiers [contact.html](../contact.html) et [contact.js](../assets/JS/contact.js) modifiés et opérationnels.
+   - Le backend configuré avec l'endpoint `POST /api/contact` et le contrôleur de contact.
+   - Les variables d'environnement `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` et `CONTACT_DESTINATION_EMAIL` configurées localement dans `backend/.env`.
+   - La suite de tests unitaires Jest (`tests/contact.test.js` et `tests/contact-frontend.test.js`) et E2E Playwright (`tests/e2e/contact.spec.js`) prêtes.
 
+3. **Commandes**  
+   Pour exécuter tous les tests unitaires et d'intégration Jest :
+   ```bash
+   npm test
+   ```
+   Pour exécuter les tests Playwright E2E :
+   ```bash
+   npm run test:e2e
+   ```
 
+4. **Explication courte**  
+   - **Flux contact.html ➔ POST /api/contact ➔ Brevo** : Le frontend valide les saisies et initie l'appel HTTP. Le contrôleur backend prend le relais, applique les filtres de sécurité, puis transmet le courriel à la messagerie de contact via les API transactionnelles de Brevo avec un timeout strict de 5 secondes.
+   - **Honeypot** : Un champ de texte `website` est intégré de manière invisible pour les humains (placé hors-écran via CSS `absolute -left-[9999px]`, non accessible par tabulation avec `tabindex="-1"`, et masqué des lecteurs d'écran via `aria-hidden="true"`). Si un robot remplit ce champ, le backend renvoie silencieusement un succès simulé identique (200 OK) sans envoyer d'e-mail.
+   - **Rate Limiting** : Afin d'éviter le déni de service et la saturation de l'API Brevo, un rate-limiter en mémoire limite chaque adresse IP à un maximum de 5 requêtes par heure. Ce rate limiter est configuré avec une purge automatique toutes les heures. Sa conception abstraite permet de remplacer facilement le stockage local par un stockage partagé distribué (ex: Redis).
+   - **Limites de corps HTTP** : Le backend vérifie que le payload fait au maximum 10 Ko pour éviter l'épuisement de mémoire.
+   - **Absence de stockage (RGPD)** : Pour garantir le respect du principe de minimisation des données, aucun e-mail ou message n'est stocké dans la base SQLite locale de Strapi. Les messages transitent directement vers la messagerie de contact.
+   - **Politique de conservation** : Conformément aux mentions RGPD, les messages de contact reçus sont conservés dans la messagerie du destinataire pour une durée maximale de 2 ans à des fins opérationnelles.
 
+5. **Vérification du résultat**  
+   Les tests de formulaire (16 tests backend Jest, 8 tests frontend Jest et 9 tests Playwright E2E, soit 33 nouveaux tests dédiés) passent tous au vert.
+   
+   **Tests unitaires Jest (24 nouveaux tests dédiés)** :
+   ```text
+   Contact Controller & Rate Limiter (tests/contact.test.js)
+     √ should accept valid payloads and return 200 OK
+     √ should block payloads with extra keys (400)
+     √ should check invalid email format (400)
+     √ should prevent message header injections (CRLF) (400)
+     √ should block payloads larger than 10 KB (400)
+     √ should apply rate limiting (429)
+     √ should filter requests containing honeypot spam (200)
+     √ should not leak personal data or IP addresses in log output
 
+   Contact Frontend Logic (tests/contact-frontend.test.js)
+     √ should register DOMContentLoaded listener and mount submit handler
+     √ should validate input values and show client errors if empty
+     √ should validate email pattern correctly
+     √ should submit data after a silent speed delay of 3 seconds
+     √ should keep form inputs intact on rate-limiting (429)
+     √ should keep form inputs intact on validation error (400)
+     √ should keep form inputs intact on email service failure (503)
+     √ should keep form inputs intact on network exception
+   ```
 
+   **Tests E2E Playwright (9 nouveaux tests dédiés)** :
+   ```text
+   Formulaire de Contact E2E (tests/e2e/contact.spec.js)
+     √ Honeypot : le champ website doit être masqué, non accessible au clavier et invisible
+     √ Soumission valide : envoie les données, affiche le succès et réinitialise le formulaire
+     √ Réponse 400 : affiche l'erreur de validation et conserve les champs
+     √ Réponse 429 : affiche la limitation de fréquence et conserve les champs
+     √ Réponse 503 : affiche l'indisponibilité, conserve les champs et réactive le bouton
+     √ Erreur Réseau : affiche l'erreur réseau, conserve les champs et réactive le bouton
+     √ Double soumission bloquée : n'envoie qu'une seule requête réseau lors d'un double-clic
+     √ CORS : origine frontend autorisée et origine inconnue refusée
+     √ Intégration réelle : envoie au vrai Strapi local avec le honeypot sans courriel réel
+   ```
 
-
-
-
-
-
-
-
-
+6. **Notes et conseils supplémentaires**  
+   - > **CORS par environnement** : Le middleware CORS de Strapi est configuré dynamiquement. En production, seule l'origine `FRONTEND_URL` est acceptée. En développement/test, les origines de test Playwright (`http://localhost:8080` et `http://127.0.0.1:8080`) ainsi que le serveur local du frontend (`http://localhost:8000`) sont également autorisés.
+   - > **Filtre heuristique de rapidité** : Si un utilisateur soumet le formulaire en moins de 3 secondes après le chargement de la page, l'envoi est retardé silencieusement (via un `setTimeout` calculant le reliquat) pour éviter les spams de robots ultra-rapides sans générer de faux positifs.

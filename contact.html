@@ -198,7 +198,13 @@
                         <!-- Mentions Légales -->
                         <div class="text-xs text-gray-500 dark:text-gray-400 mt-2">
                             <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
-                            Les données renseignées ne sont utilisées que dans le but exclusif de répondre à votre message. Pour plus d'informations, consultez notre <a href="politique_confidentialite.html" class="text-cyber-blue hover:underline">Politique de Confidentialité</a>.
+                            Les données personnelles collectées via ce formulaire (nom, adresse e-mail, sujet et message) sont traitées par [RESPONSABLE_TRAITEMENT] pour répondre à vos demandes de contact sur la base de son intérêt légitime. Elles sont conservées pour une durée maximale de 2 ans après le dernier échange et sont uniquement destinées au destinataire de votre message. Vous pouvez exercer vos droits d'accès, de rectification et de suppression en écrivant à la messagerie de contact indiquée dans notre <a href="politique_confidentialite.html" class="text-cyber-blue hover:underline">Politique de Confidentialité</a>.
+                        </div>
+
+                        <!-- Honeypot Antispam -->
+                        <div class="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
+                            <label for="website">Ne pas remplir ce champ si vous êtes un humain :</label>
+                            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
                         </div>
 
                         <!-- Submit -->
@@ -212,7 +218,7 @@
                             </button>
                         </div>
                         
-                        <div id="form-feedback" class="hidden p-4 rounded-md border text-sm mt-4 font-mono font-bold" role="alert" aria-live="assertive"></div>
+                        <div id="form-feedback" class="hidden p-4 rounded-md border text-sm mt-4 font-mono font-bold" role="alert" aria-live="polite"></div>
                     </form>
                 </div>
             </div>
