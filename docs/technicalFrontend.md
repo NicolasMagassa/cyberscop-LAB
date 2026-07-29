@@ -1145,11 +1145,11 @@ git push origin dev
 4. **Explication courte**  
    - **Vérification de session immédiate** : Un script synchrone en ligne (inline) dans le `<head>` de `mon-espace.html` intercepte l'accès anonyme et redirige vers `index.html?auth=required` avant tout affichage du DOM, évitant l'effet de clignotement.
    - **Validation continue et affichage** : Au chargement de la page, `initMonEspace` interroge `GET /api/users/me` avec le token JWT stocké dans `cyberScopeUser`. En cas de succès, elle injecte les attributs dans les éléments DOM en lecture seule (et formate la date d'enregistrement en français). En cas de statut 401 ou 403 (session expirée), elle purge la session locale et redirige vers `index.html?auth=expired`.
-   - **Bouton Réessayer** : Si le serveur de base de données ou de sécurité est indisponible (panne réseau), l'IHM affiche un message d'erreur d'inaccessibilité sans détruire la session de l'utilisateur, offrant un bouton "Réessayer".
+   - **Bouton Réessayer** : Si l’API Strapi est inaccessible ou qu’une erreur réseau survient, l’interface affiche un message d’indisponibilité sans supprimer la session locale et propose un bouton « Réessayer». Si l’API est indisponible, mais que la session n’est pas expirée, le bouton permet de relancer la requête sans perdre le contexte.
    - **Modification sécurisée du mot de passe** : Le formulaire utilise les attributs `autocomplete` recommandés pour la sécurité. Lors de la soumission, après des validations locales (champs vides, même mot de passe, longueur minimale), il envoie les données en POST vers `/api/auth/change-password`. En cas de succès, Strapi renvoie un nouveau JWT. Ce nouveau jeton est validé immédiatement par un appel à `/api/users/me` avant de remplacer l'ancien jeton dans le `localStorage` et de confirmer le succès final.
    - **Déconnexion** : Le bouton Se déconnecter vide la clé `cyberScopeUser` du stockage local et redirige vers l'accueil.
 
-   **Endpoints utilisés** :
+   **Endpoints utilisés** : 
    - `GET /api/users/me`  
      → Vérifie la validité du JWT de l'utilisateur connecté et récupère les informations de son compte (nom d'utilisateur, e-mail, statut de confirmation, etc.).
    - `POST /api/auth/change-password`  
@@ -1200,7 +1200,7 @@ git push origin dev
 
 7. **Sécurité et protection des accès**  
    - > **Frontière de sécurité réelle :** La redirection en JavaScript côté front-end (notamment le script inline dans le `<head>`) sert uniquement de confort utilisateur en évitant le FOUC (clignotement de données privées) pour les accès anonymes. Elle ne constitue en aucun cas une frontière de sécurité robuste.
-   - > **Validation et contrôle backend :** La sécurité effective de l'espace personnel repose exclusivement sur la validation cryptographique continue du jeton JWT par Strapi via l'endpoint `/api/users/me` et sur les politiques de contrôle d'accès (RBAC) configurées côté backend pour chaque endpoint protégé. De plus, le renouvellement immédiat et la re-vérification du JWT lors d'un changement de mot de passe sont critiques pour prévenir l'invalidation intempestive de la session applicative.
+   - > **Validation et contrôle backend :** La sécurité effective de l’espace personnel repose sur la validation cryptographique du jeton JWT par Strapi lors de chaque appel à un endpoint protégé, notamment `/api/users/me`. et sur les politiques de contrôle d'accès (RBAC) configurées côté backend pour chaque endpoint protégé. De plus, le renouvellement immédiat et la re-vérification du JWT lors d'un changement de mot de passe sont critiques pour prévenir l'invalidation intempestive de la session applicative.
 
 
 
