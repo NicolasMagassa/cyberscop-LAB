@@ -1,10 +1,21 @@
 let strapiBaseUrl = 'http://localhost:1337';
 
+/**
+ * Extrait le jeton (code) de réinitialisation de mot de passe à partir des paramètres de l'URL.
+ *
+ * @returns {string|null} Le code de réinitialisation ou null s'il n'est pas présent.
+ */
 function getResetCode() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('code');
 }
 
+/**
+ * Initialise l'interface utilisateur de réinitialisation de mot de passe.
+ * Vérifie la présence du code de sécurité et désactive le formulaire s'il est manquant ou invalide.
+ *
+ * @returns {void}
+ */
 function initResetPassword() {
     const code = getResetCode();
     const form = document.getElementById('reset-password-form');
@@ -30,6 +41,14 @@ function initResetPassword() {
     }
 }
 
+/**
+ * Traite la soumission du formulaire de réinitialisation de mot de passe.
+ * Envoie le code unique et les nouveaux mots de passe à Strapi, puis affiche le résultat.
+ *
+ * @param {Event} event - L'événement de soumission du formulaire.
+ * @param {string} code - Le jeton unique de réinitialisation.
+ * @returns {Promise<void>}
+ */
 async function handleResetPasswordSubmit(event, code) {
     event.preventDefault();
     
