@@ -24,6 +24,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!form) return;
 
     /**
+     * Tente de générer les icônes Lucide de manière sécurisée en interceptant les erreurs éventuelles.
+     */
+    function safeCreateIcons() {
+        if (window.lucide) {
+            try {
+                window.lucide.createIcons();
+            } catch (error) {
+                console.warn('[Lucide] Erreur lors de la création des icônes :', error);
+            }
+        }
+    }
+
+    /**
      * Écouteur d'événement pour intercepter la soumission du formulaire de contact.
      * Effectue les validations visuelles côté client et active le délai silencieux antispam.
      */
@@ -65,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const originalText = submitBtn.innerHTML;
             setControlsDisabled(true);
             submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 mr-2 animate-spin inline"></i> Envoi en cours...';
-            if (window.lucide) window.lucide.createIcons();
+            safeCreateIcons();
 
             // Filtre heuristique frontend : délai minimum de 3 secondes avant l'envoi réel
             const elapsed = Date.now() - pageLoadTime;
@@ -156,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Réactivation des contrôles
             setControlsDisabled(false);
             submitBtn.innerHTML = originalText;
-            if (window.lucide) window.lucide.createIcons();
+            safeCreateIcons();
         }
     }
 
@@ -198,6 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function showFeedback(classesStr, iconName, textMessage) {
         feedbackDiv.className = 'p-4 rounded-md border text-sm mt-4 font-mono font-bold ' + classesStr;
         feedbackDiv.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5 inline mr-2"></i> ${textMessage}`;
-        if (window.lucide) window.lucide.createIcons();
+        safeCreateIcons();
     }
 });

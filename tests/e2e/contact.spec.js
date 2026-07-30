@@ -180,6 +180,37 @@ test.describe('Formulaire de Contact E2E', () => {
     });
 
     /**
+     * @test Échec du provider : vérifie qu'un échec réel du provider (HTTP 503) ne produit jamais de message visuel de succès (couleur verte ou texte de succès)
+     */
+    test('Échec du provider : un retour 503 du serveur n\'affiche jamais de message de succès sur le client', async ({ page }) => {
+        await page.route('**/api/contact', async (route) => {
+            await route.fulfill({
+                status: 503,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'Service Unavailable', message: 'Le service e-mail est temporairement indisponible.' })
+            });
+        });
+
+        const feedbackDiv = page.locator('#form-feedback');
+
+        await page.locator('#name').fill('Failure Bot');
+        await page.locator('#email').fill('failure@bot.com');
+        await page.locator('#subject').selectOption('autre');
+        await page.locator('#message').fill('Testing failure display.');
+
+        await page.locator('#submitBtn').click();
+
+        // Attendre que le feedback s'affiche
+        await expect(feedbackDiv).toBeVisible();
+        
+        // S'assurer qu'il s'agit d'un message d'erreur rouge et non d'un message vert de succès
+        await expect(feedbackDiv).not.toHaveClass(/bg-green-50/);
+        await expect(feedbackDiv).toHaveClass(/bg-red-50/);
+        await expect(feedbackDiv).not.toHaveText(/succès/i);
+        await expect(feedbackDiv).toHaveText(/indisponible/i);
+    });
+
+    /**
      * @test Erreur réseau (ex: indisponibilité DNS ou physique) avec rétention des saisies
      */
     test('Erreur Réseau : affiche l\'erreur de réseau, conserve les champs et réactive le bouton', async ({ page }) => {

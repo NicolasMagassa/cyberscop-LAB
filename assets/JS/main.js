@@ -486,6 +486,23 @@ document.addEventListener('DOMContentLoaded', () => {
     renderVeilleArticles();
     renderBriefingArticles();
     renderRessourcesGuideArticles();
+
+    // Ajuster le label "Identifiant" en "Adresse e-mail" et vider la valeur par défaut pour la confidentialité
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        const usernameLabel = loginForm.querySelector('label');
+        if (usernameLabel && (usernameLabel.textContent.trim() === 'Identifiant' || usernameLabel.textContent.trim() === 'IDENTIFIANT')) {
+            usernameLabel.textContent = 'Adresse e-mail';
+        }
+        const usernameInput = document.getElementById('username-input');
+        if (usernameInput) {
+            usernameInput.placeholder = 'agent@cyberscop.lab';
+            const storedUser = localStorage.getItem('cyberScopeUser');
+            if (!storedUser && (usernameInput.value === 'Sysadmin' || usernameInput.value === 'sysadmin')) {
+                usernameInput.value = '';
+            }
+        }
+    }
 });
 
 // --- Menu Mobile Toggle ---
@@ -660,6 +677,15 @@ function resetAuthMessage() {
  */
 function openLoginModal() {
     resetAuthMessage();
+
+    // Vider les champs d'identification de la modale pour préserver la confidentialité
+    const usernameInput = document.getElementById('username-input');
+    const passwordInput = document.getElementById('password-input');
+    const signupEmailInput = document.getElementById('signup-email-input');
+    if (usernameInput) usernameInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+    if (signupEmailInput) signupEmailInput.value = '';
+
     loginModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
@@ -829,6 +855,14 @@ async function handleLogin(event) {
 function handleLogout() {
     localStorage.removeItem('cyberScopeUser');
     setUIStateLoggedOut();
+
+    // Vider les champs d'identification de la modale de connexion pour la confidentialité
+    const usernameInput = document.getElementById('username-input');
+    const passwordInput = document.getElementById('password-input');
+    const signupEmailInput = document.getElementById('signup-email-input');
+    if (usernameInput) usernameInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+    if (signupEmailInput) signupEmailInput.value = '';
 }
 
 /**

@@ -254,6 +254,36 @@ describe('Contact Controller Backend Tests', () => {
   });
 
   /**
+   * @test Traitement du cas où le provider retourne false (503)
+   */
+  test('should return 503 when the email provider returns false', async () => {
+    global.strapi.plugin().service().send.mockResolvedValue(false);
+    await contactController.submit(mockCtx);
+    expect(mockCtx.status).toBe(503);
+    expect(mockCtx.body.message).toBe('Le service e-mail est temporairement indisponible. Veuillez réessayer plus tard.');
+  });
+
+  /**
+   * @test Traitement du cas où le provider retourne undefined (503)
+   */
+  test('should return 503 when the email provider returns undefined', async () => {
+    global.strapi.plugin().service().send.mockResolvedValue(undefined);
+    await contactController.submit(mockCtx);
+    expect(mockCtx.status).toBe(503);
+    expect(mockCtx.body.message).toBe('Le service e-mail est temporairement indisponible. Veuillez réessayer plus tard.');
+  });
+
+  /**
+   * @test Traitement du cas où le provider retourne un objet inattendu (503)
+   */
+  test('should return 503 when the email provider returns an unexpected object', async () => {
+    global.strapi.plugin().service().send.mockResolvedValue({ messageId: '12345' });
+    await contactController.submit(mockCtx);
+    expect(mockCtx.status).toBe(503);
+    expect(mockCtx.body.message).toBe('Le service e-mail est temporairement indisponible. Veuillez réessayer plus tard.');
+  });
+
+  /**
    * @test Rejet sécurisé de la soumission si l'adresse de destination est manquante (500)
    */
   test('should reject safely if destination email is missing', async () => {

@@ -91,8 +91,22 @@ async function handleResetPasswordSubmit(event, code) {
 
         if (messageContainer) {
             messageContainer.textContent = "Votre mot de passe a été réinitialisé avec succès.";
-            messageContainer.classList.remove('hidden', 'text-cyber-red');
-            messageContainer.classList.add('text-cyber-green');
+            messageContainer.classList.remove(
+                'hidden',
+                'text-red-600',
+                'dark:text-cyber-red',
+                'bg-red-50',
+                'dark:bg-red-950/20',
+                'border-red-200',
+                'dark:border-red-900/30'
+            );
+            messageContainer.classList.add(
+                'text-cyber-green',
+                'bg-green-50',
+                'dark:bg-green-950/20',
+                'border-cyber-green',
+                'dark:border-cyber-green/30'
+            );
         }
 
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -125,8 +139,22 @@ async function handleResetPasswordSubmit(event, code) {
             } else {
                 messageContainer.textContent = "Ce lien est invalide, expiré ou a déjà été utilisé.";
             }
-            messageContainer.classList.remove('hidden', 'text-cyber-green');
-            messageContainer.classList.add('text-cyber-red');
+            messageContainer.classList.remove(
+                'hidden',
+                'text-cyber-green',
+                'bg-green-50',
+                'dark:bg-green-950/20',
+                'border-cyber-green',
+                'dark:border-cyber-green/30'
+            );
+            messageContainer.classList.add(
+                'text-red-600',
+                'dark:text-cyber-red',
+                'bg-red-50',
+                'dark:bg-red-950/20',
+                'border-red-200',
+                'dark:border-red-900/30'
+            );
         }
     }
 }

@@ -1275,3 +1275,36 @@ git push origin dev
 6. **Notes et conseils supplémentaires**  
    - > **CORS par environnement** : Le middleware CORS de Strapi est configuré dynamiquement. En production, seule l'origine `FRONTEND_URL` est acceptée. En développement/test, les origines de test Playwright (`http://localhost:8080` et `http://127.0.0.1:8080`) ainsi que le serveur local du frontend (`http://localhost:8000`) sont également autorisés.
    - > **Filtre heuristique de rapidité** : Si un utilisateur soumet le formulaire en moins de 3 secondes après le chargement de la page, l'envoi est retardé silencieusement (via un `setTimeout` calculant le reliquat) pour éviter les spams de robots ultra-rapides sans générer de faux positifs.
+
+---
+
+## Étape 26 : Résolution de la Livraison d'Email et Élimination des Faux Positifs de Contact
+
+1. **Objectif de l'étape**  
+   Résoudre les rejets d'envoi d'e-mail par Brevo dus à la sensibilité à la casse de l'expéditeur, supprimer les faux positifs du contrôleur de contact Strapi qui masquaient les échecs de livraison réels du provider d'e-mail, sécuriser le script client contre les exceptions bloquantes lors du rendu des icônes Lucide, et lever la limitation de fréquence locale pour les tests de bout en bout (E2E).
+
+2. **Prérequis**  
+   - Les fichiers [contact.js](../assets/JS/contact.js) et [contact.js (controller)](../backend/src/api/contact/controllers/contact.js) modifiés et documentés.
+   - Les variables d'e-mail en minuscules dans `backend/.env`.
+   - La suite de tests unitaires et E2E mise à jour.
+
+3. **Commandes**  
+   Pour exécuter les tests unitaires :
+   ```bash
+   npm test
+   ```
+   Pour exécuter les tests Playwright E2E :
+   ```bash
+   npm run test:e2e
+   ```
+
+4. **Explication courte**  
+   - **Correction de casse (Brevo)** : Brevo requiert une comparaison stricte (sensible à la casse) de l'adresse d'expéditeur validée. Toutes les adresses configurées dans `backend/.env` ont été passées en minuscules (`cyberscop.lab@gmail.com`).
+   - **Élimination des faux positifs** : Le provider email de Strapi capture les erreurs d'API et retourne un booléen `false` de manière résolue. Le contrôleur de contact vérifie désormais strictement `result === true`. Tout autre résultat (false, undefined, ou objet inattendu) lève une exception et renvoie un code HTTP `503 Service Unavailable` au client.
+   - **Résilience Lucide** : Toutes les invocations de `createIcons` dans le code du formulaire de contact sont enveloppées dans un bloc `try/catch`. Ainsi, si une icône (comme l'icône `github` dans le footer) échoue à s'initialiser, le script client ne s'interrompt pas et le formulaire est transmis avec succès.
+   - **Exemption du Rate Limiter pour le Loopback** : Pour éviter que les tests E2E exécutés en parallèle ou les tests locaux du développeur ne bloquent l'adresse locale, le rate-limiter in-memory exempte désormais les adresses de loopback (`127.0.0.1`, `::1` et `::ffff:127.0.0.1`).
+
+5. **Vérification du résultat**  
+   Les tests unitaires (27 tests dédiés dans `contact.test.js` incluant les retours `false`, `undefined` et inattendus) et E2E (10 tests dans `contact.spec.js` incluant l'assurance d'absence de succès visuel lors d'une 503) passent tous au vert.
+   
+   La soumission réelle confirme un statut HTTP 200 et un événement transactionnel `delivered` dans les logs Brevo avec réception dans Gmail.
