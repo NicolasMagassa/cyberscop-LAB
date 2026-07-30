@@ -570,10 +570,43 @@ function toggleSignupMode(signup) {
                 <input id="signup-email-input" type="email" class="w-full bg-gray-50 border border-gray-300 text-gray-900 p-3 focus:border-cyber-blue focus:outline-none focus:ring-1 focus:ring-cyber-blue rounded-md font-body" placeholder="agent@cyberscop.lab" required>
             `;
             
-            const usernameInput = document.getElementById('username-input');
             const usernameContainer = usernameInput?.closest('div');
             if (usernameContainer) {
                 usernameContainer.insertAdjacentElement('afterend', emailContainer);
+            }
+        }
+
+        // Ajouter le bloc de conseils pour le mot de passe
+        let guidelinesContainer = document.getElementById('password-guidelines-container');
+        if (!guidelinesContainer && passwordInput) {
+            guidelinesContainer = document.createElement('div');
+            guidelinesContainer.id = 'password-guidelines-container';
+            guidelinesContainer.className = 'hidden mt-2 p-3 bg-blue-50 dark:bg-cyber-blue/10 border border-blue-200 dark:border-cyber-blue/30 rounded-md text-xs font-mono text-gray-600 dark:text-gray-400 space-y-2 transition-all duration-300';
+            guidelinesContainer.innerHTML = `
+                <div class="font-bold text-cyber-blue dark:text-cyber-neonBlue flex items-center">
+                    <i data-lucide="shield-check" class="w-4 h-4 mr-1.5 flex-shrink-0"></i>
+                    <span>💡 RECOMMANDATIONS SECURITE :</span>
+                </div>
+                <ul class="list-disc pl-4 space-y-1 text-[10px] leading-normal">
+                    <li><strong>Phrase de passe :</strong> Privilégiez une phrase longue et facile à retenir.</li>
+                    <li><strong>Unique :</strong> Ne réutilisez jamais ce mot de passe ailleurs.</li>
+                    <li><strong>Neutre :</strong> Pas d'éléments personnels (nom, date, ville).</li>
+                </ul>
+                <div class="pt-1 border-t border-blue-100 dark:border-cyber-blue/20 text-[10px]">
+                    <a href="mot-de-passe.html" target="_blank" class="text-cyber-pink hover:underline font-bold flex items-center justify-between">
+                        <span>7 règles de sécurité &rarr;</span>
+                    </a>
+                </div>
+            `;
+            
+            const passwordParent = passwordInput.parentElement;
+            if (passwordParent) {
+                passwordParent.insertAdjacentElement('afterend', guidelinesContainer);
+            }
+            
+            if (passwordInput && typeof passwordInput.addEventListener === 'function') {
+                passwordInput.addEventListener('focus', showGuidelines);
+                passwordInput.addEventListener('blur', hideGuidelines);
             }
         }
     } else {
@@ -586,6 +619,16 @@ function toggleSignupMode(signup) {
         const emailContainer = document.getElementById('signup-email-container');
         if (emailContainer) {
             emailContainer.remove();
+        }
+
+        // Remove Password Guidelines
+        const guidelinesContainer = document.getElementById('password-guidelines-container');
+        if (guidelinesContainer) {
+            guidelinesContainer.remove();
+        }
+        if (passwordInput && typeof passwordInput.removeEventListener === 'function') {
+            passwordInput.removeEventListener('focus', showGuidelines);
+            passwordInput.removeEventListener('blur', hideGuidelines);
         }
     }
 }
@@ -669,6 +712,33 @@ function toggleForgotPasswordMode(forgot) {
             emailContainer.remove();
         }
     }
+}
+
+/**
+ * Affiche la boîte de recommandations sur les mots de passe.
+ *
+ * @returns {void}
+ */
+function showGuidelines() {
+    const guidelines = document.getElementById('password-guidelines-container');
+    if (guidelines && isSignupMode) {
+        guidelines.classList.remove('hidden');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+}
+
+/**
+ * Masque la boîte de recommandations sur les mots de passe avec un léger délai pour permettre le clic sur le lien.
+ *
+ * @returns {void}
+ */
+function hideGuidelines() {
+    const guidelines = document.getElementById('password-guidelines-container');
+    setTimeout(() => {
+        if (guidelines) {
+            guidelines.classList.add('hidden');
+        }
+    }, 200);
 }
 
 /**
