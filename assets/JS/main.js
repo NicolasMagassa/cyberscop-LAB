@@ -539,6 +539,14 @@ function closeLoginModal() {
 function toggleSignupMode(signup) {
     isSignupMode = signup;
     isForgotPasswordMode = false;
+
+    // Vider les champs d'identification pour la confidentialité
+    const usernameInput = document.getElementById('username-input');
+    const passwordInput = document.getElementById('password-input');
+    const signupEmailInput = document.getElementById('signup-email-input');
+    if (usernameInput) usernameInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+    if (signupEmailInput) signupEmailInput.value = '';
     
     const modalTitle = loginModal?.querySelector('.font-orbitron');
     const submitBtn = loginForm?.querySelector('button[type="submit"]');
@@ -591,6 +599,14 @@ function toggleSignupMode(signup) {
 function toggleForgotPasswordMode(forgot) {
     isForgotPasswordMode = forgot;
     if (authMessage) authMessage.classList.add('hidden');
+
+    // Vider les champs d'identification pour la confidentialité
+    const usernameInput = document.getElementById('username-input');
+    const passwordInput = document.getElementById('password-input');
+    const signupEmailInput = document.getElementById('signup-email-input');
+    if (usernameInput) usernameInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+    if (signupEmailInput) signupEmailInput.value = '';
     
     const modalTitle = loginModal?.querySelector('.font-orbitron');
     const modalDescription = loginModal?.querySelector('.text-sm.text-gray-500');
@@ -598,9 +614,7 @@ function toggleForgotPasswordMode(forgot) {
     const signupBtn = document.querySelector('button[onclick="handleSignupAttempt()"]');
     const forgotBtn = document.querySelector('button[onclick="handlePasswordResetAttempt()"]');
     
-    const usernameInput = document.getElementById('username-input');
     const usernameContainer = usernameInput?.closest('div');
-    const passwordInput = document.getElementById('password-input');
     const passwordContainer = passwordInput?.closest('div');
     
     if (isForgotPasswordMode) {
