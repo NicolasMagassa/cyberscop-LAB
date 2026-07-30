@@ -583,7 +583,7 @@ function toggleSignupMode(signup) {
             guidelinesContainer.id = 'password-guidelines-container';
             guidelinesContainer.className = 'hidden mt-2 p-3 bg-blue-50 dark:bg-cyber-blue/10 border border-blue-200 dark:border-cyber-blue/30 rounded-md text-xs font-mono text-gray-600 dark:text-gray-400 space-y-2 transition-all duration-300';
             guidelinesContainer.innerHTML = `
-                <div class="font-bold text-cyber-blue dark:text-cyber-neonBlue flex items-center">
+                <div class="font-bold text-red-600 dark:text-cyber-red flex items-center">
                     <i data-lucide="shield-check" class="w-4 h-4 mr-1.5 flex-shrink-0"></i>
                     <span>💡 RECOMMANDATIONS SECURITE :</span>
                 </div>
@@ -593,7 +593,7 @@ function toggleSignupMode(signup) {
                     <li><strong>Neutre :</strong> Pas d'éléments personnels (nom, date, ville).</li>
                 </ul>
                 <div class="pt-1 border-t border-blue-100 dark:border-cyber-blue/20 text-[10px]">
-                    <a href="mot-de-passe.html" target="_blank" class="text-cyber-pink hover:underline font-bold flex items-center justify-between">
+                    <a href="mot-de-passe.html" target="_blank" class="text-red-600 dark:text-cyber-red hover:underline font-bold flex items-center justify-between">
                         <span>7 règles de sécurité &rarr;</span>
                     </a>
                 </div>
