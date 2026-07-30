@@ -552,12 +552,15 @@ function toggleSignupMode(signup) {
     const submitBtn = loginForm?.querySelector('button[type="submit"]');
     const signupBtn = document.querySelector('button[onclick="handleSignupAttempt()"]');
     const forgotBtn = document.querySelector('button[onclick="handlePasswordResetAttempt()"]');
+    const usernameLabel = usernameInput?.closest('div')?.querySelector('label');
     
     if (isSignupMode) {
         if (modalTitle) modalTitle.textContent = 'INSCRIPTION DE NOUVEL AGENT';
         if (submitBtn) submitBtn.textContent = "S'INSCRIRE";
         if (signupBtn) signupBtn.textContent = 'Déjà inscrit ? Se connecter';
         if (forgotBtn) forgotBtn.classList.add('hidden');
+        if (usernameLabel) usernameLabel.textContent = 'Pseudo';
+        if (usernameInput) usernameInput.placeholder = 'Ex: Nicolas';
         
         // Add Email Field
         let emailContainer = document.getElementById('signup-email-container');
@@ -614,6 +617,8 @@ function toggleSignupMode(signup) {
         if (submitBtn) submitBtn.textContent = 'SE CONNECTER';
         if (signupBtn) signupBtn.textContent = "S'inscrire";
         if (forgotBtn) forgotBtn.classList.remove('hidden');
+        if (usernameLabel) usernameLabel.textContent = 'Adresse e-mail';
+        if (usernameInput) usernameInput.placeholder = 'agent@cyberscop.lab';
         
         // Remove Email Field
         const emailContainer = document.getElementById('signup-email-container');
