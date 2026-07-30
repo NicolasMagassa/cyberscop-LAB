@@ -581,19 +581,19 @@ function toggleSignupMode(signup) {
         if (!guidelinesContainer && passwordInput) {
             guidelinesContainer = document.createElement('div');
             guidelinesContainer.id = 'password-guidelines-container';
-            guidelinesContainer.className = 'hidden mt-2 p-3 bg-blue-50 dark:bg-cyber-blue/10 border border-blue-200 dark:border-cyber-blue/30 rounded-md text-xs font-sans text-gray-700 dark:text-gray-300 space-y-2 transition-all duration-300';
+            guidelinesContainer.className = 'hidden mt-2 p-3 bg-blue-50/70 border border-blue-200 rounded-md text-xs font-sans text-gray-800 space-y-2 transition-all duration-300';
             guidelinesContainer.innerHTML = `
-                <div class="font-bold text-red-600 dark:text-cyber-red flex items-center text-[13px]">
+                <div class="font-bold text-red-600 flex items-center text-[13px]">
                     <i data-lucide="shield-check" class="w-4 h-4 mr-1.5 flex-shrink-0"></i>
                     <span>💡 RECOMMANDATIONS SÉCURITÉ :</span>
                 </div>
-                <ul class="list-disc pl-4 space-y-1.5 text-[12px] leading-relaxed">
-                    <li><span class="font-bold text-black dark:text-white text-[13px]">Phrase de passe :</span> Privilégiez une phrase longue et facile à retenir.</li>
-                    <li><span class="font-bold text-black dark:text-white text-[13px]">Unique :</span> Ne réutilisez jamais ce mot de passe ailleurs.</li>
-                    <li><span class="font-bold text-black dark:text-white text-[13px]">Neutre :</span> Pas d'éléments personnels (nom, date, ville).</li>
+                <ul class="list-disc pl-4 space-y-1.5 text-[12px] leading-relaxed text-gray-900">
+                    <li><span class="font-bold text-black text-[13px]">Phrase de passe :</span> Privilégiez une phrase longue et facile à retenir.</li>
+                    <li><span class="font-bold text-black text-[13px]">Unique :</span> Ne réutilisez jamais ce mot de passe ailleurs.</li>
+                    <li><span class="font-bold text-black text-[13px]">Neutre :</span> Pas d'éléments personnels (nom, date, ville).</li>
                 </ul>
-                <div class="pt-1.5 border-t border-blue-100 dark:border-cyber-blue/20 text-[11px]">
-                    <a href="mot-de-passe.html" target="_blank" class="text-red-600 dark:text-cyber-red hover:underline font-bold flex items-center justify-between">
+                <div class="pt-1.5 border-t border-blue-200/50 text-[11px]">
+                    <a href="mot-de-passe.html" target="_blank" class="text-red-600 hover:underline font-bold flex items-center justify-between">
                         <span>7 règles de sécurité &rarr;</span>
                     </a>
                 </div>
