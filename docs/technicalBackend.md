@@ -372,6 +372,129 @@ Pour optimiser les performances de chargement et respecter les exigences de perf
 * **Conséquences si absentes / Dangers** :
   * **Référencement (SEO)** : Google Lighthouse pénalise les sites avec un score de performance médiocre en mesurant le *Largest Contentful Paint* (LCP). Ne pas optimiser les images fait chuter ce score de performance, rétrogradant le site dans les résultats de recherche.
   * **Expérience utilisateur (UX) & Rétention** : Le chargement inutile de plus d'1 Mo d'images pour un simple logo et favicon crée une latence d'affichage (page blanche ou logo qui se dessine lentement) particulièrement visible sur mobile ou en connexion instable (3G/4G), ce qui fait augmenter le taux de rebond des visiteurs.
+---
+
+## 📊 Gestion de la Pagination Côté Back-End
+
+Le serveur Strapi v5 permet de paginer les réponses de l'API de manière native via des paramètres de requête standardisés.
+
+### 1. Fonctionnement de la pagination REST (Strapi v5)
+Côté serveur, nous tirons parti des capacités de requêtage de Strapi pour filtrer et découper les collections d'articles (Veille, GRC, Recherches, etc.) en segments de taille fixe.
+
+Le frontend transmet à l'API les paramètres de pagination suivants :
+- `pagination[page]` : Le numéro de la page demandée (indexé à partir de 1).
+- `pagination[pageSize]` : Le nombre maximum d'éléments à retourner par page.
+
+**Exemple de requête REST générée :**
+`GET /api/veilles?pagination[page]=2&pagination[pageSize]=5`
+
+### 2. Configuration des réponses de l'API
+Strapi retourne un objet JSON structuré contenant les métadonnées de pagination dans la clé `meta.pagination` :
+- `page` : La page courante.
+- `pageSize` : Le nombre d'éléments par page (fixé à **5** maximum dans notre application).
+- `pageCount` : Le nombre total de pages disponibles.
+- `total` : Le nombre total d'articles présents dans la base de données.
+
+**Structure de la réponse API :**
+```json
+{
+  "data": [ ... ],
+  "meta": {
+    "pagination": {
+      "page": 1,
+      "pageSize": 5,
+      "pageCount": 3,
+      "total": 13
+    }
+  }
+}
+```
+
+### 3. Comportement de repli hors-ligne (Offline Fallback)
+Si le backend Strapi est éteint ou inaccessible, le script frontend simule ce comportement de découpage côté client en utilisant les données de secours mockées (`mockStrapiData`, `mockRecherchesData`, etc.) et calcule dynamiquement le nombre total de pages en mémoire afin de garantir que l'interface cyberpunk reste pleinement interactive pour l'utilisateur.
+---
+
+## 🔑 Authentification Réelle & Gestion des Sessions Côté Back-End
+
+Pour sécuriser l'authentification des agents, le backend Strapi s'appuie sur le plugin natif `users-permissions`.
+
+### 1. Endpoint d'Authentification (`POST /api/auth/local`)
+Le client transmet l'identifiant (e-mail ou nom d'utilisateur) et le mot de passe en clair dans le corps de la requête.
+Le serveur vérifie l'existence du compte, compare la signature bcrypt du mot de passe stocké et retourne, en cas de succès, un jeton Web JSON (JWT) signé.
+
+### 2. Configuration des permissions du rôle "Public"
+Pour permettre la connexion via l'API, les droits suivants doivent être ouverts :
+1. Dans Strapi Admin, naviguer vers **Settings > Users & Permissions Plugin > Roles > Public**.
+2. Cocher la route `callback` sous le contrôleur `Auth` de l'API.
+
+---
+
+## 👤 Inscription et Désinscription (Gestion des Utilisateurs) Côté Back-End
+
+Le cycle de vie complet des comptes utilisateurs (création et suppression) implique des validations backend de droits d'accès.
+
+### 1. Inscription (`POST /api/auth/local/register`)
+À la réception d'une demande d'inscription, Strapi crée un enregistrement dans la table `up_users` et lui affecte automatiquement le rôle configuré par défaut.
+- **Rôle par défaut :** Configuré dans **Settings > Users & Permissions Plugin > Advanced Settings > Default role** (défini sur `Authenticated`).
+- **Permission d'accès :** La route `register` doit être cochée pour le rôle **Public**.
+
+### 2. Désinscription / Suppression (`DELETE /api/users/:id`)
+L'utilisateur connecté peut initier sa suppression de compte depuis l'espace personnel.
+- **Vérification de sécurité :** Strapi valide cryptographiquement le JWT transmis dans les en-têtes de requête (`Authorization: Bearer <JWT>`).
+- **Permission d'accès :** La route de suppression `destroy` (sous le contrôleur `User`) doit être cochée pour le rôle **Authenticated** afin de restreindre cette action aux seuls utilisateurs connectés.
+
+---
+
+## ✉️ Double Opt-In (Confirmation d'E-mail) Côté Back-End
+
+Le processus d'inscription intègre une étape obligatoire de double opt-in (confirmation de l'adresse de messagerie) avant de permettre la première connexion.
+
+### 1. Fonctionnement du workflow
+- **Création du compte :** Lors de l'appel à `POST /api/auth/local/register`, Strapi crée le compte avec la valeur `confirmed: false` en base de données.
+- **Envoi du lien :** Strapi génère un jeton unique (`confirmationToken`) et envoie un e-mail transactionnel via Brevo contenant le lien d'activation :
+  `http://localhost:1337/api/auth/email-confirmation?confirmation=<TOKEN>`
+- **Activation :** Le clic sur ce lien appelle `GET /api/auth/email-confirmation` sur le backend, qui bascule la valeur `confirmed` à `true` et redirige l'agent vers la page d'accueil avec le statut d'authentification active.
+
+---
+
+## 🔑 Flux de Réinitialisation de Mot de Passe (« Mot de passe oublié ») Côté Back-End
+
+Le backend gère la génération, l'expiration et la validation de jetons de réinitialisation uniques.
+
+### 1. Demande de réinitialisation (`POST /api/auth/forgot-password`)
+- Le serveur recherche l'utilisateur par e-mail.
+- Il génère un jeton cryptographique aléatoire de 64 octets stocké dans le champ `resetPasswordToken` de la base de données.
+- Il transmet par e-mail (via Brevo) le lien unique contenant le token :
+  `http://localhost:8000/reset-password.html?code=<TOKEN>`
+
+### 2. Validation et changement (`POST /api/auth/reset-password`)
+- Le client transmet le nouveau mot de passe, sa confirmation et le jeton (`code`).
+- Le serveur vérifie que le mot de passe correspond à la confirmation et valide le token en base SQLite.
+- Après mise à jour du mot de passe haché par bcrypt, le token `resetPasswordToken` est purgé (remis à `null`) pour éviter toute réutilisation malveillante.
+- En mode refresh JWT, toutes les sessions actives de l'utilisateur sont invalidées pour des raisons de sécurité.
+
+---
+
+## 👤 Espace Personnel Sécurisé (« Gérer mon espace ») Côté Back-End
+
+La consultation des informations de compte et le changement de mot de passe à chaud sont protégés par validation de session.
+
+### 1. Accès aux informations de profil (`GET /api/users/me`)
+Le serveur intercepte la requête, décode le jeton JWT transmis dans l'en-tête `Authorization: Bearer <JWT>`, et retourne les informations de l'agent connecté en lecture seule après assainissement (*sanitization*).
+
+### 2. Modification directe du mot de passe (`POST /api/auth/change-password`)
+- L'utilisateur doit fournir son mot de passe actuel (`currentPassword`), son nouveau mot de passe (`password`), et sa confirmation.
+- Le serveur vérifie la validité cryptographique du mot de passe actuel par rapport au hash bcrypt stocké.
+- Après mise à jour en BDD, toutes les sessions actives (tokens de rafraîchissement) sont révoquées, et un nouveau token JWT est émis pour maintenir la session de l'utilisateur active de façon fluide sur le client.
+
+---
+
+## ✉️ Robustesse de Livraison d'Emails & Résolution SMTP
+
+Pour optimiser les envois d'e-mails et éviter les rejets silencieux par le serveur SMTP transactionnel de Brevo, plusieurs ajustements ont été faits :
+- **Sensibilité à la casse :** Brevo rejette les requêtes d'envoi si l'e-mail de l'expéditeur (`BREVO_SENDER_EMAIL`) ne correspond pas exactement au compte vérifié en base. Les variables d'environnement dans `backend/.env` ont été passées et vérifiées en minuscules.
+- **Vérification de statut stricte :** Le serveur de messagerie Strapi capture les erreurs d'envoi et retourne `false` en cas d'échec. L'API vérifie strictement `result === true` et retourne un code HTTP `503 Service Unavailable` au client en cas d'anomalie de livraison de courriel, éliminant les faux positifs de succès.
+- **Exemption du Rate Limiter local :** Pour éviter que le rate-limiter in-memory ne bloque les adresses de boucle locale pendant les suites de tests automatisés rapides, les adresses de loopback (`127.0.0.1`, `::1` et `::ffff:127.0.0.1`) sont expressément exemptées du rate-limiting de contact.
 
 ---
 
