@@ -70,6 +70,8 @@ describe('Reset Password Frontend Logic', () => {
             getItem: jest.fn()
         };
 
+        global.fetch = jest.fn();
+
         // Clear require cache for the module under test
         delete require.cache[require.resolve('../assets/JS/reset-password.js')];
     });
@@ -331,6 +333,107 @@ describe('Reset Password Frontend Logic', () => {
 
         expect(messageContainer.textContent).toBe("Impossible de contacter le serveur. Veuillez réessayer plus tard.");
         expect(submitBtn.disabled).toBe(false); // Re-enabled
+    });
+
+    /**
+     * @test Validations de la politique de mot de passe (Points de code, octets, espaces)
+     */
+    test('devrait rejeter un mot de passe de moins de 12 points de code', async () => {
+        const resetPassword = require('../assets/JS/reset-password.js');
+        const mockFormEvent = { preventDefault: jest.fn() };
+        
+        const passwordInput = { value: '12345678901', disabled: false }; // 11 chars
+        const confirmInput = { value: '12345678901', disabled: false };
+        const submitBtn = { textContent: 'Soumettre', disabled: false };
+        const messageContainer = { textContent: '', classList: { remove: jest.fn(), add: jest.fn() } };
+
+        global.document.getElementById.mockImplementation((id) => {
+            if (id === 'new-password-input') return passwordInput;
+            if (id === 'confirm-password-input') return confirmInput;
+            if (id === 'reset-submit-btn') return submitBtn;
+            if (id === 'reset-message') return messageContainer;
+            return mockElement;
+        });
+
+        await resetPassword.handleResetPasswordSubmit(mockFormEvent, 'test-token');
+
+        expect(messageContainer.textContent).toContain("Utilisez au moins 12 caractères");
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    test('devrait rejeter un mot de passe de plus de 72 octets', async () => {
+        const resetPassword = require('../assets/JS/reset-password.js');
+        const mockFormEvent = { preventDefault: jest.fn() };
+        
+        const tooLong = "💻".repeat(19); // 19 * 4 = 76 octets
+        const passwordInput = { value: tooLong, disabled: false };
+        const confirmInput = { value: tooLong, disabled: false };
+        const submitBtn = { textContent: 'Soumettre', disabled: false };
+        const messageContainer = { textContent: '', classList: { remove: jest.fn(), add: jest.fn() } };
+
+        global.document.getElementById.mockImplementation((id) => {
+            if (id === 'new-password-input') return passwordInput;
+            if (id === 'confirm-password-input') return confirmInput;
+            if (id === 'reset-submit-btn') return submitBtn;
+            if (id === 'reset-message') return messageContainer;
+            return mockElement;
+        });
+
+        await resetPassword.handleResetPasswordSubmit(mockFormEvent, 'test-token');
+
+        expect(messageContainer.textContent).toContain("Utilisez au moins 12 caractères");
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    test('devrait rejeter un mot de passe composé uniquement d\'espaces', async () => {
+        const resetPassword = require('../assets/JS/reset-password.js');
+        const mockFormEvent = { preventDefault: jest.fn() };
+        
+        const passwordInput = { value: '            ', disabled: false }; // 12 spaces
+        const confirmInput = { value: '            ', disabled: false };
+        const submitBtn = { textContent: 'Soumettre', disabled: false };
+        const messageContainer = { textContent: '', classList: { remove: jest.fn(), add: jest.fn() } };
+
+        global.document.getElementById.mockImplementation((id) => {
+            if (id === 'new-password-input') return passwordInput;
+            if (id === 'confirm-password-input') return confirmInput;
+            if (id === 'reset-submit-btn') return submitBtn;
+            if (id === 'reset-message') return messageContainer;
+            return mockElement;
+        });
+
+        await resetPassword.handleResetPasswordSubmit(mockFormEvent, 'test-token');
+
+        expect(messageContainer.textContent).toContain("Le mot de passe ne peut pas être composé uniquement d'espaces");
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    test('devrait accepter un mot de passe de 18 emojis 💻 (18 points de code, 72 octets)', async () => {
+        const resetPassword = require('../assets/JS/reset-password.js');
+        const mockFormEvent = { preventDefault: jest.fn() };
+        
+        const validPwd = "💻".repeat(18); // 72 octets
+        const passwordInput = { value: validPwd, disabled: false };
+        const confirmInput = { value: validPwd, disabled: false };
+        const submitBtn = { textContent: 'Soumettre', disabled: false };
+        const messageContainer = { textContent: '', classList: { remove: jest.fn(), add: jest.fn() } };
+
+        global.document.getElementById.mockImplementation((id) => {
+            if (id === 'new-password-input') return passwordInput;
+            if (id === 'confirm-password-input') return confirmInput;
+            if (id === 'reset-submit-btn') return submitBtn;
+            if (id === 'reset-message') return messageContainer;
+            return mockElement;
+        });
+
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ ok: true })
+        });
+
+        await resetPassword.handleResetPasswordSubmit(mockFormEvent, 'test-token');
+
+        expect(global.fetch).toHaveBeenCalled();
     });
 
     /**

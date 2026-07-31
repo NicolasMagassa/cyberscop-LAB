@@ -439,6 +439,7 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         let mockUsernameInput;
         let mockEmailInput;
         let mockPasswordInput;
+        let mockConfirmInput;
         let originalFetch;
 
         beforeEach(() => {
@@ -447,6 +448,7 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             mockUsernameInput = { value: '' };
             mockEmailInput = { value: '' };
             mockPasswordInput = { value: '' };
+            mockConfirmInput = { value: '' };
             mockElement.textContent = ''; // Réinitialise l'élément global mockElement pour authMessage
             originalFetch = global.fetch;
 
@@ -454,6 +456,7 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
                 if (id === 'username-input') return mockUsernameInput;
                 if (id === 'signup-email-input') return mockEmailInput;
                 if (id === 'password-input') return mockPasswordInput;
+                if (id === 'password-confirm-input') return mockConfirmInput;
                 return mockElement;
             });
         });
@@ -493,6 +496,7 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             mockUsernameInput.value = 'nicolas';
             mockEmailInput.value = 'nicolas@example.com';
             mockPasswordInput.value = 'monmotdepasse';
+            mockConfirmInput.value = 'monmotdepasse';
 
             const fakeUser = { username: 'nicolas_registered', email: 'nicolas@example.com' };
             const mockResponseData = {
@@ -538,6 +542,7 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             expect(mockUsernameInput.value).toBe('');
             expect(mockEmailInput.value).toBe('');
             expect(mockPasswordInput.value).toBe('');
+            expect(mockConfirmInput.value).toBe('');
 
             expect(mockClassList.add).toHaveBeenCalledWith('hidden');
 
@@ -548,6 +553,7 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             mockUsernameInput.value = 'nicolas';
             mockEmailInput.value = 'deja_pris@example.com';
             mockPasswordInput.value = 'monmotdepasse';
+            mockConfirmInput.value = 'monmotdepasse';
 
             const mockErrorResponse = {
                 error: {

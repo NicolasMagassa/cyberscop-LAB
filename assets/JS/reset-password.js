@@ -63,7 +63,7 @@ async function handleResetPasswordSubmit(event, code) {
     if (messageContainer) messageContainer.classList.add('hidden');
 
     // Validation locale
-    if (!password || password.trim() === "" || !passwordConfirmation || passwordConfirmation.trim() === "") {
+    if (!password || !passwordConfirmation) {
         if (messageContainer) {
             messageContainer.textContent = "ERREUR: Les mots de passe ne peuvent pas être vides.";
             messageContainer.classList.remove('hidden', 'text-cyber-green');
@@ -75,6 +75,35 @@ async function handleResetPasswordSubmit(event, code) {
     if (password !== passwordConfirmation) {
         if (messageContainer) {
             messageContainer.textContent = "ERREUR: Les mots de passe ne correspondent pas.";
+            messageContainer.classList.remove('hidden', 'text-cyber-green');
+            messageContainer.classList.add('text-cyber-red');
+        }
+        return;
+    }
+
+    const charCount = Array.from(password).length;
+    if (charCount < 12) {
+        if (messageContainer) {
+            messageContainer.textContent = "ERREUR: Utilisez au moins 12 caractères. Certains caractères spéciaux ou emojis occupent davantage d’espace ; le mot de passe ne doit pas dépasser la limite technique autorisée.";
+            messageContainer.classList.remove('hidden', 'text-cyber-green');
+            messageContainer.classList.add('text-cyber-red');
+        }
+        return;
+    }
+
+    const byteCount = new TextEncoder().encode(password).length;
+    if (byteCount > 72) {
+        if (messageContainer) {
+            messageContainer.textContent = "ERREUR: Utilisez au moins 12 caractères. Certains caractères spéciaux ou emojis occupent davantage d’espace ; le mot de passe ne doit pas dépasser la limite technique autorisée.";
+            messageContainer.classList.remove('hidden', 'text-cyber-green');
+            messageContainer.classList.add('text-cyber-red');
+        }
+        return;
+    }
+
+    if (password.trim().length === 0) {
+        if (messageContainer) {
+            messageContainer.textContent = "ERREUR: Le mot de passe ne peut pas être composé uniquement d'espaces.";
             messageContainer.classList.remove('hidden', 'text-cyber-green');
             messageContainer.classList.add('text-cyber-red');
         }

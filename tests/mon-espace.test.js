@@ -236,8 +236,8 @@ describe('Mon Espace Frontend Logic', () => {
          */
         test('devrait bloquer la soumission et afficher une erreur si un des champs est vide', async () => {
             mockCurrentPasswordInput.value = '';
-            mockNewPasswordInput.value = 'newpass';
-            mockConfirmPasswordInput.value = 'newpass';
+            mockNewPasswordInput.value = 'newpassword123';
+            mockConfirmPasswordInput.value = 'newpassword123';
 
             const monEspace = require('../assets/JS/mon-espace.js');
             await monEspace.handleChangePasswordSubmit(mockEvent);
@@ -282,15 +282,42 @@ describe('Mon Espace Frontend Logic', () => {
         /**
          * @test Blocage si mot de passe trop court
          */
-        test('devrait bloquer la soumission si la longueur est inférieure à 6 caractères', async () => {
+        test('devrait bloquer la soumission si la longueur est inférieure à 12 caractères', async () => {
             mockCurrentPasswordInput.value = 'oldpass';
-            mockNewPasswordInput.value = '12345';
-            mockConfirmPasswordInput.value = '12345';
+            mockNewPasswordInput.value = 'newpass';
+            mockConfirmPasswordInput.value = 'newpass';
 
             const monEspace = require('../assets/JS/mon-espace.js');
             await monEspace.handleChangePasswordSubmit(mockEvent);
 
-            expect(mockErrorDiv.textContent).toBe("Le nouveau mot de passe doit contenir au moins 6 caractères.");
+            expect(mockErrorDiv.textContent).toBe("ERREUR : Utilisez au moins 12 caractères. Certains caractères spéciaux ou emojis occupent davantage d’espace ; le mot de passe ne doit pas dépasser la limite technique autorisée.");
+            expect(mockErrorDiv.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(global.fetch).not.toHaveBeenCalled();
+        });
+
+        test('devrait bloquer la soumission si la taille dépasse 72 octets', async () => {
+            mockCurrentPasswordInput.value = 'oldpass';
+            const tooLong = "💻".repeat(19); // 19 * 4 = 76 octets
+            mockNewPasswordInput.value = tooLong;
+            mockConfirmPasswordInput.value = tooLong;
+
+            const monEspace = require('../assets/JS/mon-espace.js');
+            await monEspace.handleChangePasswordSubmit(mockEvent);
+
+            expect(mockErrorDiv.textContent).toBe("ERREUR : Utilisez au moins 12 caractères. Certains caractères spéciaux ou emojis occupent davantage d’espace ; le mot de passe ne doit pas dépasser la limite technique autorisée.");
+            expect(mockErrorDiv.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(global.fetch).not.toHaveBeenCalled();
+        });
+
+        test('devrait bloquer la soumission si le mot de passe est composé uniquement d\'espaces', async () => {
+            mockCurrentPasswordInput.value = 'oldpass';
+            mockNewPasswordInput.value = '            ';
+            mockConfirmPasswordInput.value = '            ';
+
+            const monEspace = require('../assets/JS/mon-espace.js');
+            await monEspace.handleChangePasswordSubmit(mockEvent);
+
+            expect(mockErrorDiv.textContent).toBe("ERREUR : Le nouveau mot de passe ne peut pas être composé uniquement d'espaces.");
             expect(mockErrorDiv.classList.remove).toHaveBeenCalledWith('hidden');
             expect(global.fetch).not.toHaveBeenCalled();
         });
@@ -300,8 +327,8 @@ describe('Mon Espace Frontend Logic', () => {
          */
         test('devrait désactiver les contrôles pour empêcher la double soumission pendant le traitement', async () => {
             mockCurrentPasswordInput.value = 'oldpass';
-            mockNewPasswordInput.value = 'newpass';
-            mockConfirmPasswordInput.value = 'newpass';
+            mockNewPasswordInput.value = 'newpassword123';
+            mockConfirmPasswordInput.value = 'newpassword123';
 
             const fakeSession = { username: 'testuser', token: 'token-jwt-xyz' };
             global.localStorage.getItem.mockReturnValue(JSON.stringify(fakeSession));
@@ -345,8 +372,8 @@ describe('Mon Espace Frontend Logic', () => {
          */
         test('devrait soumettre, enregistrer le nouveau JWT, vider les champs et valider le nouveau JWT', async () => {
             mockCurrentPasswordInput.value = 'oldpass';
-            mockNewPasswordInput.value = 'newpass';
-            mockConfirmPasswordInput.value = 'newpass';
+            mockNewPasswordInput.value = 'newpassword123';
+            mockConfirmPasswordInput.value = 'newpassword123';
 
             const fakeSession = { username: 'testuser', token: 'token-jwt-xyz' };
             global.localStorage.getItem.mockReturnValue(JSON.stringify(fakeSession));
@@ -375,8 +402,8 @@ describe('Mon Espace Frontend Logic', () => {
                 },
                 body: JSON.stringify({
                     currentPassword: 'oldpass',
-                    password: 'newpass',
-                    passwordConfirmation: 'newpass'
+                    password: 'newpassword123',
+                    passwordConfirmation: 'newpassword123'
                 })
             });
 
@@ -407,8 +434,8 @@ describe('Mon Espace Frontend Logic', () => {
          */
         test('devrait déconnecter l\'utilisateur et rediriger si la validation du nouveau JWT échoue', async () => {
             mockCurrentPasswordInput.value = 'oldpass';
-            mockNewPasswordInput.value = 'newpass';
-            mockConfirmPasswordInput.value = 'newpass';
+            mockNewPasswordInput.value = 'newpassword123';
+            mockConfirmPasswordInput.value = 'newpassword123';
 
             const fakeSession = { username: 'testuser', token: 'token-jwt-xyz' };
             global.localStorage.getItem.mockReturnValue(JSON.stringify(fakeSession));

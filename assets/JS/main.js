@@ -544,9 +544,14 @@ function toggleSignupMode(signup) {
     const usernameInput = document.getElementById('username-input');
     const passwordInput = document.getElementById('password-input');
     const signupEmailInput = document.getElementById('signup-email-input');
+    const signupConfirmInput = document.getElementById('password-confirm-input');
     if (usernameInput) usernameInput.value = '';
-    if (passwordInput) passwordInput.value = '';
+    if (passwordInput) {
+        passwordInput.value = '';
+        passwordInput.setAttribute('autocomplete', isSignupMode ? 'new-password' : 'current-password');
+    }
     if (signupEmailInput) signupEmailInput.value = '';
+    if (signupConfirmInput) signupConfirmInput.value = '';
     
     const modalTitle = loginModal?.querySelector('.font-orbitron');
     const submitBtn = loginForm?.querySelector('button[type="submit"]');
@@ -579,6 +584,24 @@ function toggleSignupMode(signup) {
             }
         }
 
+        // Add Password Confirmation Field
+        let confirmContainer = document.getElementById('signup-confirm-container');
+        if (!confirmContainer) {
+            confirmContainer = document.createElement('div');
+            confirmContainer.id = 'signup-confirm-container';
+            confirmContainer.className = 'mb-4';
+            confirmContainer.innerHTML = `
+                <label class="block text-xs text-gray-700 mb-1 uppercase font-bold">Confirmer le mot de passe</label>
+                <div class="relative">
+                    <input id="password-confirm-input" type="password" class="w-full bg-gray-50 border border-gray-300 text-gray-900 p-3 focus:border-cyber-blue focus:outline-none focus:ring-1 focus:ring-cyber-blue rounded-md font-body" placeholder="*********" required autocomplete="new-password">
+                </div>
+            `;
+            const passwordParent = passwordInput?.closest('div')?.parentElement;
+            if (passwordParent) {
+                passwordParent.insertAdjacentElement('afterend', confirmContainer);
+            }
+        }
+
         // Ajouter le bloc de conseils pour le mot de passe
         let guidelinesContainer = document.getElementById('password-guidelines-container');
         if (!guidelinesContainer && passwordInput) {
@@ -586,16 +609,31 @@ function toggleSignupMode(signup) {
             guidelinesContainer.id = 'password-guidelines-container';
             guidelinesContainer.className = 'hidden mt-2 p-3 bg-blue-50/70 border border-blue-200 rounded-md text-xs font-sans text-gray-800 space-y-2 transition-all duration-300';
             guidelinesContainer.innerHTML = `
-                <div class="font-bold text-red-600 flex items-center text-[13px]">
+                <div class="font-bold text-red-600 flex items-center text-[13px] border-b border-blue-200/50 pb-1 mb-2">
                     <i data-lucide="shield-check" class="w-4 h-4 mr-1.5 flex-shrink-0"></i>
-                    <span>💡 RECOMMANDATIONS SÉCURITÉ :</span>
+                    <span>CONSIGNES DE SÉCURITÉ</span>
                 </div>
-                <ul class="list-disc pl-4 space-y-1.5 text-[12px] leading-relaxed text-gray-900">
-                    <li><span class="font-bold text-black text-[13px]">Phrase de passe :</span> Privilégiez une phrase longue et facile à retenir.</li>
-                    <li><span class="font-bold text-black text-[13px]">Unique :</span> Ne réutilisez jamais ce mot de passe ailleurs.</li>
-                    <li><span class="font-bold text-black text-[13px]">Neutre :</span> Pas d'éléments personnels (nom, date, ville).</li>
-                </ul>
-                <div class="pt-1.5 border-t border-blue-200/50 text-[11px]">
+                <div class="space-y-2">
+                    <div>
+                        <div class="font-bold text-[12px] text-black">Exigences obligatoires :</div>
+                        <ul class="list-disc pl-4 text-[11px] leading-relaxed text-gray-900">
+                            <li>Votre mot de passe doit contenir au moins 12 caractères.</li>
+                            <li>Une phrase de passe est recommandée.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[12px] text-black">Conseils recommandés :</div>
+                        <ul class="list-disc pl-4 text-[11px] leading-relaxed text-gray-900">
+                            <li>Utilisez un mot de passe différent pour chaque service.</li>
+                            <li>Évitez les informations personnelles (nom, prénom, date de naissance, pseudo, etc.).</li>
+                            <li>Ne réutilisez pas un mot de passe déjà utilisé ailleurs.</li>
+                            <li>Privilégiez une phrase de passe facile à retenir.</li>
+                            <li>Ne partagez jamais votre mot de passe.</li>
+                            <li>Activez l'authentification à deux facteurs lorsqu'elle est disponible.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="pt-1.5 border-t border-blue-200/50 text-[11px] mt-2">
                     <a href="mot-de-passe.html" target="_blank" class="text-red-600 hover:underline font-bold flex items-center justify-between">
                         <span>7 règles de sécurité &rarr;</span>
                     </a>
@@ -624,6 +662,12 @@ function toggleSignupMode(signup) {
         const emailContainer = document.getElementById('signup-email-container');
         if (emailContainer) {
             emailContainer.remove();
+        }
+
+        // Remove Password Confirmation Field
+        const confirmContainer = document.getElementById('signup-confirm-container');
+        if (confirmContainer) {
+            confirmContainer.remove();
         }
 
         // Remove Password Guidelines
@@ -978,6 +1022,31 @@ async function handleRegister(event) {
         return;
     }
 
+    const confirmInput = document.getElementById('password-confirm-input');
+    const passwordConfirmation = confirmInput?.value;
+
+    if (password !== passwordConfirmation) {
+        showLoginError('ERREUR: Les mots de passe ne correspondent pas.');
+        return;
+    }
+
+    const charCount = Array.from(password).length;
+    if (charCount < 12) {
+        showLoginError("ERREUR: Utilisez au moins 12 caractères. Certains caractères spéciaux ou emojis occupent davantage d’espace ; le mot de passe ne doit pas dépasser la limite technique autorisée.");
+        return;
+    }
+
+    const byteCount = new TextEncoder().encode(password).length;
+    if (byteCount > 72) {
+        showLoginError("ERREUR: Utilisez au moins 12 caractères. Certains caractères spéciaux ou emojis occupent davantage d’espace ; le mot de passe ne doit pas dépasser la limite technique autorisée.");
+        return;
+    }
+
+    if (password.trim().length === 0) {
+        showLoginError("ERREUR: Le mot de passe ne peut pas être composé uniquement d'espaces.");
+        return;
+    }
+
     try {
         const response = await fetch('http://localhost:1337/api/auth/local/register', {
             method: 'POST',
@@ -1011,6 +1080,8 @@ async function handleRegister(event) {
         if (usernameInput) usernameInput.value = '';
         if (emailInput) emailInput.value = '';
         if (passwordInput) passwordInput.value = '';
+        const confirmInput = document.getElementById('password-confirm-input');
+        if (confirmInput) confirmInput.value = '';
 
         toggleLoginModal();
     } catch (error) {

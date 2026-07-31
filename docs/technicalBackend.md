@@ -617,6 +617,23 @@ Le backend implémente une route personnalisée publique dédiée à la récepti
 - `BREVO_SENDER_NAME` : Nom d'affichage de l'expéditeur (ex: `CyberScope LAB`).
 - `CONTACT_DESTINATION_EMAIL` : Adresse email de réception des messages (ex: `Cyberscop.Lab@gmail.com`).
 
+### 🔒 Politique de Mot de Passe (Password Policy)
+
+Le backend applique une politique de mot de passe stricte et unifiée pour toutes les actions d'authentification (Inscription, Réinitialisation et Modification de mot de passe).
+
+#### Règles appliquées (Backend)
+- **Algorithme de hachage :** `bcrypt` (géré nativement par Strapi).
+- **Minimum :** 12 points de code Unicode (comptés via `Array.from(value).length` pour éviter de compter incorrectement les emojis ou caractères Unicode spéciaux).
+- **Maximum :** 72 octets UTF-8 (limite technique du protocole `bcrypt`, comptée via `Buffer.byteLength(value, 'utf8')` pour rejeter les mots de passe de plus de 72 octets).
+- **Normalisation :** Aucune normalisation ou transformation silencieuse (protection de l'intégrité de la phrase de passe).
+- **Trim :** Aucun `trim()` automatique ou silencieux (les espaces en début ou fin de mot de passe font partie intégrante du mot de passe et sont requis lors de l'authentification).
+- **Caractères acceptés :** Les espaces, les accents et tous les caractères spéciaux Unicode sont pleinement autorisés.
+- **Sécurité :** Les mots de passe composés uniquement d'espaces (par exemple, 12 espaces consécutifs) sont expressément refusés.
+- **Endpoints concernés :** Cette même logique est appliquée de façon centralisée à :
+  - **Inscription :** `POST /api/auth/local/register`
+  - **Réinitialisation :** `POST /api/auth/reset-password`
+  - **Changement de mot de passe :** `POST /api/auth/change-password`
+
 ---
 
 ## 🚀 Commandes utiles

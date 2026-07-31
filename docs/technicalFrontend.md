@@ -1308,3 +1308,27 @@ git push origin dev
    Les tests unitaires (27 tests dédiés dans `contact.test.js` incluant les retours `false`, `undefined` et inattendus) et E2E (10 tests dans `contact.spec.js` incluant l'assurance d'absence de succès visuel lors d'une 503) passent tous au vert.
    
    La soumission réelle confirme un statut HTTP 200 et un événement transactionnel `delivered` dans les logs Brevo avec réception dans Gmail.
+
+## Étape 27 : Politique de Mot de Passe Renforcée et Unifiée
+
+### 1. Objectif
+Garantir la sécurité de l'authentification en appliquant une politique de mot de passe stricte et homogène sur tous les flux de l'application (Inscription, Réinitialisation et Modification de profil).
+
+### 2. Spécifications techniques
+- **Validation Unicode :** Le minimum requis de **12 points de code Unicode** est calculé via `Array.from(password).length` (plutôt que `password.length`) pour compter précisément chaque point de code individuel (y compris pour les emojis ou caractères accentués).
+- **Limite technique de 72 octets UTF-8 :** Empêche la troncation silencieuse par `bcrypt` côté backend. La taille est mesurée sur le frontend via `new TextEncoder().encode(password).length`.
+- **Espaces & accents autorisés :** Acceptation de tous les accents et espaces, à l'exception des mots de passe composés uniquement d'espaces (`trim().length === 0`).
+- **Comparaison de confirmation :** La confirmation du mot de passe à l'inscription, réinitialisation et changement de mot de passe est comparée via une égalité stricte (`password === passwordConfirmation`) sans faire de `trim()` préalable.
+- **Accessibilité (A11y) :** Les messages d'erreurs d'authentification et de validation s'affichent dans des zones de messages munies de l'attribut `aria-live="polite"` pour les technologies d'assistance.
+- **Sécurité des formulaires :** Les champs de mot de passe utilisent les attributs `autocomplete="new-password"` ou `autocomplete="current-password"` appropriés et autorisent le copier-coller.
+
+### 3. Fichiers modifiés
+- **Inscription & Login :** [index.html](../index.html) et [assets/JS/main.js](../assets/JS/main.js)
+- **Réinitialisation :** [assets/JS/reset-password.js](../assets/JS/reset-password.js)
+- **Profil Utilisateur :** [assets/JS/mon-espace.js](../assets/JS/mon-espace.js)
+
+### 4. Tests associés
+- **Tests unitaires :** [tests/test.js](../tests/test.js), [tests/reset-password.test.js](../tests/reset-password.test.js), [tests/mon-espace.test.js](../tests/mon-espace.test.js)
+- **Tests d'intégration backend :** [tests/backend-password-policy.integration.test.js](../tests/backend-password-policy.integration.test.js)
+- **Tests E2E :** [tests/e2e/mon-espace.spec.js](../tests/e2e/mon-espace.spec.js)
+

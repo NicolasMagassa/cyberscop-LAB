@@ -135,7 +135,7 @@ async function handleChangePasswordSubmit(event) {
     const confirmPassword = confirmPasswordInput?.value || '';
 
     // Validation client
-    if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+    if (!currentPassword || !newPassword || !confirmPassword) {
         if (errorDiv) {
             errorDiv.textContent = "Tous les champs sont obligatoires.";
             errorDiv.classList.remove('hidden');
@@ -159,9 +159,27 @@ async function handleChangePasswordSubmit(event) {
         return;
     }
 
-    if (newPassword.length < 6) {
+    const charCount = Array.from(newPassword).length;
+    if (charCount < 12) {
         if (errorDiv) {
-            errorDiv.textContent = "Le nouveau mot de passe doit contenir au moins 6 caractères.";
+            errorDiv.textContent = "ERREUR : Utilisez au moins 12 caractères. Certains caractères spéciaux ou emojis occupent davantage d’espace ; le mot de passe ne doit pas dépasser la limite technique autorisée.";
+            errorDiv.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const byteCount = new TextEncoder().encode(newPassword).length;
+    if (byteCount > 72) {
+        if (errorDiv) {
+            errorDiv.textContent = "ERREUR : Utilisez au moins 12 caractères. Certains caractères spéciaux ou emojis occupent davantage d’espace ; le mot de passe ne doit pas dépasser la limite technique autorisée.";
+            errorDiv.classList.remove('hidden');
+        }
+        return;
+    }
+
+    if (newPassword.trim().length === 0) {
+        if (errorDiv) {
+            errorDiv.textContent = "ERREUR : Le nouveau mot de passe ne peut pas être composé uniquement d'espaces.";
             errorDiv.classList.remove('hidden');
         }
         return;
