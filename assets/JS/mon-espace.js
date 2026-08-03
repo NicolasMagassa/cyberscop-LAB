@@ -297,6 +297,183 @@ function handleEspaceLogout() {
     window.location.replace("index.html");
 }
 
+/**
+ * Ouvre la modale de suppression de compte.
+ */
+function openDeleteAccountModal() {
+    const modal = document.getElementById('delete-account-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+}
+
+/**
+ * Ferme la modale de suppression de compte et réinitialise les champs et erreurs.
+ */
+function closeDeleteAccountModal() {
+    const modal = document.getElementById('delete-account-modal');
+    if (modal) modal.classList.add('hidden');
+
+    const pwdInput = document.getElementById('delete-password-input');
+    const confirmInput = document.getElementById('delete-confirm-input');
+    const ackCheckbox = document.getElementById('delete-acknowledge-checkbox');
+    const errorDiv = document.getElementById('delete-account-error');
+
+    if (pwdInput) pwdInput.value = '';
+    if (confirmInput) confirmInput.value = '';
+    if (ackCheckbox) {
+        ackCheckbox.checked = false;
+        ackCheckbox.disabled = false;
+    }
+    if (errorDiv) {
+        errorDiv.textContent = '';
+        errorDiv.classList.add('hidden');
+    }
+
+    const submitBtn = document.getElementById('btn-delete-confirm-submit');
+    if (submitBtn) submitBtn.disabled = true;
+}
+
+/**
+ * Valide dynamiquement l'état d'activation du bouton de suppression.
+ */
+function validateDeleteButtonState() {
+    const pwdInput = document.getElementById('delete-password-input');
+    const confirmInput = document.getElementById('delete-confirm-input');
+    const ackCheckbox = document.getElementById('delete-acknowledge-checkbox');
+    const submitBtn = document.getElementById('btn-delete-confirm-submit');
+
+    if (pwdInput && confirmInput && ackCheckbox && submitBtn) {
+        const hasPwd = pwdInput.value.length > 0;
+        const isConfirmed = confirmInput.value === 'SUPPRIMER';
+        const isAcked = ackCheckbox.checked;
+        submitBtn.disabled = !(hasPwd && isConfirmed && isAcked);
+    }
+}
+
+/**
+ * Gère la soumission du formulaire de suppression de compte.
+ */
+async function handleDeleteAccountSubmit(event) {
+    if (event) event.preventDefault();
+
+    const pwdInput = document.getElementById('delete-password-input');
+    const confirmInput = document.getElementById('delete-confirm-input');
+    const ackCheckbox = document.getElementById('delete-acknowledge-checkbox');
+    const submitBtn = document.getElementById('btn-delete-confirm-submit');
+    const errorDiv = document.getElementById('delete-account-error');
+
+    if (!pwdInput || !confirmInput || !ackCheckbox || !submitBtn) return;
+
+    const password = pwdInput.value;
+    const confirmText = confirmInput.value;
+    const acknowledged = ackCheckbox.checked;
+
+    if (!password) {
+        if (errorDiv) {
+            errorDiv.textContent = "Le mot de passe actuel est requis.";
+            errorDiv.classList.remove('hidden');
+        }
+        return;
+    }
+    if (confirmText !== 'SUPPRIMER') {
+        if (errorDiv) {
+            errorDiv.textContent = "Confirmation invalide. Veuillez saisir SUPPRIMER.";
+            errorDiv.classList.remove('hidden');
+        }
+        return;
+    }
+    if (!acknowledged) {
+        if (errorDiv) {
+            errorDiv.textContent = "Vous devez cocher la case de compréhension.";
+            errorDiv.classList.remove('hidden');
+        }
+        return;
+    }
+
+    // Désactivation des contrôles
+    pwdInput.disabled = true;
+    confirmInput.disabled = true;
+    ackCheckbox.disabled = true;
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Effacement...";
+
+    if (errorDiv) {
+        errorDiv.textContent = '';
+        errorDiv.classList.add('hidden');
+    }
+
+    const storedUser = localStorage.getItem('cyberScopeUser');
+    if (!storedUser) {
+        window.location.replace("index.html?auth=required");
+        return;
+    }
+
+    let token;
+    try {
+        token = JSON.parse(storedUser).token;
+    } catch (e) {
+        window.location.replace("index.html?auth=required");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${strapiBaseUrl}/api/account/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ password, confirmText, acknowledged })
+        });
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (e) {
+            data = {};
+        }
+
+        if (response.ok && data.success) {
+            // Nettoyage complet
+            localStorage.removeItem('cyberScopeUser');
+            pwdInput.value = '';
+            confirmInput.value = '';
+            ackCheckbox.checked = false;
+            
+            // Déterminer le statut technique du courriel pour redirection
+            const redirectParam = data.emailSent ? 'deleted-email-ok' : 'deleted-email-fail';
+            window.location.replace(`index.html?account=${redirectParam}`);
+        } else {
+            const errMsg = data?.error?.message || "Échec de la suppression. Veuillez vérifier vos identifiants.";
+            if (errorDiv) {
+                errorDiv.textContent = errMsg;
+                errorDiv.classList.remove('hidden');
+            }
+            
+            pwdInput.value = '';
+            pwdInput.disabled = false;
+            confirmInput.disabled = false;
+            ackCheckbox.disabled = false;
+            submitBtn.textContent = "Supprimer définitivement";
+            validateDeleteButtonState();
+        }
+    } catch (error) {
+        console.error('Erreur réseau lors de la suppression du compte:', error);
+        if (errorDiv) {
+            errorDiv.textContent = "Erreur réseau. Impossible de contacter le serveur de sécurité.";
+            errorDiv.classList.remove('hidden');
+        }
+        pwdInput.value = '';
+        pwdInput.disabled = false;
+        confirmInput.disabled = false;
+        ackCheckbox.disabled = false;
+        submitBtn.textContent = "Supprimer définitivement";
+        validateDeleteButtonState();
+    }
+}
+
 // Initialisation au chargement de la page (hors Jest)
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof process === 'undefined' || !process.env || process.env.NODE_ENV !== 'test') {
@@ -304,6 +481,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const retryBtn = document.getElementById('btn-retry-session');
         if (retryBtn) {
             retryBtn.addEventListener('click', initMonEspace);
+        }
+
+        // Enregistrement des écouteurs de la zone sensible
+        const pwdInput = document.getElementById('delete-password-input');
+        const confirmInput = document.getElementById('delete-confirm-input');
+        const ackCheckbox = document.getElementById('delete-acknowledge-checkbox');
+        if (pwdInput) {
+            pwdInput.addEventListener('input', validateDeleteButtonState);
+        }
+        if (confirmInput) {
+            confirmInput.addEventListener('input', validateDeleteButtonState);
+        }
+        if (ackCheckbox) {
+            ackCheckbox.addEventListener('change', validateDeleteButtonState);
         }
     }
 });
@@ -313,6 +504,10 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         initMonEspace,
         handleChangePasswordSubmit,
-        handleEspaceLogout
+        handleEspaceLogout,
+        openDeleteAccountModal,
+        closeDeleteAccountModal,
+        validateDeleteButtonState,
+        handleDeleteAccountSubmit
     };
 }

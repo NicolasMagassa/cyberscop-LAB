@@ -1332,3 +1332,38 @@ Garantir la sécurité de l'authentification en appliquant une politique de mot 
 - **Tests d'intégration backend :** [tests/backend-password-policy.integration.test.js](../tests/backend-password-policy.integration.test.js)
 - **Tests E2E :** [tests/e2e/mon-espace.spec.js](../tests/e2e/mon-espace.spec.js)
 
+---
+
+## Étape 28 : Suppression de Compte (désinscription) et Droit à l'Effacement Sécurisé (TDD)
+
+1. **Objectif de l'étape**  
+   Mettre en œuvre la suppression définitive et conforme du compte utilisateur et de ses données associées (droit à l'effacement RGPD) via un endpoint dédié `POST /api/account/delete` avec une triple confirmation (mot de passe actuel, saisie de `"SUPPRIMER"` et validation d'une case à cocher de compréhension). Un e-mail de confirmation transactionnel contenant la date UTC et l'UUID de transaction est envoyé post-effacement.
+
+2. **Prérequis**  
+   - Les fonctions de suppression sécurisée (`handleDeleteAccountSubmit`, `openDeleteAccountModal`, `closeDeleteAccountModal`, `validateDeleteButtonState`) implémentées et adaptées dans [mon-espace.js](../assets/JS/mon-espace.js).
+   - L'ancienne fonction dormante et non sécurisée `handleUnregister` marquée comme obsolète dans [main.js](../assets/JS/main.js).
+   - Les écouteurs d'événements appropriés configurés sur la modale de suppression dans [mon-espace.html](../mon-espace.html) incluant le champ checkbox.
+   - Les tests unitaires correspondants écrits dans [tests/mon-espace.test.js](../tests/mon-espace.test.js) et [tests/test.js](../tests/test.js).
+   - Les tests d'intégration backend écrits dans [tests/account-deletion.test.js](../tests/account-deletion.test.js).
+   - Les tests E2E écrits dans [tests/e2e/account-deletion.spec.js](../tests/e2e/account-deletion.spec.js).
+
+3. **Commandes**  
+   Pour exécuter les tests Jest (unitaires et d'intégration) :
+   ```bash
+   npm test
+   ```
+   Pour exécuter les tests Playwright E2E :
+   ```bash
+   npx playwright test tests/e2e/account-deletion.spec.js
+   ```
+
+4. **Explication courte**  
+   - **Contrôleur Backend (`POST /api/account/delete`)** : Valide strictement les paramètres. Seuls `password`, `confirmText` et `acknowledged: true` sont autorisés. La suppression s'exécute de manière transactionnelle.
+   - **Envoi de courriel et robustesse** : Après validation de la transaction, le backend envoie un e-mail avec Brevo. Si Brevo échoue, la suppression reste effective et renvoie `{ success: true, emailSent: false }`. Sinon, il renvoie `{ success: true, emailSent: true }`.
+   - **Protection IDOR** : La route générique `DELETE /api/users/:id` est désactivée au niveau de l'extension `users-permissions` dans [strapi-server.js](../backend/src/extensions/users-permissions/strapi-server.js).
+   - **UX de reconfirmation** : Le bouton de soumission n'est activé que si les trois conditions (mot de passe non vide, confirmation `"SUPPRIMER"` et checkbox cochée) sont réunies.
+   - **Consommation de paramètres** : Les paramètres `account=deleted-email-ok` et `account=deleted-email-fail` sont consommés sur `index.html` par `main.js` pour afficher les messages de succès appropriés.
+
+5. **Vérification du résultat**  
+   Les tests unitaires frontend (7 tests dédiés dans `mon-espace.test.js`) et d'intégration backend (25 tests dédiés dans `account-deletion.test.js`) passent au vert. Les scénarios E2E Playwright (4 tests dans `account-deletion.spec.js`) sont validés avec succès.
+

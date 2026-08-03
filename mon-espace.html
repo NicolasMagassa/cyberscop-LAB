@@ -267,6 +267,19 @@
                         [X] Se déconnecter
                     </button>
                 </div>
+
+                <!-- Suppression du compte (Zone sensible) -->
+                <div class="bg-white dark:bg-cyber-panel border border-red-200 dark:border-red-950 rounded-md p-6 shadow-sm border-t-4 border-t-red-500">
+                    <h3 class="text-lg font-orbitron font-bold text-red-600 dark:text-red-500 mb-4 uppercase flex items-center border-b border-gray-100 dark:border-gray-800 pb-3">
+                        <i data-lucide="user-x" class="w-5 h-5 text-red-600 dark:text-red-500 mr-2"></i> Zone sensible
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400 font-mono text-xs mb-4 leading-relaxed">
+                        La suppression de votre compte est définitive et irréversible. Toutes vos données seront immédiatement effacées de notre base active de production.
+                    </p>
+                    <button type="button" onclick="openDeleteAccountModal()" class="w-full bg-red-600 text-white font-bold py-3 hover:bg-red-700 transition-colors uppercase text-xs font-mono rounded-md shadow-md tracking-wider">
+                        Supprimer mon compte
+                    </button>
+                </div>
             </div>
         </div>
     </main>
@@ -325,6 +338,53 @@
             </div>
             <div class="p-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
                 <button onclick="closePreferencesModal()" class="px-4 py-2 bg-cyber-darkerBlue text-white font-bold hover:bg-cyber-red hover:text-white transition-colors rounded-lg text-sm uppercase">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Deletion Confirmation Modal -->
+    <div id="delete-account-modal" class="fixed inset-0 z-[60] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white border border-red-500 w-full max-w-md shadow-xl relative overflow-hidden font-body rounded-md" onclick="event.stopPropagation()">
+            <div class="bg-red-50 border-b border-red-200 p-4 flex justify-between items-center">
+                <span class="text-red-700 text-lg font-bold font-orbitron flex items-center">
+                    <i data-lucide="shield-alert" class="w-5 h-5 mr-2"></i> SUPPRESSION DU COMPTE
+                </span>
+                <button onclick="closeDeleteAccountModal()" class="text-gray-500 hover:text-red-500 transition-colors p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="text-gray-700 text-sm leading-relaxed">
+                    <p class="font-bold text-red-600 mb-2">Attention : Cette action est irréversible.</p>
+                    <p class="text-gray-500 text-xs mb-4">
+                        Toutes vos données d'accès seront immédiatement effacées de notre base de données de production active. Elles pourront résider temporairement dans des sauvegardes techniques de production résiduelles avant purge définitive.
+                    </p>
+                    <div id="delete-account-error" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 rounded-sm font-mono text-xs mb-3"></div>
+                </div>
+                <form id="delete-account-form" class="space-y-4" onsubmit="handleDeleteAccountSubmit(event)">
+                    <div>
+                        <label class="block text-xs text-gray-700 mb-1 uppercase font-bold">Saisir votre mot de passe actuel</label>
+                        <input id="delete-password-input" type="password" required class="w-full bg-gray-50 border border-gray-300 text-gray-900 p-3 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 rounded-md font-body text-sm" placeholder="*********">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-700 mb-1 uppercase font-bold">Saisir <span class="text-red-600 font-extrabold">SUPPRIMER</span> pour confirmer</label>
+                        <input id="delete-confirm-input" type="text" required class="w-full bg-gray-50 border border-gray-300 text-gray-900 p-3 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 rounded-md font-body text-sm font-mono" placeholder="SUPPRIMER">
+                    </div>
+                    <div class="flex items-start space-x-3 pt-2">
+                        <input type="checkbox" id="delete-acknowledge-checkbox" class="w-4 h-4 mt-0.5 border border-gray-300 rounded bg-gray-50 focus:ring-2 focus:ring-red-500 focus:outline-none focus:ring-offset-2 transition-all cursor-pointer" required>
+                        <label for="delete-acknowledge-checkbox" class="text-xs text-gray-600 dark:text-gray-400 select-none cursor-pointer leading-normal">
+                            Je comprends que la suppression de mon compte est définitive, que je perdrai immédiatement l’accès à celui-ci et que mes données seront supprimées de la base active. Certaines copies techniques peuvent subsister temporairement dans les sauvegardes jusqu’à leur rotation.
+                        </label>
+                    </div>
+                    <div class="pt-4 flex space-x-3">
+                        <button type="button" onclick="closeDeleteAccountModal()" class="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 transition-colors uppercase text-xs font-mono rounded-md">
+                            Annuler
+                        </button>
+                        <button type="submit" id="btn-delete-confirm-submit" disabled class="w-1/2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:hover:bg-red-600 text-white font-bold py-3 transition-colors uppercase text-xs font-mono rounded-md shadow-md">
+                            Supprimer définitivement
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

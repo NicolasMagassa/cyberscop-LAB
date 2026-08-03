@@ -474,4 +474,176 @@ describe('Mon Espace Frontend Logic', () => {
             expect(global.window.location.replace).toHaveBeenCalledWith("index.html");
         });
     });
+
+    /**
+     * Groupe de tests pour la suppression de compte (Zone sensible et modale)
+     */
+    describe('Account Deletion UI Logic', () => {
+        let mockDeleteAccountModal;
+        let mockDeletePasswordInput;
+        let mockDeleteConfirmInput;
+        let mockDeleteAckCheckbox;
+        let mockDeleteConfirmSubmit;
+        let mockDeleteAccountError;
+        let originalGetElementById;
+
+        beforeEach(() => {
+            mockDeleteAccountModal = { classList: { add: jest.fn(), remove: jest.fn() } };
+            mockDeletePasswordInput = { value: '', disabled: false };
+            mockDeleteConfirmInput = { value: '', disabled: false };
+            mockDeleteAckCheckbox = { checked: false, disabled: false };
+            mockDeleteConfirmSubmit = { disabled: true, textContent: '' };
+            mockDeleteAccountError = { textContent: '', classList: { add: jest.fn(), remove: jest.fn() } };
+
+            originalGetElementById = global.document.getElementById;
+            global.document.getElementById = jest.fn().mockImplementation((id) => {
+                if (id === 'delete-account-modal') return mockDeleteAccountModal;
+                if (id === 'delete-password-input') return mockDeletePasswordInput;
+                if (id === 'delete-confirm-input') return mockDeleteConfirmInput;
+                if (id === 'delete-acknowledge-checkbox') return mockDeleteAckCheckbox;
+                if (id === 'btn-delete-confirm-submit') return mockDeleteConfirmSubmit;
+                if (id === 'delete-account-error') return mockDeleteAccountError;
+                return originalGetElementById(id);
+            });
+        });
+
+        afterEach(() => {
+            global.document.getElementById = originalGetElementById;
+        });
+
+        test('openDeleteAccountModal devrait ouvrir la modale', () => {
+            const monEspace = require('../assets/JS/mon-espace.js');
+            monEspace.openDeleteAccountModal();
+            expect(mockDeleteAccountModal.classList.remove).toHaveBeenCalledWith('hidden');
+        });
+
+        test('closeDeleteAccountModal devrait vider les inputs, décocher la case et masquer la modale', () => {
+            mockDeletePasswordInput.value = 'some_val';
+            mockDeleteConfirmInput.value = 'some_val';
+            mockDeleteAckCheckbox.checked = true;
+            mockDeleteConfirmSubmit.disabled = false;
+
+            const monEspace = require('../assets/JS/mon-espace.js');
+            monEspace.closeDeleteAccountModal();
+
+            expect(mockDeleteAccountModal.classList.add).toHaveBeenCalledWith('hidden');
+            expect(mockDeletePasswordInput.value).toBe('');
+            expect(mockDeleteConfirmInput.value).toBe('');
+            expect(mockDeleteAckCheckbox.checked).toBe(false);
+            expect(mockDeleteConfirmSubmit.disabled).toBe(true);
+            expect(mockDeleteAccountError.classList.add).toHaveBeenCalledWith('hidden');
+        });
+
+        test('validateDeleteButtonState devrait activer le bouton si mdp, confirmText === SUPPRIMER et case cochée', () => {
+            const monEspace = require('../assets/JS/mon-espace.js');
+
+            // 1. Les trois vides/décochés -> désactivé
+            mockDeletePasswordInput.value = '';
+            mockDeleteConfirmInput.value = '';
+            mockDeleteAckCheckbox.checked = false;
+            monEspace.validateDeleteButtonState();
+            expect(mockDeleteConfirmSubmit.disabled).toBe(true);
+
+            // 2. Mdp et confirm corrects, mais non cochée -> désactivé
+            mockDeletePasswordInput.value = 'mypass';
+            mockDeleteConfirmInput.value = 'SUPPRIMER';
+            mockDeleteAckCheckbox.checked = false;
+            monEspace.validateDeleteButtonState();
+            expect(mockDeleteConfirmSubmit.disabled).toBe(true);
+
+            // 3. Les trois corrects -> activé
+            mockDeletePasswordInput.value = 'mypass';
+            mockDeleteConfirmInput.value = 'SUPPRIMER';
+            mockDeleteAckCheckbox.checked = true;
+            monEspace.validateDeleteButtonState();
+            expect(mockDeleteConfirmSubmit.disabled).toBe(false);
+        });
+
+        test('handleDeleteAccountSubmit devrait soumettre acknowledged et rediriger vers deleted-email-ok en cas de succès Brevo', async () => {
+            mockDeletePasswordInput.value = 'valid_pass';
+            mockDeleteConfirmInput.value = 'SUPPRIMER';
+            mockDeleteAckCheckbox.checked = true;
+
+            global.localStorage.getItem.mockReturnValue(JSON.stringify({
+                username: 'agent',
+                token: 'valid-token-jwt'
+            }));
+
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: async () => ({ success: true, emailSent: true })
+            });
+
+            const monEspace = require('../assets/JS/mon-espace.js');
+            await monEspace.handleDeleteAccountSubmit(mockEvent);
+
+            expect(global.fetch).toHaveBeenCalledWith(
+                expect.stringContaining('/api/account/delete'),
+                expect.objectContaining({
+                    method: 'POST',
+                    headers: expect.objectContaining({
+                        'Authorization': 'Bearer valid-token-jwt'
+                    }),
+                    body: JSON.stringify({
+                        password: 'valid_pass',
+                        confirmText: 'SUPPRIMER',
+                        acknowledged: true
+                    })
+                })
+            );
+
+            expect(global.localStorage.removeItem).toHaveBeenCalledWith('cyberScopeUser');
+            expect(global.window.location.replace).toHaveBeenCalledWith('index.html?account=deleted-email-ok');
+        });
+
+        test('handleDeleteAccountSubmit devrait rediriger vers deleted-email-fail en cas d\'échec Brevo', async () => {
+            mockDeletePasswordInput.value = 'valid_pass';
+            mockDeleteConfirmInput.value = 'SUPPRIMER';
+            mockDeleteAckCheckbox.checked = true;
+
+            global.localStorage.getItem.mockReturnValue(JSON.stringify({
+                username: 'agent',
+                token: 'valid-token-jwt'
+            }));
+
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: async () => ({ success: true, emailSent: false })
+            });
+
+            const monEspace = require('../assets/JS/mon-espace.js');
+            await monEspace.handleDeleteAccountSubmit(mockEvent);
+
+            expect(global.localStorage.removeItem).toHaveBeenCalledWith('cyberScopeUser');
+            expect(global.window.location.replace).toHaveBeenCalledWith('index.html?account=deleted-email-fail');
+        });
+
+        test('handleDeleteAccountSubmit devrait vider le mot de passe, décocher et afficher l\'erreur en cas d\'échec API', async () => {
+            mockDeletePasswordInput.value = 'invalid_pass';
+            mockDeleteConfirmInput.value = 'SUPPRIMER';
+            mockDeleteAckCheckbox.checked = true;
+
+            global.localStorage.getItem.mockReturnValue(JSON.stringify({
+                username: 'agent',
+                token: 'valid-token-jwt'
+            }));
+
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: false,
+                json: async () => ({
+                    error: { message: 'Mot de passe incorrect.' }
+                })
+            });
+
+            const monEspace = require('../assets/JS/mon-espace.js');
+            await monEspace.handleDeleteAccountSubmit(mockEvent);
+
+            expect(mockDeleteAccountError.textContent).toBe('Mot de passe incorrect.');
+            expect(mockDeleteAccountError.classList.remove).toHaveBeenCalledWith('hidden');
+            expect(mockDeletePasswordInput.value).toBe(''); // Mot de passe vidé
+            expect(mockDeletePasswordInput.disabled).toBe(false); // Réactivé
+            expect(mockDeleteAckCheckbox.disabled).toBe(false); // Réactivé
+            expect(mockDeleteConfirmSubmit.disabled).toBe(true); // Redésactivé (car mdp vide)
+        });
+    });
 });

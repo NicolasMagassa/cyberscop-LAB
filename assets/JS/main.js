@@ -1161,32 +1161,7 @@ async function handleForgotPasswordSubmit(event) {
  * @returns {Promise<void>} Une promesse résolue une fois le compte supprimé.
  */
 async function handleUnregister() {
-    const storedUser = localStorage.getItem('cyberScopeUser');
-    if (!storedUser) {
-        console.error('Aucun utilisateur connecté pour la désinscription.');
-        return;
-    }
-
-    const user = JSON.parse(storedUser);
-    const token = user.token;
-
-    try {
-        const response = await fetch('http://localhost:1337/api/users/me', {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            console.error('Erreur lors de la suppression du compte côté Strapi');
-            return;
-        }
-
-        handleLogout();
-    } catch (error) {
-        console.error('Erreur réseau lors de la désinscription:', error);
-    }
+    console.warn('La suppression directe via handleUnregister est obsolète. Utilisez l\'interface sécurisée de mon-espace.html.');
 }
 
 /**
@@ -1536,6 +1511,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const search = (window.location && window.location.search) ? window.location.search : '';
     const urlParams = new URLSearchParams(search);
     const authParam = urlParams.get('auth');
+    const accountParam = urlParams.get('account');
+
     if (authParam) {
         // Supprime le paramètre de l'URL pour éviter qu'il revienne au rafraîchissement
         if (window.history && window.history.replaceState && window.location) {
@@ -1559,6 +1536,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 authMessage.textContent = 'CONNEXION REQUISE POUR ACCÉDER À CET ESPACE.';
             } else if (authParam === 'expired') {
                 authMessage.textContent = 'VOTRE SESSION A EXPIRÉ. VEUILLEZ VOUS RECONNECTER.';
+            }
+        }
+    } else if (accountParam === 'deleted' || accountParam === 'deleted-email-ok' || accountParam === 'deleted-email-fail') {
+        // Supprime le paramètre de l'URL pour éviter qu'il revienne au rafraîchissement
+        if (window.history && window.history.replaceState && window.location) {
+            const newSearch = window.location.search.replace(/[?&]account=[^&]+/, '').replace(/^&/, '?');
+            const cleanSearch = newSearch === '?' || newSearch === '' ? '' : newSearch;
+            window.history.replaceState({}, document.title, window.location.pathname + cleanSearch);
+        }
+
+        // Ouvre la modale de connexion
+        if (typeof toggleLoginModal === 'function') {
+            if (loginModal && loginModal.classList.contains('hidden')) {
+                toggleLoginModal();
+            }
+        }
+        
+        // Affiche le message approprié
+        if (authMessage) {
+            authMessage.classList.remove('hidden', 'text-red-600');
+            authMessage.classList.add('text-cyber-green');
+            if (accountParam === 'deleted-email-ok') {
+                authMessage.textContent = 'Votre compte a bien été supprimé. Un e-mail de confirmation vous a été envoyé.';
+            } else if (accountParam === 'deleted-email-fail') {
+                authMessage.textContent = 'Votre compte a bien été supprimé, mais l’e-mail de confirmation n’a pas pu être envoyé.';
+            } else {
+                authMessage.textContent = 'VOTRE COMPTE ET VOS DONNÉES ONT ÉTÉ SUPPRIMÉS DÉFINITIVEMENT.';
             }
         }
     }

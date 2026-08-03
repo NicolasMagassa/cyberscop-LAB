@@ -580,62 +580,20 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
         });
     });
 
-    // =========================================================================
-    // Cible : Fonction handleUnregister() dans main.js
-    // Rôle  : Gère la désinscription de l'utilisateur (suppression définitive du compte)
-    // =========================================================================
     describe('handleUnregister', () => {
-        let originalFetch;
-
-        beforeEach(() => {
-            originalFetch = global.fetch;
-            global.localStorage.getItem.mockReturnValue(JSON.stringify({
-                username: 'nicolas_strapi',
-                token: 'mock-jwt-token-999'
-            }));
-        });
-
-        afterEach(() => {
+        test('devrait être obsolète et ne pas appeler fetch', async () => {
+            const originalWarn = console.warn;
+            console.warn = jest.fn();
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn();
+            
+            await app.handleUnregister();
+            
+            expect(global.fetch).not.toHaveBeenCalled();
+            expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('obsolète'));
+            
+            console.warn = originalWarn;
             global.fetch = originalFetch;
-            global.localStorage.getItem.mockReset();
-            global.localStorage.removeItem.mockReset();
-        });
-
-        test('devrait envoyer une requête DELETE vers Strapi avec le token JWT valide dans les headers', async () => {
-            global.fetch = jest.fn().mockResolvedValue({
-                ok: true
-            });
-
-            await app.handleUnregister();
-
-            expect(global.fetch).toHaveBeenCalledWith('http://localhost:1337/api/users/me', {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': 'Bearer mock-jwt-token-999'
-                }
-            });
-        });
-
-        test('devrait nettoyer le localStorage et déconnecter l\'utilisateur après une désinscription réussie', async () => {
-            global.fetch = jest.fn().mockResolvedValue({
-                ok: true
-            });
-
-            await app.handleUnregister();
-
-            // Devrait appeler removeItem pour nettoyer la session
-            expect(global.localStorage.removeItem).toHaveBeenCalledWith('cyberScopeUser');
-        });
-
-        test('ne devrait pas déconnecter l\'utilisateur si l\'API renvoie une erreur', async () => {
-            global.fetch = jest.fn().mockResolvedValue({
-                ok: false
-            });
-
-            await app.handleUnregister();
-
-            // Ne devrait pas nettoyer la session en cas d'échec
-            expect(global.localStorage.removeItem).not.toHaveBeenCalled();
         });
     });
 

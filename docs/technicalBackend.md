@@ -755,7 +755,63 @@ Le backend applique une politique de mot de passe stricte et unifiée pour toute
 - **Endpoints concernés :** Cette même logique est appliquée de façon centralisée à :
   - **Inscription :** `POST /api/auth/local/register`
   - **Réinitialisation :** `POST /api/auth/reset-password`
-  - **Changement de mot de passe :** `POST /api/auth/change-password`
+  
+### 🔒 Suppression du compte et droit à l'effacement (RGPD)
+
+Le backend propose un mécanisme sécurisé et transactionnel permettant à un utilisateur connecté de supprimer définitivement son compte et d'exercer son droit à l'effacement.
+
+#### 1. Endpoint Personnel Sécurisé
+- **Route :** `POST /api/account/delete`
+- **Authentification :** Requis (jeton JWT valide transmis dans l'en-tête `Authorization: Bearer <token>`).
+- **Corps de la requête (strict) :**
+  ```json
+  {
+    "password": "votre mot de passe actuel",
+    "confirmText": "SUPPRIMER",
+    "acknowledged": true
+  }
+  ```
+  Toute tentative d'injection de propriétés superflues (telles que `id`, `email`, `role`, etc.) entraîne un rejet automatique en **HTTP 400 (Bad Request)**.
+  La chaîne `confirmText` doit valoir exactement `"SUPPRIMER"`.
+  Le booléen `acknowledged` doit valoir strictement `true` (valeur non booléenne ou fausse rejetée avec HTTP 400). Cette case est une confirmation explicite de compréhension (pas un consentement marketing ou une base légale).
+
+#### 2. Protection contre les failles IDOR (Insecure Direct Object Reference)
+- **Désactivation de la route générique :** La route d'administration par défaut `DELETE /api/users/:id` (`plugin::users-permissions.user.destroy`) est désactivée au niveau de l'extension `users-permissions` dans [strapi-server.js](file:///c:/Users/user/Desktop/developpeur/BLOG%20PERSO/cyberscop%20LAB/backend/src/extensions/users-permissions/strapi-server.js). Elle ne répond plus sur l'API (HTTP 404/405).
+- **Révocation de la permission en base :** Au démarrage de l'application (dans `bootstrap()`), la permission `destroy` du rôle `authenticated` est dynamiquement recherchée et révoquée en base de manière idempotente pour interdire toute exécution résiduelle.
+
+#### 3. Séquence transactionnelle et E-mail de confirmation (Brevo)
+1. **Extraction de l'adresse e-mail :** L'adresse e-mail de l'utilisateur est récupérée en mémoire volatile locale juste avant la suppression.
+2. **Transaction d'effacement :** Toutes les opérations d'effacement de données (enregistrement principal dans `up_users` et tables de liaison par cascade) sont exécutées au sein d'une transaction de base de données (API Strapi 5 `strapi.db.transaction`).
+3. **Envoi de courriel transactionnel :** Une fois la transaction validée et enregistrée en base, le serveur tente de transmettre un e-mail de confirmation d'exécution du droit à l'effacement via Brevo.
+   - **Fuseau Horaire Europe/Paris (`Intl.DateTimeFormat`)** : La date et l'heure locales de suppression sont formatées pour le fuseau de Paris sans calcul manuel d'offset :
+     ```javascript
+     const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
+       timeZone: 'Europe/Paris',
+       day: '2-digit',
+       month: '2-digit',
+       year: 'numeric'
+     });
+     const timeFormatter = new Intl.DateTimeFormat('fr-FR', {
+       timeZone: 'Europe/Paris',
+       hour: '2-digit',
+       minute: '2-digit',
+       hour12: false
+     });
+     const tzFormatter = new Intl.DateTimeFormat('fr-FR', {
+       timeZone: 'Europe/Paris',
+       timeZoneName: 'short'
+     });
+     ```
+   - L'e-mail contient de manière lisible cette date formatée (ex: `03/08/2026 à 15:48 (UTC+2)`), l'horodatage technique UTC (format ISO 8601) pour la traçabilité technique, ainsi que l'UUID de transaction/corrélation de l'opération.
+   - **Indépendance aux pannes :** En cas d'échec ou de timeout (5 secondes) de l'envoi Brevo, le compte reste définitivement supprimé. Le backend renvoie simplement `{ success: true, emailSent: false }` au frontend pour qu'il informe l'utilisateur. En cas de succès d'envoi, le retour est `{ success: true, emailSent: true }`.
+
+#### 4. Rate Limiting
+- **Quota :** Limité à **5 tentatives par heure** par utilisateur authentifié et par adresse IP.
+- **Prise en compte :** Les échecs liés à un mot de passe incorrect ou à un texte de confirmation erroné comptent également dans le quota pour prévenir les attaques de brute-force.
+
+#### 5. Journalisation et Anonymisation des logs
+- Un identifiant de corrélation unique (UUID) est généré au début de chaque requête de suppression.
+- Aucun identifiant direct de l'utilisateur (nom, email, identifiant technique SQL) n'est consigné dans les logs du serveur. Seul l'UUID de transaction et le résultat global de l'opération sont tracés.
 
 ---
 
