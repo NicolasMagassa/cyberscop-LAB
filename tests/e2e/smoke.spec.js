@@ -64,4 +64,25 @@ test.describe('Smoke Tests - CyberScope Lab', () => {
     const modalTitle = loginModal.locator('.text-gray-900.text-lg.font-bold');
     await expect(modalTitle).toContainText('CONNEXION SÉCURISÉE');
   });
+
+  /**
+   * @test Sécurité - Prévention XSS
+   */
+  test('devrait neutraliser les injections XSS dans l\'URL de la page Article', async ({ page }) => {
+    // Naviguer sur la page article avec un payload XSS inoffensif dans l'URL
+    const xssPayload = '<img src="invalid" onerror="document.body.dataset.xssTest=\'triggered\'">';
+    await page.goto(`/article.html?type=abc&id=${encodeURIComponent(xssPayload)}`);
+
+    // Attendre que le conteneur d'article s'affiche
+    const content = page.locator('#article-content');
+    await expect(content).toBeVisible();
+
+    // Vérifier que le texte de l'erreur est visible
+    const errorText = page.locator('.error-msg-text');
+    await expect(errorText).toBeVisible();
+
+    // Vérifier que le payload n'a pas été interprété (document.body.dataset.xssTest ne doit pas valoir 'triggered')
+    const xssStatus = await page.evaluate(() => document.body.dataset.xssTest);
+    expect(xssStatus).toBeUndefined();
+  });
 });

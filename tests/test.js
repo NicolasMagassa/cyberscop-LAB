@@ -145,6 +145,7 @@ global.flattenStrapiItem = app.flattenStrapiItem;
 global.formatLongDate = app.formatLongDate;
 global.formatDate = app.formatDate;
 global.updatePaginationDOM = app.updatePaginationDOM;
+global.escapeHTML = app.escapeHTML;
 
 const veilleApp = require('../assets/JS/veille.js');
 const reglementationApp = require('../assets/JS/ReglementationDevSecOps.js');
@@ -1074,6 +1075,35 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             expect(mockContainer.innerHTML).toContain('Briefing Corps');
             expect(mockContainer.innerHTML).toContain('777 Vues');
             expect(mockContainer.innerHTML).toContain('MALWARE');
+        });
+
+        // Cible : Sécurité contre les failles DOM XSS
+        // Rôle  : Vérifier que tous les payloads XSS courants (script, image onerror, SVG onload, javascript:) sont échappés et inoffensifs
+        test('renderArticleContent neutralise tous les payloads XSS (script, onerror, SVG, javascript:, polyglotes)', () => {
+            const payloads = [
+                "<script>alert('XSS_SCRIPT')</script>",
+                "<img src='x' onerror='alert(\"XSS_ONERROR\")'>",
+                "<svg onload='alert(\"XSS_SVG\")'>",
+                "javascript:alert('XSS_JS')",
+                "javascript:/*--></title></style></textarea></script></xmp><svg/onload='+alert(1)//'>"
+            ];
+
+            payloads.forEach(payload => {
+                const mockContainer = { innerHTML: '' };
+                const article = { id: 1, date: '2026-06-25', title: payload, description: payload };
+                articleApp.renderArticleContent(mockContainer, article, 'veille');
+
+                // L'injection directe d'HTML doit être échappée (les chevrons devenant &lt; et &gt;)
+                if (payload.includes('<')) {
+                    expect(mockContainer.innerHTML).not.toContain(payload);
+                    expect(mockContainer.innerHTML).toContain('&lt;');
+                    expect(mockContainer.innerHTML).toContain('&gt;');
+                }
+                // Si c'est javascript:, il doit être rendu comme du texte inerte
+                if (payload.startsWith('javascript:')) {
+                    expect(mockContainer.innerHTML).toContain(articleApp.escapeHTML(payload));
+                }
+            });
         });
 
         // Cible : Fonction loadArticle dans article.js

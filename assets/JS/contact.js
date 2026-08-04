@@ -1,9 +1,18 @@
 /**
- * @file assets/JS/contact.js
- * @description Gère la soumission sécurisée et asynchrone du formulaire de contact.
- * Intègre les validations côté client, l'effet de double-clic, un filtre de rapidité (heuristique),
- * la communication avec le backend Strapi, et la gestion granulaire des erreurs.
+ * Échappe les caractères HTML pour éviter les injections XSS.
+ * @param {string} str 
+ * @returns {string}
  */
+function escapeHTML(str) {
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('contactForm');
@@ -210,7 +219,13 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function showFeedback(classesStr, iconName, textMessage) {
         feedbackDiv.className = 'p-4 rounded-md border text-sm mt-4 font-mono font-bold ' + classesStr;
-        feedbackDiv.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5 inline mr-2"></i> ${textMessage}`;
+        feedbackDiv.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5 inline mr-2"></i> <span class="feedback-text-content"></span>`;
+        const textEl = (feedbackDiv && typeof feedbackDiv.querySelector === 'function') ? feedbackDiv.querySelector('.feedback-text-content') : null;
+        if (textEl) {
+            textEl.textContent = textMessage;
+        } else if (feedbackDiv) {
+            feedbackDiv.innerHTML = feedbackDiv.innerHTML.replace('class="feedback-text-content"></span>', `class="feedback-text-content">${escapeHTML(textMessage)}</span>`);
+        }
         safeCreateIcons();
     }
 });

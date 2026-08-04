@@ -85,6 +85,8 @@ async function renderGRCPageArticles() {
  */
 function generateVerticalGRCArticleHTML(article) {
     const formattedDate = typeof formatLongDate === 'function' ? formatLongDate(article.date) : article.date;
+    const safeTitle = escapeHTML(article.title);
+    const safeDesc = escapeHTML(article.description.length > 180 ? article.description.substring(0, 180) + '...' : article.description);
     return `
         <article class="bg-white dark:bg-cyber-panel border border-gray-200 dark:border-gray-800 rounded-md p-6 shadow-sm relative overflow-hidden group hover:border-cyber-green transition-all duration-300">
             <div class="absolute top-0 left-0 w-1 h-full bg-cyber-green opacity-80 group-hover:w-2 transition-all"></div>
@@ -98,11 +100,11 @@ function generateVerticalGRCArticleHTML(article) {
             </div>
 
             <h3 class="text-xl sm:text-2xl font-bold font-orbitron text-gray-900 dark:text-gray-100 group-hover:text-cyber-green transition-colors mb-3 leading-snug">
-                ${article.title}
+                ${safeTitle}
             </h3>
             
             <p class="text-gray-600 dark:text-gray-400 text-sm font-sans mb-6 leading-relaxed max-w-4xl">
-                ${article.description.length > 180 ? article.description.substring(0, 180) + '...' : article.description}
+                ${safeDesc}
             </p>
 
             <div class="flex items-center justify-between border-t border-gray-100 dark:border-gray-800/50 pt-4">

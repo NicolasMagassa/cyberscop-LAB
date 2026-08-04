@@ -1,7 +1,17 @@
 /**
- * Script de gestion pour la page article.html (Lecture détaillée d'un article)
- * Dépend de main.js pour le chargement des utilitaires globaux et des données simulées.
+ * Échappe les caractères HTML pour éviter les injections XSS.
+ * @param {string} str 
+ * @returns {string}
  */
+function escapeHTML(str) {
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
 async function loadArticle() {
     const loader = document.getElementById('article-loader');
@@ -132,10 +142,16 @@ function renderError(container, message) {
                 <i data-lucide="shield-alert" class="w-5 h-5 mr-2 text-cyber-red animate-pulse"></i>
                 ACCÈS REFUSÉ / CORRUPTION DE DONNÉES
             </h3>
-            <p class="mb-4">> ${message}</p>
+            <p class="error-msg-text mb-4"></p>
             <p class="text-xs text-gray-500 font-sans">Veuillez vérifier les paramètres de votre terminal ou contacter l'administrateur système.</p>
         </div>
     `;
+    const textEl = (container && typeof container.querySelector === 'function') ? container.querySelector('.error-msg-text') : null;
+    if (textEl) {
+        textEl.textContent = `> ${message}`;
+    } else if (container) {
+        container.innerHTML = container.innerHTML.replace('class="error-msg-text mb-4"></p>', `class="error-msg-text mb-4">${escapeHTML(`> ${message}`)}</p>`);
+    }
 }
 
 /**
@@ -329,9 +345,7 @@ function renderArticleContent(container, article, type) {
             </div>
 
             <!-- Titre principal -->
-            <h1 class="text-2xl sm:text-4xl font-orbitron font-extrabold text-gray-900 dark:text-white leading-tight mb-4 tracking-wide group-hover:text-cyber-blue transition-colors">
-                ${article.title}
-            </h1>
+            <h1 class="article-title-render text-2xl sm:text-4xl font-orbitron font-extrabold text-gray-900 dark:text-white leading-tight mb-4 tracking-wide group-hover:text-cyber-blue transition-colors"></h1>
 
             <!-- Métadonnées (catégorie, vues, etc.) -->
             ${subHeaderHTML}
@@ -339,7 +353,7 @@ function renderArticleContent(container, article, type) {
             <!-- Corps de l'article -->
             <div class="border-t border-gray-100 dark:border-gray-800/60 pt-8 mt-6">
                 <div class="text-gray-700 dark:text-gray-300 font-sans text-base sm:text-lg leading-relaxed space-y-6">
-                    <p class="whitespace-pre-wrap">${article.description}</p>
+                    <p class="article-desc-render whitespace-pre-wrap"></p>
                 </div>
             </div>
 
@@ -353,6 +367,22 @@ function renderArticleContent(container, article, type) {
             </div>
         </article>
     `;
+    const titleEl = (container && typeof container.querySelector === 'function') ? container.querySelector('.article-title-render') : null;
+    const descEl = (container && typeof container.querySelector === 'function') ? container.querySelector('.article-desc-render') : null;
+    if (titleEl) titleEl.textContent = article.title;
+    else if (container) {
+        container.innerHTML = container.innerHTML.replace(
+            'class="article-title-render text-2xl sm:text-4xl font-orbitron font-extrabold text-gray-900 dark:text-white leading-tight mb-4 tracking-wide group-hover:text-cyber-blue transition-colors"></h1>',
+            `class="article-title-render text-2xl sm:text-4xl font-orbitron font-extrabold text-gray-900 dark:text-white leading-tight mb-4 tracking-wide group-hover:text-cyber-blue transition-colors">${escapeHTML(article.title)}</h1>`
+        );
+    }
+    if (descEl) descEl.textContent = article.description;
+    else if (container) {
+        container.innerHTML = container.innerHTML.replace(
+            'class="article-desc-render whitespace-pre-wrap"></p>',
+            `class="article-desc-render whitespace-pre-wrap">${escapeHTML(article.description)}</p>`
+        );
+    }
 }
 
 // Lancer le chargement au chargement du DOM
@@ -367,6 +397,7 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         loadArticle,
         renderError,
-        renderArticleContent
+        renderArticleContent,
+        escapeHTML
     };
 }

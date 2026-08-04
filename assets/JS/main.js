@@ -1,4 +1,19 @@
 /**
+ * Échappe les caractères HTML pour éviter les injections XSS.
+ * @param {string} str 
+ * @returns {string}
+ */
+function escapeHTML(str) {
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+/**
  * =========================================
  *  FONCTIONS DE L'ANCIENNE VERSION (gerer_compte)
  * =========================================
@@ -257,14 +272,16 @@ function flattenStrapiItem(item) {
  */
 function generateVeilleArticleHTML(article) {
     const targetId = article.documentId || article.id;
+    const safeTitle = escapeHTML(article.title);
+    const safeDesc = escapeHTML(article.description);
     return `
         <a href="article.html?type=ia&id=${targetId}" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
             <span class="text-xs font-mono font-bold text-cyber-purple min-w-[40px] mt-0.5">${formatDate(article.date)}</span>
             <div class="flex-1">
                 <h4 class="text-xs font-bold text-gray-700 dark:text-gray-200 group-hover:text-cyber-purple transition-colors leading-snug mb-1">
-                    ${article.title}
+                    ${safeTitle}
                 </h4>
-                <p class="text-[10px] text-gray-400 line-clamp-1">${article.description}</p>
+                <p class="text-[10px] text-gray-400 line-clamp-1">${safeDesc}</p>
             </div>
         </a>
     `;
@@ -314,6 +331,7 @@ function generateBriefingArticleHTML(article) {
     const targetId = article.documentId || article.id;
     const colorClass = 'cyber-pink';
     const shadowColor = 'rgba(214,0,214,0.15)';
+    const safeTitle = escapeHTML(article.title);
     return `
         <article class="bg-white dark:bg-cyber-panel border border-gray-200 dark:border-gray-800 hover:border-${colorClass} dark:hover:border-${colorClass} transition-all duration-300 hover:shadow-lg group relative overflow-hidden rounded-md flex flex-col h-full shadow-sm theme-transition min-h-[160px]" style="--hover-shadow: ${shadowColor}">
             <style>.group:hover { box-shadow: 0 0 15px var(--hover-shadow); }</style>
@@ -325,7 +343,7 @@ function generateBriefingArticleHTML(article) {
                     <span class="text-gray-500 dark:text-gray-400">${formatLongDate(article.date)}</span>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-${colorClass} transition-colors font-orbitron mb-4">
-                    ${article.title}
+                    ${safeTitle}
                 </h3>
                 <a href="article.html?type=veille&id=${targetId}" class="inline-flex items-center text-${colorClass} hover:text-cyber-black dark:hover:text-white font-mono text-sm uppercase tracking-wider mt-auto font-bold transition-colors">
                     <span>Initialiser lecture</span>
@@ -466,6 +484,8 @@ async function renderRessourcesGuideArticles() {
             badgeColor = 'text-cyber-pink border-cyber-pink bg-cyber-pink/5 dark:bg-transparent';
         }
 
+        const safeTitle = escapeHTML(article.title);
+
         return `
             <a href="article.html?type=${article.type}&id=${article.documentId || article.id}" class="group flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-white/5 rounded transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-0">
                 <span class="text-xs font-mono font-bold text-gray-400 dark:text-gray-500 min-w-[40px] mt-0.5">${formatDate(article.date)}</span>
@@ -474,7 +494,7 @@ async function renderRessourcesGuideArticles() {
                         <span class="text-[9px] font-mono border px-1 uppercase ${badgeColor}">${label}</span>
                     </div>
                     <h4 class="text-xs font-bold text-gray-700 dark:text-gray-200 group-hover:text-cyber-blue transition-colors leading-snug">
-                        ${article.title}
+                        ${safeTitle}
                     </h4>
                 </div>
             </a>
@@ -1605,6 +1625,7 @@ if (typeof module !== 'undefined' && module.exports) {
         renderRessourcesGuideArticles,
         flattenStrapiItem,
         updatePaginationDOM,
-        delay
+        delay,
+        escapeHTML
     };
 }
