@@ -1077,8 +1077,10 @@ describe('Tests Automatisés - Logique de l\'Interface Utilisateur', () => {
             expect(mockContainer.innerHTML).toContain('MALWARE');
         });
 
-        // Cible : Sécurité contre les failles DOM XSS
-        // Rôle  : Vérifier que tous les payloads XSS courants (script, image onerror, SVG onload, javascript:) sont échappés et inoffensifs
+        /**
+         * @test renderArticleContent - Prévention des injections XSS
+         * @description Vérifie que tous les payloads XSS courants (script, image avec onerror, SVG onload, schémas javascript: et charges polyglottes) injectés dans le titre ou la description de l'article sont correctement encodés en entités HTML inoffensives et ne s'exécutent pas.
+         */
         test('renderArticleContent neutralise tous les payloads XSS (script, onerror, SVG, javascript:, polyglotes)', () => {
             const payloads = [
                 "<script>alert('XSS_SCRIPT')</script>",

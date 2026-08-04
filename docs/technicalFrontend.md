@@ -1367,3 +1367,34 @@ Garantir la sécurité de l'authentification en appliquant une politique de mot 
 5. **Vérification du résultat**  
    Les tests unitaires frontend (7 tests dédiés dans `mon-espace.test.js`) et d'intégration backend (25 tests dédiés dans `account-deletion.test.js`) passent au vert. Les scénarios E2E Playwright (4 tests dans `account-deletion.spec.js`) sont validés avec succès.
 
+---
+
+## Étape 29 : Sécurisation du rendu frontend contre les failles DOM XSS (TDD)
+
+1. **Objectif de l'étape**  
+   Identifier, auditer et éliminer l'ensemble des failles d'injection de scripts (DOM XSS) dans l'application front-end de CyberScope LAB en remplaçant l'usage de concaténations dynamiques dans `innerHTML` par l'affectation sécurisée via `textContent` ou par un encodage strict d'entités HTML via `escapeHTML` (sans introduire de dépendance tierce type DOMPurify).
+
+2. **Prérequis**  
+   - La fonction globale d'encodage `escapeHTML` définie dans [main.js](../assets/JS/main.js) et locale dans [article.js](../assets/JS/article.js).
+   - Les scripts de rendu et générateurs de listes modifiés : [article.js](../assets/JS/article.js), [main.js](../assets/JS/main.js), [veille.js](../assets/JS/veille.js), [ReglementationDevSecOps.js](../assets/JS/ReglementationDevSecOps.js), [recherches.js](../assets/JS/recherches.js), [ia.js](../assets/JS/ia.js), [grc.js](../assets/JS/grc.js), [contact.js](../assets/JS/contact.js).
+   - Les tests unitaires correspondants écrits dans [tests/test.js](../tests/test.js).
+   - Le test E2E écrit dans [tests/e2e/smoke.spec.js](../tests/e2e/smoke.spec.js).
+
+3. **Commandes**  
+   Pour exécuter les tests unitaires et comportementaux Jest :
+   ```bash
+   npm test
+   ```
+   Pour exécuter les tests Playwright E2E :
+   ```bash
+   npx playwright test tests/e2e/smoke.spec.js
+   ```
+
+4. **Explication courte**  
+   - **Neutralisation de renderError et renderArticleContent (`article.js`)** : Les paramètres dynamiques issus de l'URL (`type` et `id`) et du backend Strapi (`article.title` et `article.description`) sont affectés de manière sécurisée en modifiant les squelettes HTML pour utiliser des classes de placement, puis en configurant les valeurs dynamiques à l'aide de `textContent`. Un mécanisme de repli (string replacement) est configuré pour garantir la compatibilité des mock containers unitaires.
+   - **Protection des Listes et Grilles d'accueil** : La fonction `escapeHTML` convertit à la volée les caractères de contrôle (`<`, `>`, `&`, `"`, `'`) en entités inoffensives pour tous les rendus dynamiques concaténés au chargement (titres, résumés, dates, etc.).
+   - **Protection des messages de feedback (`contact.js`)** : Le statut d'erreur ou de succès renvoyé par l'API de contact est assigné de façon isolée via `textContent`.
+
+5. **Vérification du résultat**  
+   Les 187 tests unitaires Jest s'exécutent avec succès (incluant les cas d'injections `<script>`, `onerror`, `SVG onload` et `javascript:`). Le test Playwright E2E valide que le script d'attaque simulé dans l'URL de l'article n'est jamais interprété ni exécuté par le navigateur.
+

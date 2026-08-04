@@ -67,6 +67,7 @@ test.describe('Smoke Tests - CyberScope Lab', () => {
 
   /**
    * @test Sécurité - Prévention XSS
+   * @description Navigue vers la page de lecture d'article avec un payload XSS dynamique dans les paramètres de requête de l'URL et valide que le script n'est pas exécuté par le navigateur (neutralisation de DOM XSS).
    */
   test('devrait neutraliser les injections XSS dans l\'URL de la page Article', async ({ page }) => {
     // Naviguer sur la page article avec un payload XSS inoffensif dans l'URL
