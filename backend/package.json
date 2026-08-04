@@ -26,6 +26,9 @@
     "strapi-provider-email-brevo": "^1.0.4",
     "styled-components": "^6.0.0"
   },
+  "overrides": {
+    "undici": "^6.28.0"
+  },
   "engines": {
     "node": ">=20.0.0 <=26.x.x",
     "npm": ">=6.0.0"
