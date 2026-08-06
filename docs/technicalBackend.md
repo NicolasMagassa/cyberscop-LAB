@@ -813,6 +813,20 @@ Le backend propose un mécanisme sécurisé et transactionnel permettant à un u
 - Un identifiant de corrélation unique (UUID) est généré au début de chaque requête de suppression.
 - Aucun identifiant direct de l'utilisateur (nom, email, identifiant technique SQL) n'est consigné dans les logs du serveur. Seul l'UUID de transaction et le résultat global de l'opération sont tracés.
 
+### 🔒 Sécurisation des Dépendances Backend (SCA)
+
+Le backend applique des correctifs de sécurité directs sur ses dépendances transitives critiques en définissant des clauses `overrides` dans `package.json` afin de résoudre les vulnérabilités signalées par l'audit SCA (`npm audit`).
+
+#### 1. Sous-lot A1 — Sécurisation du Client HTTP (`undici`)
+* **Dépendance corrigée :** `undici` mise à niveau de la version d'origine transitive vers la version sécurisée **`6.28.0`** par override.
+* **Risques atténués :** Correction de failles de déni de service (DoS), de contournements de restrictions réseau lors de redirections et de fuite d'en-têtes confidentiels dans le client HTTP de runtime.
+* **Validation :** Validé à 100% par l'envoi d'e-mails transactionnels (Brevo) et la suite de tests automatisés.
+
+#### 2. Sous-lot A2 — Sécurisation du Traitement d'Images (`sharp` & `libvips`)
+* **Dépendance corrigée :** `sharp` mise à niveau vers la version **`0.35.3`** par override. Cette mise à jour force également l'utilisation de la version sécurisée de la bibliothèque native **`@img/sharp-libvips`** en version **`1.3.2`**.
+* **Risques atténués :** Résolution de la faille de sécurité critique **`GHSA-f88m-g3jw-g9cj`** / CVE-2026-33327 de `libvips`. Cela empêche un attaquant de provoquer des plantages mémoire (Buffer Overflow) ou des exécutions de code en envoyant des images malveillantes dans la Médiathèque.
+* **Validation fonctionnelle :** Le traitement a été validé en téléversant une image large de 1600x1200 px et en vérifiant en base de données et sur le disque la génération sans erreur des 4 formats dérivés (thumbnail, small, medium, large).
+
 ---
 
 ## 🚀 Commandes utiles
