@@ -166,8 +166,8 @@ L'exécution de `npm audit` dans le sous-dossier `backend` met en évidence **54
     *   *Type de dépendance* : Transitive.
     *   *Chaîne de dépendances* : `backend` -> `@strapi/strapi` -> `@strapi/upload` -> `sharp`
     *   *Environnement* : **Production / Développement** (gestionnaire de média Strapi).
-    *   *Exploitabilité réelle* : **Faible**. Utilisé pour le recadrage et la génération de miniatures à l'import de médias. Dans CyberScope LAB, seuls les administrateurs authentifiés peuvent téléverser des images dans Strapi. Un utilisateur anonyme ne peut pas soumettre de fichier média au backend pour exploiter libvips.
-    *   *Action recommandée* : Mettre à jour `sharp` vers `^0.35.0` via resolutions ou mise à niveau mineure de Strapi.
+    *   *Exploitabilité réelle* : **Faible**. Utilisé pour le recadrage et la génération de miniatures à l'import de médias.
+    *   *État de correction* : **Corrigé via package override** vers la version `0.35.3` (Sous-Lot A2). Les tests unitaires Jest (187/187 passés), E2E Playwright (24/24 passés) et la validation fonctionnelle de la médiathèque (téléversement, génération de miniatures et suppression via Sharp) sont validés avec succès.
 6.  **`lodash`** (vulnerable via `_.template`, `_.unset`, `_.omit`) :
     *   *CVE/GHSA* : GHSA-r5fr-rjxr-66jc, GHSA-f23m-r3pf-42rh
     *   *Gravité* : **Haute**

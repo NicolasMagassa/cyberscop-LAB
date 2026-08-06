@@ -39,7 +39,7 @@ gantt
         *   *Validation de signature* : Vérification systématique des signatures via `npm audit signatures` (1422 packages signés, 140 attestations vérifiées).
         *   *Découpage du Lot A (Overrides Backend)* :
             *   **[x] A1** : Override de `undici` vers `^6.28.0` (client HTTP actif au runtime - validé et implémenté).
-            *   **[ ] A2** : Override de `sharp` vers `^0.35.0` (traitement d'images d'administration).
+            *   **[x] A2** : Override de `sharp` vers `^0.35.3` (traitement d'images d'administration - validé et implémenté).
             *   **[ ] A3** : Override de `tar` vers `^7.5.3` (migrations CLI / backups).
             *   **[ ] A4** : Override de `nodemailer` vers `^6.9.15` (mailer par défaut inactif).
             *   **[ ] A5** : Override de `ws` vers `^8.18.0` (WebSockets en environnement local).
