@@ -18,3 +18,6 @@ backend/.env
 playwright-report/
 test-results/
 blob-report/
+
+# Scripts Python locaux de diagnostic et de test
+/scratch/*.py
