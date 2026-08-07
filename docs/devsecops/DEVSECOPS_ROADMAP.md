@@ -40,7 +40,7 @@ gantt
         *   *Découpage du Lot A (Overrides Backend)* :
             *   **[x] A1** : Override de `undici` vers `^6.28.0` (client HTTP actif au runtime - validé et implémenté).
             *   **[x] A2** : Override de `sharp` vers `^0.35.3` (traitement d'images d'administration - validé et implémenté).
-            *   **[ ] A3** : Override de `tar` vers `^7.5.3` (migrations CLI / backups).
+            *   **[x] A3** : Override de `tar` vers `^7.5.22` (migrations CLI / backups - validé et implémenté).
             *   **[ ] A4** : Override de `nodemailer` vers `^6.9.15` (mailer par défaut inactif).
             *   **[ ] A5** : Override de `ws` vers `^8.18.0` (WebSockets en environnement local).
 *   **Fichiers créés/modifiés** :

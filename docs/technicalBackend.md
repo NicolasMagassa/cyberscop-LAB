@@ -827,6 +827,11 @@ Le backend applique des correctifs de sécurité directs sur ses dépendances tr
 * **Risques atténués :** Résolution de la faille de sécurité critique **`GHSA-f88m-g3jw-g9cj`** / CVE-2026-33327 de `libvips`. Cela empêche un attaquant de provoquer des plantages mémoire (Buffer Overflow) ou des exécutions de code en envoyant des images malveillantes dans la Médiathèque.
 * **Validation fonctionnelle :** Le traitement a été validé en téléversant une image large de 1600x1200 px et en vérifiant en base de données et sur le disque la génération sans erreur des 4 formats dérivés (thumbnail, small, medium, large).
 
+#### 3. Sous-lot A3 — Sécurisation de l'Archivage et des Sauvegardes (`tar`)
+* **Dépendance corrigée :** `tar` mise à niveau vers la version **`7.5.22`** par override.
+* **Risques atténués :** Résolution de 6 failles de sécurité de la bibliothèque d'archivage `node-tar` (dont la vulnérabilité critique de déni de service par Gzip Bomb **`GHSA-23hp-3jrh-7fpw`**, de contournement de filtre de sécurité par File Smuggling **`GHSA-vmf3-w455-68vh`**, de plantage mémoire par confusion de type, boucle infinie ou récursion non contrôlée).
+* **Validation fonctionnelle :** Validé en exécutant l'export des données Strapi (`npm run strapi -- export --no-encrypt --file exports/test-export`), en vérifiant la création physique et la lisibilité complète des fichiers contenus dans l'archive tar sans extraction via `tar -tf`, puis en nettoyant les exports générés.
+
 ---
 
 ## 🚀 Commandes utiles

@@ -53,7 +53,7 @@ Impact / Gravité
 *   **Impact** : 4 (Déni de service, divulgation de fichiers, corruption de mémoire).
 *   **Score de Risque** : **12/15** (Élevé)
 *   **Mesure d'atténuation** : **En cours (US-02)**. Application progressive de corrections via overrides par sous-lots.
-*   **État** : **Partiellement atténué** (Sous-Lot A1 `undici` résolu - Version `6.28.0` installée).
+*   **État** : **Partiellement atténué** (Sous-lots A1 `undici`, A2 `sharp` et A3 `tar` résolus).
 
 ### 🟢 Risque R-05 : Usurpation d'identité et commits Git frauduleux
 *   **Description** : L'auteur des commits Git n'est pas vérifié par clé cryptographique, permettant à un attaquant tiers ayant compromis le poste ou obtenu des accès d'écrire du code malveillant sous le nom de Nicolas Magassa.
